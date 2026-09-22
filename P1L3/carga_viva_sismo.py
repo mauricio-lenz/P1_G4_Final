@@ -87,7 +87,7 @@ def load_json(path):
 def write_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as file:
-        json.dump(data, file, indent=2, ensure_ascii=False)
+        json.dump(data, file, indent=2, ensure_ascii=False, sort_keys=True)
 
 
 def kg_m2_to_kn_m2(kg_m2):
@@ -933,7 +933,7 @@ def rebar_coordinates(b, h, cover):
 def make_column_fibers():
     b = h = 0.70
     cover = 0.05
-    fc = 25_000.0  # H-25
+    fc = _FIB_FC  # H-30 (30000 kN/m2)
     fy = 420_000.0
     es = 200_000_000.0
     bar_area = math.pi * (BAR_DIAMETER_MM / 1000.0) ** 2 / 4.0
@@ -968,9 +968,9 @@ def define_opensees_fiber_section():
     concrete_tag = 1
     steel_tag = 2
     section_tag = 1
-    fc = -25_000.0  # H-25
+    fc = -_FIB_FC  # H-30 (30000 kN/m2)
     epsc0 = -0.002
-    fcu = -21_250.0
+    fcu = -0.85 * _FIB_FC
     epscu = -0.003
     fy = 420_000.0
     es = 200_000_000.0

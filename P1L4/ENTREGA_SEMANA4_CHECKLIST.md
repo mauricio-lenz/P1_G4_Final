@@ -88,12 +88,12 @@ C3: G+0.5Q-0.3EX+0.2EY
 Regenerar datos:
 
 ```powershell
-cd "C:\Users\segui\OneDrive\Desktop\proyecto MCOC"
-.\.venv\Scripts\python.exe -X utf8 P1L4\exportar_resultados_unity.py
+cd "C:\Users\mauwa\OneDrive\Desktop\Grupo4_MCOC\P1_G4_Final"
+python -X utf8 P1L4\exportar_resultados_unity.py
 ```
 
 Abrir Unity:
 
 ```text
-C:\Users\segui\OneDrive\Desktop\proyecto MCOC\P1L4\unity_visualizador
+C:\Users\mauwa\OneDrive\Desktop\Grupo4_MCOC\P1_G4_Final\P1L4\unity_visualizador
 ```

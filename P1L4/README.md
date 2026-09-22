@@ -17,9 +17,19 @@ Etapa del proyecto MCOC que implementa el visualizador 3D mejorado en Unity con:
 ## Generar datos
 
 ```bat
-.venv\Scripts\python.exe -X utf8 P1L4\exportar_resultados_unity.py
+python -X utf8 P1L4\exportar_resultados_unity.py
 ```
+
+El exportador actualiza ademas `P1L2/unity_visualizador/Assets/Resources/semana3_resultados_unity.json` con la curva P-M de la columna en H-30 (Po calculada por fibra en carga_viva_sismo).
+
+## Exportar esfuerzos a Excel
+
+```bat
+python -X utf8 P1L4\exportar_excel_esfuerzos.py
+```
+
+Genera `P1L4/resultados/esfuerzos_por_elemento.xlsx` (hoja por caso G/Q/EX/EY y combinacion C1/C2/C3 con N, Vy, Vz, T, My, Mz en extremos i y j por elemento, relacion demanda/capacidad P-M para columnas, y hoja de muros).
 
 ## Abrir en Unity
 
-Copiar `unity_visualizador/` como proyecto Unity, crear escena, y usar el menú **MCOC → Crear Visualizador**.
+Copiar `unity_visualizador/` como proyecto Unity, crear escena, y usar el menú **MCOC → Crear Visualizador`. En el panel izquierdo, "Colorear por utilizacion" pinta cada elemento segun su relacion C = M/Mcap del combo activo.

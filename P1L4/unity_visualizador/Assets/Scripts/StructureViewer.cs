@@ -51,6 +51,8 @@ public class StructureViewer : MonoBehaviour
     private bool showLocalAxes = false;
     private bool showLoads = false;
     private bool showTributarySummary = false;
+    private bool showUtilization = false;
+    private readonly Dictionary<GameObject, Color> originalUtilColors = new Dictionary<GameObject, Color>();
 
     // Combinaciones de carga
     private string[] comboOptions = new string[0];
@@ -190,6 +192,11 @@ public class StructureViewer : MonoBehaviour
             {
                 pmPanel.ShowPMForElement(picker.Selected);
             }
+        }
+
+        if (showUtilization)
+        {
+            ApplyUtilizationColors();
         }
     }
 
@@ -763,6 +770,71 @@ public class StructureViewer : MonoBehaviour
     }
 
     // Metodos de visualizacion opcional (nodulos, IDs, ejes locales)
+    public void SetUtilizationVisible(bool visible)
+    {
+        showUtilization = visible;
+        if (visible)
+        {
+            ApplyUtilizationColors();
+        }
+        else
+        {
+            RestoreUtilizationColors();
+        }
+        RefreshVisibility();
+    }
+
+    private void ApplyUtilizationColors()
+    {
+        foreach (ElementSelectable sel in selectables)
+        {
+            if (sel == null)
+            {
+                continue;
+            }
+            Renderer renderer = sel.GetComponent<Renderer>();
+            if (renderer == null)
+            {
+                continue;
+            }
+            GameObject go = sel.gameObject;
+            if (!originalUtilColors.ContainsKey(go))
+            {
+                originalUtilColors[go] = renderer.material.color;
+            }
+            renderer.material.color = UtilizationColor(sel.GetActiveUtilization());
+        }
+    }
+
+    private void RestoreUtilizationColors()
+    {
+        foreach (ElementSelectable sel in selectables)
+        {
+            if (sel == null)
+            {
+                continue;
+            }
+            Renderer renderer = sel.GetComponent<Renderer>();
+            GameObject go = sel.gameObject;
+            if (renderer != null && originalUtilColors.ContainsKey(go))
+            {
+                renderer.material.color = originalUtilColors[go];
+            }
+        }
+        originalUtilColors.Clear();
+    }
+
+    private Color UtilizationColor(float ratio)
+    {
+        if (ratio <= 0f) return new Color(0.75f, 0.75f, 0.75f);
+        float clamped = Mathf.Clamp01(ratio);
+        if (clamped <= 0.7f)
+        {
+            return Color.Lerp(new Color(0.2f, 0.9f, 0.3f), new Color(1f, 0.9f, 0.1f), clamped / 0.7f);
+        }
+        return Color.Lerp(new Color(1f, 0.9f, 0.1f), new Color(0.9f, 0.15f, 0.1f), (clamped - 0.7f) / 0.3f);
+    }
+
     public void SetNodeMarkersVisible(bool visible)
     {
         if (visible && nodeMarkerObjects.Count == 0)
@@ -1052,6 +1124,11 @@ public class StructureViewer : MonoBehaviour
         {
             showColumns = showBeams = showWalls = showSupports = showDiaphragms = true;
             showNodeMarkers = showIds = showLocalAxes = showLoads = false;
+            if (showUtilization)
+            {
+                showUtilization = false;
+                RestoreUtilizationColors();
+            }
             floorIndex = 0;
             statusMessage = "Vista restablecida.";
         }
@@ -1059,6 +1136,11 @@ public class StructureViewer : MonoBehaviour
         {
             showColumns = showBeams = showWalls = true;
             showSupports = showDiaphragms = showNodeMarkers = showIds = showLocalAxes = showLoads = false;
+            if (showUtilization)
+            {
+                showUtilization = false;
+                RestoreUtilizationColors();
+            }
             statusMessage = "Capas auxiliares ocultas.";
         }
         innerY += 34f;
@@ -1073,6 +1155,20 @@ public class StructureViewer : MonoBehaviour
                 GUI.Label(new Rect(innerX, innerY, innerW, 18f), $"{kv.Key}: A={td.area_total:0.##} m2 | carga={td.carga_total:0.##} kN");
                 innerY += 18f;
             }
+        }
+        innerY += 6f;
+
+        bool nextUtilization = GUI.Toggle(new Rect(innerX, innerY, 210f, 20f), showUtilization, "Colorear por utilizacion (C)");
+        if (nextUtilization != showUtilization)
+        {
+            SetUtilizationVisible(nextUtilization);
+            statusMessage = showUtilization ? "Colores por C = demanda/capacidad P-M." : "Colores por capa restaurados.";
+        }
+        innerY += 20f;
+        if (showUtilization)
+        {
+            GUI.Label(new Rect(innerX, innerY, innerW, 20f), "verde: C<=0.7 | amarillo: C~1 | rojo: C>1");
+            innerY += 20f;
         }
 
         GUI.EndScrollView();

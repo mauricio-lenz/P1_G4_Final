@@ -57,9 +57,39 @@ Unity del edificio 1 (genera/Abre `P1L2/Edificio 1 y 2/edificio 1/unity_visualiz
 P1L2/Edificio 1 y 2/edificio 1/unity_visualizador
 ```
 
+## Pipeline unificado (P1L4)
+
+Genera el JSON del visualizador Unity con esfuerzos por elemento (con `tag` de OpenSees), combinaciones C1/C2/C3 y curvas P-M H-30:
+
+```bat
+python -X utf8 P1L4\exportar_resultados_unity.py
+```
+
+Salida: `P1L4/unity_visualizador/Assets/Resources/estructura_p1l4_unity.json` (claves ordenadas) y `P1L2/unity_visualizador/Assets/Resources/semana3_resultados_unity.json`.
+
+Exportar fuerzas internas por elemento a Excel (hoja por caso/combinacion mas resumen de muros):
+
+```bat
+python -X utf8 P1L4\exportar_excel_esfuerzos.py
+```
+
+Salida: `P1L4/resultados/esfuerzos_por_elemento.xlsx`. Requiere `openpyxl` (ya incluido en `requirements.txt`).
+
+Unity del visualizador unificado:
+
+```text
+P1L4/unity_visualizador
+```
+
+## Limitaciones conocidas
+
+- El edificio 2 solo se incluye en la geometria unificada (nodulos de `estructura_completo_unity.json`); su analisis estructural fisico no esta modelado en la etapa P1L4, por lo que los resultados de esfuerzos, desplazamientos y muros corresponden al edificio 1.
+- Los muros se representan como muros equivalentes (seccion banda H-30) con demandas estimadas por reparto sismico proporcional a `t*L`; el momento vuelvo/corte fuera de plano se desprecia.
+- Modulos de elasticidad secantes: el modelo usa valores de material por etapa (p. ej. `E_CONCRETE = 25 GPa`) como simplificacion documentada; las curvas P-M usan H-30 (`fc = 30 MPa`, `fy = 420 MPa`).
+
 ## Entrega Canvas
 
-- Repositorio: `https://github.com/Santiago411323/Trabajo-MCOC`
+- Repositorio: `https://github.com/mauricio-lenz/P1_G4_Final`
 - Informe Markdown: `semana_actual_benchmark_3d/LAB_semana1_benchmark_3D.md`
 - Archivo de verificacion: `semana_actual_benchmark_3d/resultados_verificacion_3d.md`
 - Guia de defensa: `semana_actual_benchmark_3d/DEFENSA_individual_3D.md`

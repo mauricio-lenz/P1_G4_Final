@@ -40,12 +40,12 @@ SECTION_MATERIALS = [
         "sectionId": "COL70/70",
         "elementType": "columna",
         "materialName": "H-30 / Acero A630-420",
-        "fc_MPa": 25.0,
+        "fc_MPa": 30.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 30000.0,
         "b_m": 0.70,
         "h_m": 0.70,
-        "note": "Seccion rectangular 70x70 cm, H-30, fy=420 MPa"
+        "note": "Seccion rectangular 70x70 cm, H-30 (fc=30 MPa), fy=420 MPa"
     },
     {
         "sectionId": "COL70/70_FIBER",
@@ -53,14 +53,14 @@ SECTION_MATERIALS = [
         "materialName": "H-30 / Acero A630-420 (analisis fibra)",
         "fc_MPa": 30.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 30000.0,
         "b_m": 0.70,
         "h_m": 0.70,
         "steelBars": 8,
         "barDiameter_mm": 25.0,
         "Ast_mm2": 3927.0,
         "rho_percent": 0.80,
-        "Po_kN": 11978.4,
+        "Po_kN": 14044.2,
         "note": "Analisis fibra P-M: H-30, fy=420, 8 phi25, rec=52.5mm"
     },
     {
@@ -134,7 +134,7 @@ def load_json(path):
 def write_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
 
 
 def main():
@@ -188,16 +188,32 @@ def main():
     else:
         print(f"  AVISO: No se encontro {wall_pm_path}, se omite curva P-M muro.")
 
-    # ── Cargar curva P-M columna (semana3_resultados_unity.json) ────
-    col_pm_path = P1L2_RESOURCES / "semana3_resultados_unity.json"
-    col_pm_data = None
-    if col_pm_path.exists():
-        print("Cargando curva P-M columna COL70/70...")
-        col_pm_full = load_json(col_pm_path)
-        col_pm_data = col_pm_full.get("pmPoints", [])
-        print(f"  Puntos P-M columna: {len(col_pm_data)}")
-    else:
-        print(f"  AVISO: No se encontro {col_pm_path}, se omite curva P-M columna.")
+    # ── Curva P-M columna (COL70/70_FIBER) ─────────────────────────
+    # Se recomputa con la seccion de fibra (H-30, fc=30 MPa) usando las
+    # mismas funciones de P1L3/carga_viva_sismo.py para evitar la
+    # inconsistencia historica entre la curva guardada (fc=25 MPa) y el
+    # material del modelo (H-30 en materials.py / structural_model.py).
+    print("Calculando curva P-M columna COL70/70_FIBER (H-30)...")
+    try:
+        col_section = cvm.make_column_fibers()
+        col_ag = col_section["b"] * col_section["h"]
+        col_ast = len(col_section["rebar_xy"]) * col_section["bar_area_m2"]
+        col_po = 0.85 * col_section["fc"] * (col_ag - col_ast) + col_section["fy"] * col_ast
+        col_pm_raw = cvm.simplified_pm_points(col_section, col_po)
+        col_pm_data = [{
+            "label": p["estado"],
+            "P_kN": p["Pn_kN"],
+            "M_kN_m": p["Mn_kN_m"],
+        } for p in col_pm_raw]
+        col_fc_mpa = col_section["fc"] / 1000.0
+        col_fy_mpa = col_section["fy"] / 1000.0
+        print(f"  Po = {col_po:.1f} kN | fc' = {col_fc_mpa:.0f} MPa | puntos = {len(col_pm_data)}")
+    except Exception as e:
+        print(f"  AVISO: No se pudo recalcular la curva P-M columna ({e}); se omite.")
+        col_pm_data = None
+        col_fc_mpa = 30.0
+        col_fy_mpa = 420.0
+        col_po = 0.0
 
     # ── Construir casos de carga ─────────────────────────────────────
     print("Construyendo casos de carga G, Q, EX, EY...")
@@ -273,15 +289,23 @@ def main():
             })
 
     # ── Empaquetar fuerzas por elemento ──────────────────────────────
+    element_meta = {}
+    for el in data.get("elements", []):
+        element_meta[int(el["id"])] = el
+
     element_forces_flat = []
     for combo_name, result in {**base_results, **all_results}.items():
         if result is None:
             continue
         forces_dict = result.get("element_forces", {})
         for elem_id, f in forces_dict.items():
+            meta = element_meta.get(int(elem_id), {})
             element_forces_flat.append({
                 "combo": combo_name,
                 "id": int(elem_id),
+                "tag": meta.get("elementTag", str(int(elem_id))),
+                "type": meta.get("type", ""),
+                "sourceBuilding": meta.get("sourceBuilding", ""),
                 "f": [float(v) for v in f[:12]] if len(f) >= 12 else [float(v) for v in f] + [0.0] * (12 - len(f))
             })
 
@@ -294,14 +318,14 @@ def main():
             "elementType": "columna",
             "b_m": 0.70,
             "h_m": 0.70,
-            "fc_MPa": 25.0,
-            "fy_MPa": 420.0,
+            "fc_MPa": col_fc_mpa,
+            "fy_MPa": col_fy_mpa,
             "steelBars": 8,
             "barDiameter_mm": 25.0,
             "Ast_mm2": 3927.0,
             "rho_percent": 0.80,
-            "Po_kN": 11978.4,
-            "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales: compresion pura, balance, falla ductil, flexion pura, traccion pura).",
+            "Po_kN": col_po,
+            "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales: compresion pura, balance, falla ductil, flexion pura, traccion pura), fc=H-30.",
             "points": [{"label": p["label"], "P_kN": p["P_kN"], "M_kN_m": p["M_kN_m"]} for p in col_pm_data]
         })
 
@@ -322,6 +346,47 @@ def main():
             "interpretation": f"Envolvente P-M W_DPRIME_OPENING_TO_3 (t=0.25m, L=7.60m, 2 capas phi12@200). {len(wall_points)} puntos de la envolvente.",
             "points": wall_points
         })
+
+    # ── Regenerar semana3_resultados_unity.json (H-30) ─────────────
+    # Deja el archivo de capacidad de P1L2 consistente con el modelo
+    # (concrete H-30) y con lo que Unity carga en la escena P1L2.
+    if col_pm_data:
+        try:
+            col_bar_area = col_section["bar_area_m2"]
+            col_bar_phi_mm = (2.0 * (col_bar_area / 3.141592653589793) ** 0.5) * 1000.0
+            col_ast_m2 = len(col_section["rebar_xy"]) * col_bar_area
+            col_capacity_unity = {
+                "capacityTitle": "Parte D - Capacidad HA COL70/70_FIBER",
+                "sectionId": "COL70/70_FIBER",
+                "b_m": col_section["b"],
+                "h_m": col_section["h"],
+                "fc_MPa": col_fc_mpa,
+                "fy_MPa": col_fy_mpa,
+                "steelBars": len(col_section["rebar_xy"]),
+                "barArea_m2": col_bar_area,
+                "barArea_mm2": col_bar_area * 1e6,
+                "barDiameter_mm": col_bar_phi_mm,
+                "Ast_m2": col_ast_m2,
+                "Ast_mm2": col_ast_m2 * 1e6,
+                "rho_percent": 100.0 * (col_ast_m2 / (col_section["b"] * col_section["h"])),
+                "Po_kN": col_po,
+                "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales), fc=H-30. Regenerado por P1L4/exportar_resultados_unity.py.",
+                "pmPoints": [
+                    {
+                        "label": p["estado"],
+                        "P_kN": p["Pn_kN"],
+                        "M_kN_m": p["Mn_kN_m"],
+                        "phiP_kN": p["phiPn_kN"],
+                        "phiM_kN_m": p["phiMn_kN_m"],
+                        "phi_1_m": 0.0,
+                    }
+                    for p in col_pm_raw
+                ],
+            }
+            write_json(P1L2_RESOURCES / "semana3_resultados_unity.json", col_capacity_unity)
+            print("  semana3_resultados_unity.json regenerado (H-30).")
+        except Exception as e:
+            print(f"  AVISO: no se pudo regenerar semana3_resultados_unity.json: {e}")
 
     # ── Calcular demandas por muro ───────────────────────────────────
     nodes_map = {n["id"]: (n["x"], n["y"], n["z"]) for n in data.get("nodes", [])}
@@ -399,6 +464,9 @@ def main():
         has_curve = bool(wall_pm_data)
         entry = dict(wall)
         entry["id"] = i + 1
+        entry["elementTag"] = "MURO-{:03d}".format(i + 1)
+        entry["sourceBuilding"] = wall.get("sourceBuilding", "edificio_1")
+        entry["sourceId"] = wall.get("sourceId", str(i + 1))
         entry["demands"] = demands_for_wall(entry)
         walls_enriched.append(entry)
         wall_registry.append({

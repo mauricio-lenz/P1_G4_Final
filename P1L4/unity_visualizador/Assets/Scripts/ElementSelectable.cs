@@ -136,6 +136,8 @@ public class ElementSelectable : MonoBehaviour
                   $"My = {my:0.###} kN*m\n" +
                   $"Mz = {mz:0.###} kN*m\n";
 
+        result += GetEndForcesText();
+
         if (data.type == "viga" && data.areaTributaria > 0f)
         {
             result += $"\n--- Cargas Tributarias ---\n" +
@@ -174,6 +176,23 @@ public class ElementSelectable : MonoBehaviour
                   $"Seccion/Capacidad: {secId} -> {pmSectionId ?? "sin curva"}\n";
 
         return result;
+    }
+
+    private string GetEndForcesText()
+    {
+        if (data == null || string.IsNullOrEmpty(UnityData.ActiveCombo) || UnityData.ElementForcesByCombo == null)
+        {
+            return "";
+        }
+        float[] forces = UnityData.GetElementForces(UnityData.ActiveCombo, data.id);
+        if (forces == null || forces.Length < 12)
+        {
+            return "  (sin registros de extremos para este elemento)\n";
+        }
+        string lbl = UnityData.GetComboLabel(UnityData.ActiveCombo);
+        return $"\n--- Extremos ({lbl}) ---\n" +
+               $"Nodo I ({data.nodeI}): N={forces[0]:0.###} Vy={forces[1]:0.###} Vz={forces[2]:0.###} T={forces[3]:0.###} My={forces[4]:0.###} Mz={forces[5]:0.###}\n" +
+               $"Nodo J ({data.nodeJ}): N={forces[6]:0.###} Vy={forces[7]:0.###} Vz={forces[8]:0.###} T={forces[9]:0.###} My={forces[10]:0.###} Mz={forces[11]:0.###}\n";
     }
 
     private string GetComboBreakdownText()
@@ -416,6 +435,26 @@ public class ElementSelectable : MonoBehaviour
             }
         }
         return pmDemands[0];
+    }
+
+    public Vector2 GetActiveDemand()
+    {
+        if (isWall)
+        {
+            DemandRecord wallDemand = GetActiveWallDemand();
+            return wallDemand == null ? Vector2.zero
+                                      : new Vector2(wallDemand.P_kN, wallDemand.M_kN_m);
+        }
+        return GetPMDemandForCase(string.IsNullOrEmpty(UnityData.ActiveCombo) ? "C1" : UnityData.ActiveCombo);
+    }
+
+    public float GetActiveUtilization()
+    {
+        if (string.IsNullOrEmpty(pmSectionId))
+        {
+            return 0f;
+        }
+        return GetCapacityRatio(GetActiveDemand());
     }
 
     private string FormatSupport(string label, SupportData support)

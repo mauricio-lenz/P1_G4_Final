@@ -218,7 +218,7 @@ def export_extended(structure, geometry, beam_data, out_path=OUT_PATH,
     }
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
     return out_path
 
 

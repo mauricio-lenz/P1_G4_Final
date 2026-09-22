@@ -394,7 +394,7 @@ def main():
     os.makedirs(RESULT_DIR, exist_ok=True)
 
     with open(OUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(estructura, f, ensure_ascii=False, indent=2)
+        json.dump(estructura, f, ensure_ascii=False, indent=2, sort_keys=True)
     print(f"JSON unificado: {OUT_JSON}")
 
     # Copiar al viewer Unity del edificio completo (si existe)
@@ -402,7 +402,7 @@ def main():
     if os.path.isdir(unity_resources):
         unity_path = os.path.join(unity_resources, UNITY_JSON_NAME)
         with open(unity_path, "w", encoding="utf-8") as f:
-            json.dump(estructura, f, ensure_ascii=False, indent=2)
+            json.dump(estructura, f, ensure_ascii=False, indent=2, sort_keys=True)
         print(f"Exportado Unity: {unity_path}")
     else:
         print(f"(no hay viewer Unity en {unity_resources}; JSON en resultados/)")
