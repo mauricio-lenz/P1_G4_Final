@@ -1,0 +1,155 @@
+{
+  "hipotesis_masa": "W_sismico = D + 0.5Q",
+  "EX": {
+    "direccion": "X",
+    "c_total_kN": 3668.6597923896834,
+    "corte_basal_kN": 3668.6597923892245,
+    "error_corte_kN": 4.588400770444423e-10,
+    "c_total_incluyendo_flotantes_kN": 6843.807960128075,
+    "max_desplazamiento_m": 0.013076431374816727,
+    "max_u_nodal_m": 0.02267526658110874,
+    "convergio": true,
+    "pisos": {
+      "CIELO_1S (z=0.130 m)": {
+        "floor_z_m": 0.1295108067306087,
+        "niveles_agrupados_z_m": [
+          0.0,
+          0.16
+        ],
+        "u_prom_en_dir_m": 0.00046627756567847836,
+        "u_max_nodal_m": 0.003693606566696664,
+        "u_min_nodal_m": 0.0,
+        "n_nodos": 30,
+        "rz_nodo_aplicacion_rad": -9.74920401663108e-06,
+        "rz_promedio_rad": -7.797614401290045e-07
+      },
+      "CIELO_1 (z=4.035 m)": {
+        "floor_z_m": 4.034835482802618,
+        "niveles_agrupados_z_m": [
+          4.0,
+          4.12
+        ],
+        "u_prom_en_dir_m": 0.0033637991218571413,
+        "u_max_nodal_m": 0.0059603663485968406,
+        "u_min_nodal_m": 0.0,
+        "n_nodos": 43,
+        "rz_nodo_aplicacion_rad": 0.0,
+        "rz_promedio_rad": 1.1620161630384328e-05
+      },
+      "CIELO_2 (z=8.023 m)": {
+        "floor_z_m": 8.022607309948297,
+        "niveles_agrupados_z_m": [
+          8.0,
+          8.08
+        ],
+        "u_prom_en_dir_m": 0.00698938722911785,
+        "u_max_nodal_m": 0.011307901113485166,
+        "u_min_nodal_m": 0.0,
+        "n_nodos": 48,
+        "rz_nodo_aplicacion_rad": 0.0,
+        "rz_promedio_rad": -3.2399247887330264e-05
+      },
+      "CIELO_3 (z=12.012 m)": {
+        "floor_z_m": 12.011761693213582,
+        "niveles_agrupados_z_m": [
+          12.0,
+          12.04
+        ],
+        "u_prom_en_dir_m": 0.011109667306670066,
+        "u_max_nodal_m": 0.018796392366551368,
+        "u_min_nodal_m": 0.0,
+        "n_nodos": 53,
+        "rz_nodo_aplicacion_rad": -4.704642702739587e-05,
+        "rz_promedio_rad": -2.819391014717873e-05
+      },
+      "CIELO_4 (z=16.000 m)": {
+        "floor_z_m": 16.0,
+        "niveles_agrupados_z_m": [
+          16.0
+        ],
+        "u_prom_en_dir_m": 0.013076431374816727,
+        "u_max_nodal_m": 0.02267526658110874,
+        "u_min_nodal_m": 0.0,
+        "n_nodos": 49,
+        "rz_nodo_aplicacion_rad": -4.614155086060408e-05,
+        "rz_promedio_rad": -2.1009450263446917e-05
+      }
+    }
+  },
+  "EY": {
+    "direccion": "Y",
+    "c_total_kN": 3668.6597923896834,
+    "corte_basal_kN": 3668.6597923900044,
+    "error_corte_kN": 3.2105162972584367e-10,
+    "c_total_incluyendo_flotantes_kN": 6843.807960128075,
+    "max_desplazamiento_m": 0.014008204299306786,
+    "max_u_nodal_m": 0.05729076612678424,
+    "convergio": true,
+    "pisos": {
+      "CIELO_1S (z=0.130 m)": {
+        "floor_z_m": 0.1295108067306087,
+        "niveles_agrupados_z_m": [
+          0.0,
+          0.16
+        ],
+        "u_prom_en_dir_m": 0.0015125146503305556,
+        "u_max_nodal_m": 0.00812507518084826,
+        "u_min_nodal_m": 0.0,
+        "n_nodos": 30,
+        "rz_nodo_aplicacion_rad": -0.0001272512852371586,
+        "rz_promedio_rad": -2.3153204922176067e-05
+      },
+      "CIELO_1 (z=4.035 m)": {
+        "floor_z_m": 4.034835482802618,
+        "niveles_agrupados_z_m": [
+          4.0,
+          4.12
+        ],
+        "u_prom_en_dir_m": 0.005523904085436203,
+        "u_max_nodal_m": 0.01858262787531149,
+        "u_min_nodal_m": -0.0005409607389711701,
+        "n_nodos": 43,
+        "rz_nodo_aplicacion_rad": 0.0,
+        "rz_promedio_rad": -0.00036648723768250186
+      },
+      "CIELO_2 (z=8.023 m)": {
+        "floor_z_m": 8.022607309948297,
+        "niveles_agrupados_z_m": [
+          8.0,
+          8.08
+        ],
+        "u_prom_en_dir_m": 0.010864688047638862,
+        "u_max_nodal_m": 0.031877857264291785,
+        "u_min_nodal_m": -0.0012099990453420372,
+        "n_nodos": 48,
+        "rz_nodo_aplicacion_rad": 0.0,
+        "rz_promedio_rad": -0.0005768147892680607
+      },
+      "CIELO_3 (z=12.012 m)": {
+        "floor_z_m": 12.011761693213582,
+        "niveles_agrupados_z_m": [
+          12.0,
+          12.04
+        ],
+        "u_prom_en_dir_m": 0.014008204299306786,
+        "u_max_nodal_m": 0.047807523732971265,
+        "u_min_nodal_m": -0.005110687113051,
+        "n_nodos": 53,
+        "rz_nodo_aplicacion_rad": -0.0007465463631090672,
+        "rz_promedio_rad": -0.0007868036115143172
+      },
+      "CIELO_4 (z=16.000 m)": {
+        "floor_z_m": 16.0,
+        "niveles_agrupados_z_m": [
+          16.0
+        ],
+        "u_prom_en_dir_m": 0.013605616966665337,
+        "u_max_nodal_m": 0.05729076612678424,
+        "u_min_nodal_m": -0.004932236621437413,
+        "n_nodos": 49,
+        "rz_nodo_aplicacion_rad": -0.0008328829429021587,
+        "rz_promedio_rad": -0.0008909549449757621
+      }
+    }
+  }
+}

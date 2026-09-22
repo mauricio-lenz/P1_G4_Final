@@ -1,0 +1,6 @@
+Resultado,Valor,Unidad,Referencia
+Suma cargas verticales,-180.000,kN,q_losa*Lx*Ly
+Suma reacciones verticales,180.000,kN,equilibrio global
+Uz nodo 5,-5.208333e-05,m,OpenSeesPy y estimacion axial columna
+Axial local elemento 1 extremo i,45.000,kN,OpenSeesPy y simetria
+Momento local My elemento 5 extremo i,-13.031,kN*m,OpenSeesPy

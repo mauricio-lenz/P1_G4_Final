@@ -1,0 +1,49 @@
+{
+  "unidades": "kN, m",
+  "caso": "G",
+  "aplicado_por_piso": {
+    "0.0": 384.003,
+    "0.16": 1388.092,
+    "12.0": 3916.19,
+    "12.04": 1388.092,
+    "16.0": 5211.758,
+    "4.0": 3987.785,
+    "4.12": 1388.092,
+    "8.0": 4140.975,
+    "8.08": 1388.092
+  },
+  "G_total_aplicado_kN": 23193.079,
+  "G_aplicado_componente_principal_kN": 16505.682,
+  "componente_principal": "edificio_1",
+  "n_apoyos_componente_principal": 18,
+  "reacciones": {
+    "sum_Rx_kN": 1.3273515619971477e-10,
+    "sum_Ry_kN": 4.4134602593826927e-10,
+    "sum_Rz_kN": 23193.0790535168
+  },
+  "conservacion_error_kN": 1.382431946694851e-10,
+  "n_apoyos": 30,
+  "columnas_evaluadas": 129,
+  "columnas_evaluadas_componente_principal": 89,
+  "vigas_flotantes_con_carga_excluidas": 15,
+  "nota": "Se excluyen las vigas/columnas flotantes (componentes sin apoyo) y sus cargas. Los extremos del componente principal (edificio_1) van aparte; el resto de componentes apoyados de edificio_2 quedan en los extremos globales.",
+  "max_uz_m": 45.92717253670132,
+  "max_uz_node": 359,
+  "max_h_m": 9.911340908730205,
+  "max_h_node": 360,
+  "max_axial_columna_kN": 71.21704561802525,
+  "max_axial_elem": 255,
+  "max_momento_columna_kNm": 56083.87645451685,
+  "max_momento_elem": 328,
+  "componente_principal_extremos": {
+    "max_uz_m": 0.0033391531314977004,
+    "max_uz_node": 131,
+    "max_h_m": 0.0011234332145127143,
+    "max_h_node": 121,
+    "max_axial_columna_kN": 71.21704561802525,
+    "max_axial_elem": 255,
+    "max_momento_columna_kNm": 151.53356105531392,
+    "max_momento_elem": 255
+  },
+  "convergio": true
+}

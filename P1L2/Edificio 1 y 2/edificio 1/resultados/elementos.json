@@ -1,0 +1,1904 @@
+[
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 1,
+    "nodo_j": 19
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 19,
+    "nodo_j": 50
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 50,
+    "nodo_j": 81
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 81,
+    "nodo_j": 110
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 2,
+    "nodo_j": 20
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 20,
+    "nodo_j": 51
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 51,
+    "nodo_j": 82
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 82,
+    "nodo_j": 111
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 3,
+    "nodo_j": 21
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 21,
+    "nodo_j": 52
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 52,
+    "nodo_j": 83
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 83,
+    "nodo_j": 112
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 22,
+    "nodo_j": 53
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 4,
+    "nodo_j": 23
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 23,
+    "nodo_j": 54
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 54,
+    "nodo_j": 84
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 84,
+    "nodo_j": 113
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 5,
+    "nodo_j": 24
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 24,
+    "nodo_j": 55
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 55,
+    "nodo_j": 85
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 85,
+    "nodo_j": 114
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 6,
+    "nodo_j": 25
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 25,
+    "nodo_j": 56
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 56,
+    "nodo_j": 86
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 86,
+    "nodo_j": 115
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 29,
+    "nodo_j": 60
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 30,
+    "nodo_j": 61
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 7,
+    "nodo_j": 32
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 32,
+    "nodo_j": 63
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 63,
+    "nodo_j": 92
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 92,
+    "nodo_j": 121
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 8,
+    "nodo_j": 33
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 33,
+    "nodo_j": 64
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 64,
+    "nodo_j": 93
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 93,
+    "nodo_j": 122
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 9,
+    "nodo_j": 34
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 34,
+    "nodo_j": 65
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 65,
+    "nodo_j": 94
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 94,
+    "nodo_j": 123
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 10,
+    "nodo_j": 38
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 38,
+    "nodo_j": 69
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 69,
+    "nodo_j": 98
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 98,
+    "nodo_j": 127
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 11,
+    "nodo_j": 39
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 39,
+    "nodo_j": 70
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 70,
+    "nodo_j": 99
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 99,
+    "nodo_j": 128
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 12,
+    "nodo_j": 40
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 40,
+    "nodo_j": 71
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 71,
+    "nodo_j": 100
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 100,
+    "nodo_j": 129
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 13,
+    "nodo_j": 44
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 44,
+    "nodo_j": 75
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 75,
+    "nodo_j": 104
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 104,
+    "nodo_j": 133
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 14,
+    "nodo_j": 45
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 45,
+    "nodo_j": 76
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 76,
+    "nodo_j": 105
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 105,
+    "nodo_j": 134
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 15,
+    "nodo_j": 46
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 46,
+    "nodo_j": 77
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 77,
+    "nodo_j": 106
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 106,
+    "nodo_j": 135
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 16,
+    "nodo_j": 47
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 47,
+    "nodo_j": 78
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 78,
+    "nodo_j": 107
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 107,
+    "nodo_j": 136
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 17,
+    "nodo_j": 48
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 48,
+    "nodo_j": 79
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 79,
+    "nodo_j": 108
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 108,
+    "nodo_j": 137
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 18,
+    "nodo_j": 49
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 49,
+    "nodo_j": 80
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 80,
+    "nodo_j": 109
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 109,
+    "nodo_j": 138
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 25,
+    "nodo_j": 28
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 28,
+    "nodo_j": 34
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 34,
+    "nodo_j": 37
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 37,
+    "nodo_j": 40
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 40,
+    "nodo_j": 43
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 43,
+    "nodo_j": 46
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 46,
+    "nodo_j": 49
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 24,
+    "nodo_j": 27
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 27,
+    "nodo_j": 31
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 31,
+    "nodo_j": 33
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 33,
+    "nodo_j": 36
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 36,
+    "nodo_j": 39
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 39,
+    "nodo_j": 42
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 42,
+    "nodo_j": 45
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 45,
+    "nodo_j": 48
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 23,
+    "nodo_j": 26
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 26,
+    "nodo_j": 30
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 30,
+    "nodo_j": 32
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 32,
+    "nodo_j": 35
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 35,
+    "nodo_j": 38
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 38,
+    "nodo_j": 41
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 41,
+    "nodo_j": 44
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 44,
+    "nodo_j": 47
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension",
+    "nodo_i": 22,
+    "nodo_j": 29
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 25,
+    "nodo_j": 21
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 24,
+    "nodo_j": 20
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 23,
+    "nodo_j": 19
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 24,
+    "nodo_j": 25
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 27,
+    "nodo_j": 28
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 33,
+    "nodo_j": 34
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 36,
+    "nodo_j": 37
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 39,
+    "nodo_j": 40
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 42,
+    "nodo_j": 43
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 45,
+    "nodo_j": 46
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 48,
+    "nodo_j": 49
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 23,
+    "nodo_j": 24
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 26,
+    "nodo_j": 27
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 30,
+    "nodo_j": 31
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 32,
+    "nodo_j": 33
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 35,
+    "nodo_j": 36
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 38,
+    "nodo_j": 39
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 41,
+    "nodo_j": 42
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 44,
+    "nodo_j": 45
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 47,
+    "nodo_j": 48
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo",
+    "nodo_i": 23,
+    "nodo_j": 22
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo",
+    "nodo_i": 30,
+    "nodo_j": 29
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 21,
+    "nodo_j": 20
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 20,
+    "nodo_j": 19
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 56,
+    "nodo_j": 59
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 59,
+    "nodo_j": 65
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 65,
+    "nodo_j": 68
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 68,
+    "nodo_j": 71
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 71,
+    "nodo_j": 74
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 74,
+    "nodo_j": 77
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 77,
+    "nodo_j": 80
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 55,
+    "nodo_j": 58
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 58,
+    "nodo_j": 62
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 62,
+    "nodo_j": 64
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 64,
+    "nodo_j": 67
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 67,
+    "nodo_j": 70
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 70,
+    "nodo_j": 73
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 73,
+    "nodo_j": 76
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 76,
+    "nodo_j": 79
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 54,
+    "nodo_j": 57
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 57,
+    "nodo_j": 61
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 61,
+    "nodo_j": 63
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 63,
+    "nodo_j": 66
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 66,
+    "nodo_j": 69
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 69,
+    "nodo_j": 72
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 72,
+    "nodo_j": 75
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 75,
+    "nodo_j": 78
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension",
+    "nodo_i": 53,
+    "nodo_j": 60
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 56,
+    "nodo_j": 52
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 55,
+    "nodo_j": 51
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 54,
+    "nodo_j": 50
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 55,
+    "nodo_j": 56
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 58,
+    "nodo_j": 59
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 64,
+    "nodo_j": 65
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 67,
+    "nodo_j": 68
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 70,
+    "nodo_j": 71
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 73,
+    "nodo_j": 74
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 76,
+    "nodo_j": 77
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 79,
+    "nodo_j": 80
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 54,
+    "nodo_j": 55
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 57,
+    "nodo_j": 58
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 61,
+    "nodo_j": 62
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 63,
+    "nodo_j": 64
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 66,
+    "nodo_j": 67
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 69,
+    "nodo_j": 70
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 72,
+    "nodo_j": 73
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 75,
+    "nodo_j": 76
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 78,
+    "nodo_j": 79
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo",
+    "nodo_i": 54,
+    "nodo_j": 53
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo",
+    "nodo_i": 61,
+    "nodo_j": 60
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 52,
+    "nodo_j": 51
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 51,
+    "nodo_j": 50
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 86,
+    "nodo_j": 89
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 89,
+    "nodo_j": 94
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 94,
+    "nodo_j": 97
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 97,
+    "nodo_j": 100
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 100,
+    "nodo_j": 103
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 103,
+    "nodo_j": 106
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 106,
+    "nodo_j": 109
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 85,
+    "nodo_j": 88
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 88,
+    "nodo_j": 91
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 91,
+    "nodo_j": 93
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 93,
+    "nodo_j": 96
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 96,
+    "nodo_j": 99
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 99,
+    "nodo_j": 102
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 102,
+    "nodo_j": 105
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 105,
+    "nodo_j": 108
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 84,
+    "nodo_j": 87
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 87,
+    "nodo_j": 90
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 90,
+    "nodo_j": 92
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 92,
+    "nodo_j": 95
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 95,
+    "nodo_j": 98
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 98,
+    "nodo_j": 101
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 101,
+    "nodo_j": 104
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 104,
+    "nodo_j": 107
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 86,
+    "nodo_j": 83
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 85,
+    "nodo_j": 82
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 84,
+    "nodo_j": 81
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 85,
+    "nodo_j": 86
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 88,
+    "nodo_j": 89
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 93,
+    "nodo_j": 94
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 96,
+    "nodo_j": 97
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 99,
+    "nodo_j": 100
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 102,
+    "nodo_j": 103
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 105,
+    "nodo_j": 106
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 108,
+    "nodo_j": 109
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 84,
+    "nodo_j": 85
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 87,
+    "nodo_j": 88
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 92,
+    "nodo_j": 93
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 95,
+    "nodo_j": 96
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 98,
+    "nodo_j": 99
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 101,
+    "nodo_j": 102
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 104,
+    "nodo_j": 105
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 107,
+    "nodo_j": 108
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 83,
+    "nodo_j": 82
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 82,
+    "nodo_j": 81
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 115,
+    "nodo_j": 118
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 118,
+    "nodo_j": 123
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 123,
+    "nodo_j": 126
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 126,
+    "nodo_j": 129
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 129,
+    "nodo_j": 132
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 132,
+    "nodo_j": 135
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_1",
+    "nodo_i": 135,
+    "nodo_j": 138
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 114,
+    "nodo_j": 117
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 117,
+    "nodo_j": 120
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 120,
+    "nodo_j": 122
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 122,
+    "nodo_j": 125
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 125,
+    "nodo_j": 128
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 128,
+    "nodo_j": 131
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 131,
+    "nodo_j": 134
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "compartida",
+    "nodo_i": 134,
+    "nodo_j": 137
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 113,
+    "nodo_j": 116
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 116,
+    "nodo_j": 119
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 119,
+    "nodo_j": 121
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 121,
+    "nodo_j": 124
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 124,
+    "nodo_j": 127
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 127,
+    "nodo_j": 130
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 130,
+    "nodo_j": 133
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "pasillo_2",
+    "nodo_i": 133,
+    "nodo_j": 136
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 115,
+    "nodo_j": 112
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 114,
+    "nodo_j": 111
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 113,
+    "nodo_j": 110
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 114,
+    "nodo_j": 115
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 117,
+    "nodo_j": 118
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 122,
+    "nodo_j": 123
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 125,
+    "nodo_j": 126
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 128,
+    "nodo_j": 129
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 131,
+    "nodo_j": 132
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 134,
+    "nodo_j": 135
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p1",
+    "nodo_i": 137,
+    "nodo_j": 138
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 113,
+    "nodo_j": 114
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 116,
+    "nodo_j": 117
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 121,
+    "nodo_j": 122
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 124,
+    "nodo_j": 125
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 127,
+    "nodo_j": 128
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 130,
+    "nodo_j": 131
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 133,
+    "nodo_j": 134
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "transv_p2",
+    "nodo_i": 136,
+    "nodo_j": 137
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 112,
+    "nodo_j": 111
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 111,
+    "nodo_j": 110
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 139,
+    "nodo_j": 145
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 140,
+    "nodo_j": 146
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 141,
+    "nodo_j": 147
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 142,
+    "nodo_j": 148
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 143,
+    "nodo_j": 149
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 144,
+    "nodo_j": 150
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 109,
+    "nodo_j": 139
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 139,
+    "nodo_j": 142
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 108,
+    "nodo_j": 140
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 140,
+    "nodo_j": 143
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 107,
+    "nodo_j": 141
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 141,
+    "nodo_j": 144
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 139,
+    "nodo_j": 140
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 140,
+    "nodo_j": 141
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 142,
+    "nodo_j": 143
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 143,
+    "nodo_j": 144
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 138,
+    "nodo_j": 145
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 145,
+    "nodo_j": 148
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 137,
+    "nodo_j": 146
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 146,
+    "nodo_j": 149
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 136,
+    "nodo_j": 147
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 147,
+    "nodo_j": 150
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 145,
+    "nodo_j": 146
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 146,
+    "nodo_j": 147
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 148,
+    "nodo_j": 149
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_xpos",
+    "nodo_i": 149,
+    "nodo_j": 150
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 84,
+    "nodo_j": 152
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 154,
+    "nodo_j": 155
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 152,
+    "nodo_j": 155
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 84,
+    "nodo_j": 154
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 54,
+    "nodo_j": 151
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 54,
+    "nodo_j": 153
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2",
+    "nodo_i": 152,
+    "nodo_j": 156
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 157,
+    "nodo_j": 159
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 158,
+    "nodo_j": 160
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_yp2_frame",
+    "nodo_i": 157,
+    "nodo_j": 158
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_frame",
+    "nodo_i": 92,
+    "nodo_j": 157
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_frame",
+    "nodo_i": 98,
+    "nodo_j": 158
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "voladizo_yp2_frame",
+    "nodo_i": 159,
+    "nodo_j": 160
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_frame",
+    "nodo_i": 121,
+    "nodo_j": 159
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_frame",
+    "nodo_i": 127,
+    "nodo_j": 160
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_p2",
+    "nodo_i": 63,
+    "nodo_j": 161
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_p2",
+    "nodo_i": 66,
+    "nodo_j": 162
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "voladizo_yp2_p2",
+    "nodo_i": 69,
+    "nodo_j": 163
+  },
+  {
+    "tipo": "viga_long_voladizo_p2",
+    "plano": "voladizo_yp2_p2",
+    "nodo_i": 161,
+    "nodo_j": 163
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 164,
+    "nodo_j": 3
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 165,
+    "nodo_j": 2
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 166,
+    "nodo_j": 1
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 167,
+    "nodo_j": 6
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 168,
+    "nodo_j": 5
+  },
+  {
+    "tipo": "columna",
+    "plano": "vertical",
+    "nodo_i": 169,
+    "nodo_j": 4
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 6,
+    "nodo_j": 3
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 5,
+    "nodo_j": 2
+  },
+  {
+    "tipo": "viga_longitudinal",
+    "plano": "extension_x",
+    "nodo_i": 4,
+    "nodo_j": 1
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 3,
+    "nodo_j": 2
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 2,
+    "nodo_j": 1
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 6,
+    "nodo_j": 5
+  },
+  {
+    "tipo": "viga_transversal",
+    "plano": "extension_x",
+    "nodo_i": 5,
+    "nodo_j": 4
+  }
+]

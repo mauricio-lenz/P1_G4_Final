@@ -1,0 +1,5 @@
+Frame,LoadPattern,CoordSystem,Direction,LoadStart,LoadEnd,Units,Description
+5,LOSA,Global,Z,-7.5,-7.5,kN/m,Viga paralela a X
+7,LOSA,Global,Z,-7.5,-7.5,kN/m,Viga paralela a X
+6,LOSA,Global,Z,-9.0,-9.0,kN/m,Viga paralela a Y
+8,LOSA,Global,Z,-9.0,-9.0,kN/m,Viga paralela a Y

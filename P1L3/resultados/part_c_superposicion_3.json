@@ -1,0 +1,113 @@
+{
+  "control_node": 359,
+  "element_id": 1,
+  "combinaciones": {
+    "C1": {
+      "lambdas": {
+        "G": 1.0,
+        "Q": 0.5,
+        "EX": 0.3,
+        "EY": 0.2
+      },
+      "combinacion": "R = lambda_G G + lambda_Q Q + lambda_EX EX + lambda_EY EY",
+      "errors": {
+        "disp_abs_m": [
+          1.4008350035510375e-11,
+          3.4168223805863818e-12,
+          1.2931877790833823e-12
+        ],
+        "reaction_abs_kN": [
+          2.526121534174308e-10,
+          3.6345682019600645e-10,
+          3.637978807091713e-12
+        ],
+        "element_force_abs": [
+          -5.933031843596837e-13,
+          6.927791673660977e-14,
+          1.9895196601282805e-13,
+          -2.842170943040401e-14,
+          -4.405364961712621e-13,
+          1.7053025658242404e-13
+        ],
+        "max_disp_abs_m": 1.4008350035510375e-11,
+        "max_reaction_abs_kN": 3.6345682019600645e-10,
+        "max_element_force_abs": 5.933031843596837e-13
+      },
+      "max_err_global": 3.6345682019600645e-10,
+      "superposicion_valida": true,
+      "convergio_explicito": 0
+    },
+    "C2": {
+      "lambdas": {
+        "G": 1.0,
+        "Q": 0.5,
+        "EX": 0.3,
+        "EY": -0.2
+      },
+      "combinacion": "R = lambda_G G + lambda_Q Q + lambda_EX EX + lambda_EY EY",
+      "errors": {
+        "disp_abs_m": [
+          1.4008350035510375e-11,
+          3.4168223805863818e-12,
+          1.2931877790833823e-12
+        ],
+        "reaction_abs_kN": [
+          2.539763954700902e-10,
+          3.647073754109442e-10,
+          3.637978807091713e-12
+        ],
+        "element_force_abs": [
+          -1.1650680420416393e-12,
+          -5.684341886080802e-14,
+          -2.4158453015843406e-13,
+          3.552713678800501e-14,
+          5.968558980384842e-13,
+          -1.4210854715202004e-13
+        ],
+        "max_disp_abs_m": 1.4008350035510375e-11,
+        "max_reaction_abs_kN": 3.647073754109442e-10,
+        "max_element_force_abs": 1.1650680420416393e-12
+      },
+      "max_err_global": 3.647073754109442e-10,
+      "superposicion_valida": true,
+      "convergio_explicito": 0
+    },
+    "C3": {
+      "lambdas": {
+        "G": 1.0,
+        "Q": 0.5,
+        "EX": -0.3,
+        "EY": 0.2
+      },
+      "combinacion": "R = lambda_G G + lambda_Q Q + lambda_EX EX + lambda_EY EY",
+      "errors": {
+        "disp_abs_m": [
+          1.4008350035510375e-11,
+          3.4168223805863818e-12,
+          1.2931877790833823e-12
+        ],
+        "reaction_abs_kN": [
+          2.5511326384730637e-10,
+          3.6300207284512e-10,
+          -3.637978807091713e-12
+        ],
+        "element_force_abs": [
+          8.952838470577262e-13,
+          1.2256862191861728e-13,
+          -5.684341886080802e-14,
+          2.1316282072803006e-14,
+          1.7053025658242404e-13,
+          3.339550858072471e-13
+        ],
+        "max_disp_abs_m": 1.4008350035510375e-11,
+        "max_reaction_abs_kN": 3.6300207284512e-10,
+        "max_element_force_abs": 8.952838470577262e-13
+      },
+      "max_err_global": 3.6300207284512e-10,
+      "superposicion_valida": true,
+      "convergio_explicito": 0
+    }
+  },
+  "max_err_global": 3.647073754109442e-10,
+  "superposicion_valida": true
+}

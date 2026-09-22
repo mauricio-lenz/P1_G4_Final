@@ -1,0 +1,3864 @@
+{
+  "profiles": {
+    "FLOOR": {
+      "description": "Cielos 1 subterraneo a cielo piso 3",
+      "D_kg_m2": 635.0,
+      "L_kg_m2": 500.0,
+      "D_kN_m2": 6.22722275,
+      "L_kN_m2": 4.903325
+    },
+    "ROOF": {
+      "description": "Cielo piso 4 (cubierta)",
+      "D_kg_m2": 575.0,
+      "L_kg_m2": 200.0,
+      "D_kN_m2": 5.63882375,
+      "L_kN_m2": 1.96133
+    }
+  },
+  "beam_tributary_loads": [
+    {
+      "beam_index": 224,
+      "nivel": 0.0,
+      "tributary_area_m2": 14.685,
+      "loads_kN": {
+        "D": 91.44676608375,
+        "L": 72.00532762499999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 128.02547251725,
+        "U_1_2D_1_6L": 224.94464350049998
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 14.685
+        }
+      ]
+    },
+    {
+      "beam_index": 222,
+      "nivel": 0.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 221,
+      "nivel": 0.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 226,
+      "nivel": 0.0,
+      "tributary_area_m2": 14.685,
+      "loads_kN": {
+        "D": 91.44676608375,
+        "L": 72.00532762499999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 128.02547251725,
+        "U_1_2D_1_6L": 224.94464350049998
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 14.685
+        }
+      ]
+    },
+    {
+      "beam_index": 225,
+      "nivel": 0.0,
+      "tributary_area_m2": 11.962499999999999,
+      "loads_kN": {
+        "D": 74.49315214687499,
+        "L": 58.65602531249999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 104.29041300562498,
+        "U_1_2D_1_6L": 183.24142307624996
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 11.962499999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 223,
+      "nivel": 0.0,
+      "tributary_area_m2": 2.59024375,
+      "loads_kN": {
+        "D": 16.130024808045313,
+        "L": 12.70080693546875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 22.582034731263438,
+        "U_1_2D_1_6L": 39.67732086640437
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.59024375
+        }
+      ]
+    },
+    {
+      "beam_index": 227,
+      "nivel": 0.0,
+      "tributary_area_m2": 11.962499999999999,
+      "loads_kN": {
+        "D": 74.49315214687499,
+        "L": 58.65602531249999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 104.29041300562498,
+        "U_1_2D_1_6L": 183.24142307624996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.962499999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 46,
+      "nivel": 4.0,
+      "tributary_area_m2": 14.685,
+      "loads_kN": {
+        "D": 91.44676608375,
+        "L": 72.00532762499999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 128.02547251725,
+        "U_1_2D_1_6L": 224.94464350049998
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 14.685
+        }
+      ]
+    },
+    {
+      "beam_index": 25,
+      "nivel": 4.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 24,
+      "nivel": 4.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 27,
+      "nivel": 4.0,
+      "tributary_area_m2": 30.685000000000002,
+      "loads_kN": {
+        "D": 191.08233008375,
+        "L": 150.458527625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 267.51526211725,
+        "U_1_2D_1_6L": 470.03244030049996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 14.685
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 7,
+      "nivel": 4.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 28,
+      "nivel": 4.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 0,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 29,
+      "nivel": 4.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 1,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 10,
+      "nivel": 4.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 30,
+      "nivel": 4.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 2,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 11,
+      "nivel": 4.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 31,
+      "nivel": 4.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 3,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 12,
+      "nivel": 4.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 32,
+      "nivel": 4.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 4,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 13,
+      "nivel": 4.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 33,
+      "nivel": 4.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 5,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 14,
+      "nivel": 4.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 34,
+      "nivel": 4.0,
+      "tributary_area_m2": 16.0,
+      "loads_kN": {
+        "D": 99.635564,
+        "L": 78.4532
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 139.4897896,
+        "U_1_2D_1_6L": 245.08779679999998
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 6,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 47,
+      "nivel": 4.0,
+      "tributary_area_m2": 11.962499999999999,
+      "loads_kN": {
+        "D": 74.49315214687499,
+        "L": 58.65602531249999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 104.29041300562498,
+        "U_1_2D_1_6L": 183.24142307624996
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 11.962499999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 26,
+      "nivel": 4.0,
+      "tributary_area_m2": 2.59024375,
+      "loads_kN": {
+        "D": 16.130024808045313,
+        "L": 12.70080693546875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 22.582034731263438,
+        "U_1_2D_1_6L": 39.67732086640437
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.59024375
+        }
+      ]
+    },
+    {
+      "beam_index": 35,
+      "nivel": 4.0,
+      "tributary_area_m2": 23.8375,
+      "loads_kN": {
+        "D": 148.441422303125,
+        "L": 116.88300968749999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.81799122437496,
+        "U_1_2D_1_6L": 365.1425222637499
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.962499999999999
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 15,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 36,
+      "nivel": 4.0,
+      "tributary_area_m2": 20.97375,
+      "loads_kN": {
+        "D": 130.60821315281248,
+        "L": 102.84111271874998
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.85149841393746,
+        "U_1_2D_1_6L": 321.275636133375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 9.098749999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 37,
+      "nivel": 4.0,
+      "tributary_area_m2": 18.125,
+      "loads_kN": {
+        "D": 112.86841234375001,
+        "L": 88.872765625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 158.01577728125,
+        "U_1_2D_1_6L": 277.6385198125
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 9.098749999999999
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 9.026250000000001
+        }
+      ]
+    },
+    {
+      "beam_index": 38,
+      "nivel": 4.0,
+      "tributary_area_m2": 20.90125,
+      "loads_kN": {
+        "D": 130.1567395034375,
+        "L": 102.48562165625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.21943530481252,
+        "U_1_2D_1_6L": 320.16508205412504
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 9.026250000000001
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 18,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 39,
+      "nivel": 4.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 19,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 40,
+      "nivel": 4.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 20,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 41,
+      "nivel": 4.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 21,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 42,
+      "nivel": 4.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 22,
+      "nivel": 4.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 43,
+      "nivel": 4.0,
+      "tributary_area_m2": 11.875,
+      "loads_kN": {
+        "D": 73.94827015625,
+        "L": 58.226984374999994
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 103.52757821875,
+        "U_1_2D_1_6L": 181.9010991875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 94,
+      "nivel": 8.0,
+      "tributary_area_m2": 14.685,
+      "loads_kN": {
+        "D": 91.44676608375,
+        "L": 72.00532762499999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 128.02547251725,
+        "U_1_2D_1_6L": 224.94464350049998
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 14.685
+        }
+      ]
+    },
+    {
+      "beam_index": 73,
+      "nivel": 8.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 72,
+      "nivel": 8.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 75,
+      "nivel": 8.0,
+      "tributary_area_m2": 30.685000000000002,
+      "loads_kN": {
+        "D": 191.08233008375,
+        "L": 150.458527625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 267.51526211725,
+        "U_1_2D_1_6L": 470.03244030049996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 14.685
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 55,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 76,
+      "nivel": 8.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 48,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 77,
+      "nivel": 8.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 49,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 58,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 78,
+      "nivel": 8.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 50,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 59,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 79,
+      "nivel": 8.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 51,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 60,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 80,
+      "nivel": 8.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 52,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 61,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 81,
+      "nivel": 8.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 53,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 62,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 82,
+      "nivel": 8.0,
+      "tributary_area_m2": 16.0,
+      "loads_kN": {
+        "D": 99.635564,
+        "L": 78.4532
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 139.4897896,
+        "U_1_2D_1_6L": 245.08779679999998
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 54,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 95,
+      "nivel": 8.0,
+      "tributary_area_m2": 11.962499999999999,
+      "loads_kN": {
+        "D": 74.49315214687499,
+        "L": 58.65602531249999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 104.29041300562498,
+        "U_1_2D_1_6L": 183.24142307624996
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 11.962499999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 74,
+      "nivel": 8.0,
+      "tributary_area_m2": 2.59024375,
+      "loads_kN": {
+        "D": 16.130024808045313,
+        "L": 12.70080693546875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 22.582034731263438,
+        "U_1_2D_1_6L": 39.67732086640437
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.59024375
+        }
+      ]
+    },
+    {
+      "beam_index": 83,
+      "nivel": 8.0,
+      "tributary_area_m2": 23.8375,
+      "loads_kN": {
+        "D": 148.441422303125,
+        "L": 116.88300968749999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.81799122437496,
+        "U_1_2D_1_6L": 365.1425222637499
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.962499999999999
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 63,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 84,
+      "nivel": 8.0,
+      "tributary_area_m2": 20.97375,
+      "loads_kN": {
+        "D": 130.60821315281248,
+        "L": 102.84111271874998
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.85149841393746,
+        "U_1_2D_1_6L": 321.275636133375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 9.098749999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 85,
+      "nivel": 8.0,
+      "tributary_area_m2": 18.125,
+      "loads_kN": {
+        "D": 112.86841234375001,
+        "L": 88.872765625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 158.01577728125,
+        "U_1_2D_1_6L": 277.6385198125
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 9.098749999999999
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 9.026250000000001
+        }
+      ]
+    },
+    {
+      "beam_index": 86,
+      "nivel": 8.0,
+      "tributary_area_m2": 20.90125,
+      "loads_kN": {
+        "D": 130.1567395034375,
+        "L": 102.48562165625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.21943530481252,
+        "U_1_2D_1_6L": 320.16508205412504
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 9.026250000000001
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 66,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.400000000000002,
+      "loads_kN": {
+        "D": 77.21756210000001,
+        "L": 60.801230000000004
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.10458694000002,
+        "U_1_2D_1_6L": 189.94304252
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.150000000000002
+        }
+      ]
+    },
+    {
+      "beam_index": 87,
+      "nivel": 8.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 67,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.400000000000002,
+      "loads_kN": {
+        "D": 77.21756210000001,
+        "L": 60.801230000000004
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.10458694000002,
+        "U_1_2D_1_6L": 189.94304252
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.150000000000002
+        }
+      ]
+    },
+    {
+      "beam_index": 88,
+      "nivel": 8.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 68,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 89,
+      "nivel": 8.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 69,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 90,
+      "nivel": 8.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 70,
+      "nivel": 8.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 91,
+      "nivel": 8.0,
+      "tributary_area_m2": 11.875,
+      "loads_kN": {
+        "D": 73.94827015625,
+        "L": 58.226984374999994
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 103.52757821875,
+        "U_1_2D_1_6L": 181.9010991875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 138,
+      "nivel": 12.0,
+      "tributary_area_m2": 14.685,
+      "loads_kN": {
+        "D": 91.44676608375,
+        "L": 72.00532762499999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 128.02547251725,
+        "U_1_2D_1_6L": 224.94464350049998
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 14.685
+        }
+      ]
+    },
+    {
+      "beam_index": 120,
+      "nivel": 12.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 119,
+      "nivel": 12.0,
+      "tributary_area_m2": 2.8900000000000006,
+      "loads_kN": {
+        "D": 17.996673747500004,
+        "L": 14.170609250000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 25.195343246500006,
+        "U_1_2D_1_6L": 44.268983297000005
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 2.8900000000000006
+        }
+      ]
+    },
+    {
+      "beam_index": 122,
+      "nivel": 12.0,
+      "tributary_area_m2": 30.685000000000002,
+      "loads_kN": {
+        "D": 191.08233008375,
+        "L": 150.458527625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 267.51526211725,
+        "U_1_2D_1_6L": 470.03244030049996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 14.685
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 103,
+      "nivel": 12.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 123,
+      "nivel": 12.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 96,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 124,
+      "nivel": 12.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 97,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 106,
+      "nivel": 12.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 125,
+      "nivel": 12.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 98,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 107,
+      "nivel": 12.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 126,
+      "nivel": 12.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 99,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 108,
+      "nivel": 12.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 127,
+      "nivel": 12.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 100,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 109,
+      "nivel": 12.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 128,
+      "nivel": 12.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 199.271128,
+        "L": 156.9064
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 278.9795792,
+        "U_1_2D_1_6L": 490.17559359999996
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 101,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 110,
+      "nivel": 12.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 77.840284375,
+        "L": 61.2915625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 108.976398125,
+        "U_1_2D_1_6L": 191.47484125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 129,
+      "nivel": 12.0,
+      "tributary_area_m2": 16.0,
+      "loads_kN": {
+        "D": 99.635564,
+        "L": 78.4532
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 139.4897896,
+        "U_1_2D_1_6L": 245.08779679999998
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 102,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 139,
+      "nivel": 12.0,
+      "tributary_area_m2": 11.962499999999999,
+      "loads_kN": {
+        "D": 74.49315214687499,
+        "L": 58.65602531249999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 104.29041300562498,
+        "U_1_2D_1_6L": 183.24142307624996
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 11.962499999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 121,
+      "nivel": 12.0,
+      "tributary_area_m2": 2.59024375,
+      "loads_kN": {
+        "D": 16.130024808045313,
+        "L": 12.70080693546875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 22.582034731263438,
+        "U_1_2D_1_6L": 39.67732086640437
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 2.59024375
+        }
+      ]
+    },
+    {
+      "beam_index": 130,
+      "nivel": 12.0,
+      "tributary_area_m2": 23.8375,
+      "loads_kN": {
+        "D": 148.441422303125,
+        "L": 116.88300968749999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.81799122437496,
+        "U_1_2D_1_6L": 365.1425222637499
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.962499999999999
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 111,
+      "nivel": 12.0,
+      "tributary_area_m2": 7.46,
+      "loads_kN": {
+        "D": 46.455081715,
+        "L": 36.5788045
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 65.037114401,
+        "U_1_2D_1_6L": 114.27218525800001
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 1.2100000000000002
+        }
+      ]
+    },
+    {
+      "beam_index": 131,
+      "nivel": 12.0,
+      "tributary_area_m2": 20.97375,
+      "loads_kN": {
+        "D": 130.60821315281248,
+        "L": 102.84111271874998
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.85149841393746,
+        "U_1_2D_1_6L": 321.275636133375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 9.098749999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 132,
+      "nivel": 12.0,
+      "tributary_area_m2": 20.90125,
+      "loads_kN": {
+        "D": 130.1567395034375,
+        "L": 102.48562165625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.21943530481252,
+        "U_1_2D_1_6L": 320.16508205412504
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 9.026250000000001
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 114,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 133,
+      "nivel": 12.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 115,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 134,
+      "nivel": 12.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 116,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 135,
+      "nivel": 12.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 117,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 136,
+      "nivel": 12.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 147.8965403125,
+        "L": 116.45396874999999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 207.0551564375,
+        "U_1_2D_1_6L": 363.802198375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 118,
+      "nivel": 12.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 38.9201421875,
+        "L": 30.64578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 54.4881990625,
+        "U_1_2D_1_6L": 95.737420625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 137,
+      "nivel": 12.0,
+      "tributary_area_m2": 11.875,
+      "loads_kN": {
+        "D": 73.94827015625,
+        "L": 58.226984374999994
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 103.52757821875,
+        "U_1_2D_1_6L": 181.9010991875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 164,
+      "nivel": 16.0,
+      "tributary_area_m2": 47.806875,
+      "loads_kN": {
+        "D": 269.57454216328125,
+        "L": 93.76505814375
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 377.4043590285937,
+        "U_1_2D_1_6L": 473.5135436259375
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 24.697499999999998
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 23.109375
+        }
+      ]
+    },
+    {
+      "beam_index": 166,
+      "nivel": 16.0,
+      "tributary_area_m2": 35.8025,
+      "loads_kN": {
+        "D": 201.88398730937502,
+        "L": 70.220517325
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 282.63758223312504,
+        "U_1_2D_1_6L": 354.61361249125
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 19.802500000000002
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 163,
+      "nivel": 16.0,
+      "tributary_area_m2": 24.697499999999998,
+      "loads_kN": {
+        "D": 139.26484956562498,
+        "L": 48.439947675
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 194.97078939187497,
+        "U_1_2D_1_6L": 244.62173575874996
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 24.697499999999998
+        }
+      ]
+    },
+    {
+      "beam_index": 182,
+      "nivel": 16.0,
+      "tributary_area_m2": 19.802500000000002,
+      "loads_kN": {
+        "D": 111.66280730937501,
+        "L": 38.839237325000006
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 156.32793023312502,
+        "U_1_2D_1_6L": 196.13814849125
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 19.802500000000002
+        }
+      ]
+    },
+    {
+      "beam_index": 147,
+      "nivel": 16.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 70.485296875,
+        "L": 24.516625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 98.679415625,
+        "U_1_2D_1_6L": 123.80895625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 167,
+      "nivel": 16.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 180.44236,
+        "L": 62.76256
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 252.619304,
+        "U_1_2D_1_6L": 316.950928
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 140,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 168,
+      "nivel": 16.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 180.44236,
+        "L": 62.76256
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 252.619304,
+        "U_1_2D_1_6L": 316.950928
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 141,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 150,
+      "nivel": 16.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 70.485296875,
+        "L": 24.516625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 98.679415625,
+        "U_1_2D_1_6L": 123.80895625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 169,
+      "nivel": 16.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 180.44236,
+        "L": 62.76256
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 252.619304,
+        "U_1_2D_1_6L": 316.950928
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 142,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 151,
+      "nivel": 16.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 70.485296875,
+        "L": 24.516625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 98.679415625,
+        "U_1_2D_1_6L": 123.80895625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 170,
+      "nivel": 16.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 180.44236,
+        "L": 62.76256
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 252.619304,
+        "U_1_2D_1_6L": 316.950928
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 143,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 152,
+      "nivel": 16.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 70.485296875,
+        "L": 24.516625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 98.679415625,
+        "U_1_2D_1_6L": 123.80895625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 171,
+      "nivel": 16.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 180.44236,
+        "L": 62.76256
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 252.619304,
+        "U_1_2D_1_6L": 316.950928
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 144,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 153,
+      "nivel": 16.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 70.485296875,
+        "L": 24.516625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 98.679415625,
+        "U_1_2D_1_6L": 123.80895625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 172,
+      "nivel": 16.0,
+      "tributary_area_m2": 32.0,
+      "loads_kN": {
+        "D": 180.44236,
+        "L": 62.76256
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 252.619304,
+        "U_1_2D_1_6L": 316.950928
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 145,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 154,
+      "nivel": 16.0,
+      "tributary_area_m2": 12.5,
+      "loads_kN": {
+        "D": 70.485296875,
+        "L": 24.516625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 98.679415625,
+        "U_1_2D_1_6L": 123.80895625
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        },
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 173,
+      "nivel": 16.0,
+      "tributary_area_m2": 16.0,
+      "loads_kN": {
+        "D": 90.22118,
+        "L": 31.38128
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 126.309652,
+        "U_1_2D_1_6L": 158.475464
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 16.0
+        }
+      ]
+    },
+    {
+      "beam_index": 146,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "top",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 165,
+      "nivel": 16.0,
+      "tributary_area_m2": 23.109375,
+      "loads_kN": {
+        "D": 130.30969259765627,
+        "L": 45.32511046875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 182.43356963671874,
+        "U_1_2D_1_6L": 228.89180786718748
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 23.109375
+        }
+      ]
+    },
+    {
+      "beam_index": 174,
+      "nivel": 16.0,
+      "tributary_area_m2": 25.015625,
+      "loads_kN": {
+        "D": 141.05870037109375,
+        "L": 49.06389578125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 197.48218051953125,
+        "U_1_2D_1_6L": 247.77267369531248
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 13.140625
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 183,
+      "nivel": 16.0,
+      "tributary_area_m2": 13.140625,
+      "loads_kN": {
+        "D": 74.09766833984375,
+        "L": 25.77310203125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 103.73673567578125,
+        "U_1_2D_1_6L": 130.15416525781248
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 13.140625
+        }
+      ]
+    },
+    {
+      "beam_index": 155,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 175,
+      "nivel": 16.0,
+      "tributary_area_m2": 20.97375,
+      "loads_kN": {
+        "D": 118.2672796265625,
+        "L": 41.13644508749999
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 165.57419147718747,
+        "U_1_2D_1_6L": 207.739047691875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 9.098749999999999
+        }
+      ]
+    },
+    {
+      "beam_index": 176,
+      "nivel": 16.0,
+      "tributary_area_m2": 20.90125,
+      "loads_kN": {
+        "D": 117.85846490468751,
+        "L": 40.9942486625
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 165.0018508665625,
+        "U_1_2D_1_6L": 207.020955745625
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 9.026250000000001
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 158,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 177,
+      "nivel": 16.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 133.9220640625,
+        "L": 46.5815875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 187.4908896875,
+        "U_1_2D_1_6L": 235.237016875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 159,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 178,
+      "nivel": 16.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 133.9220640625,
+        "L": 46.5815875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 187.4908896875,
+        "U_1_2D_1_6L": 235.237016875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 160,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 179,
+      "nivel": 16.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 133.9220640625,
+        "L": 46.5815875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 187.4908896875,
+        "U_1_2D_1_6L": 235.237016875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 161,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 180,
+      "nivel": 16.0,
+      "tributary_area_m2": 23.75,
+      "loads_kN": {
+        "D": 133.9220640625,
+        "L": 46.5815875
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 187.4908896875,
+        "U_1_2D_1_6L": 235.237016875
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        },
+        {
+          "side": "left",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 162,
+      "nivel": 16.0,
+      "tributary_area_m2": 6.25,
+      "loads_kN": {
+        "D": 35.2426484375,
+        "L": 12.2583125
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 49.3397078125,
+        "U_1_2D_1_6L": 61.904478125
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.25
+        }
+      ]
+    },
+    {
+      "beam_index": 181,
+      "nivel": 16.0,
+      "tributary_area_m2": 11.875,
+      "loads_kN": {
+        "D": 66.96103203125,
+        "L": 23.29079375
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 93.74544484375,
+        "U_1_2D_1_6L": 117.6185084375
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 11.875
+        }
+      ]
+    },
+    {
+      "beam_index": 23,
+      "nivel": 4.0,
+      "tributary_area_m2": 11.227,
+      "loads_kN": {
+        "D": 69.91302981425001,
+        "L": 55.049629775
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 97.87824173995,
+        "U_1_2D_1_6L": 171.97504341709998
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 11.227
+        }
+      ]
+    },
+    {
+      "beam_index": 45,
+      "nivel": 4.0,
+      "tributary_area_m2": 4.2436000000000025,
+      "loads_kN": {
+        "D": 26.425842461900015,
+        "L": 20.80774997000001
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 36.99617944666002,
+        "U_1_2D_1_6L": 65.00341090628004
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 4.2436000000000025
+        }
+      ]
+    },
+    {
+      "beam_index": 44,
+      "nivel": 4.0,
+      "tributary_area_m2": 4.2436000000000025,
+      "loads_kN": {
+        "D": 26.425842461900015,
+        "L": 20.80774997000001
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 36.99617944666002,
+        "U_1_2D_1_6L": 65.00341090628004
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 4.2436000000000025
+        }
+      ]
+    },
+    {
+      "beam_index": 71,
+      "nivel": 8.0,
+      "tributary_area_m2": 11.227,
+      "loads_kN": {
+        "D": 69.91302981425001,
+        "L": 55.049629775
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 97.87824173995,
+        "U_1_2D_1_6L": 171.97504341709998
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 11.227
+        }
+      ]
+    },
+    {
+      "beam_index": 93,
+      "nivel": 8.0,
+      "tributary_area_m2": 4.2436000000000025,
+      "loads_kN": {
+        "D": 26.425842461900015,
+        "L": 20.80774997000001
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 36.99617944666002,
+        "U_1_2D_1_6L": 65.00341090628004
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 4.2436000000000025
+        }
+      ]
+    },
+    {
+      "beam_index": 92,
+      "nivel": 8.0,
+      "tributary_area_m2": 4.2436000000000025,
+      "loads_kN": {
+        "D": 26.425842461900015,
+        "L": 20.80774997000001
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 36.99617944666002,
+        "U_1_2D_1_6L": 65.00341090628004
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 4.2436000000000025
+        }
+      ]
+    },
+    {
+      "beam_index": 211,
+      "nivel": 12.0,
+      "tributary_area_m2": 20.600000000000005,
+      "loads_kN": {
+        "D": 128.28078865000003,
+        "L": 101.00849500000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 179.59310411000004,
+        "U_1_2D_1_6L": 315.55053838000003
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 20.600000000000005
+        }
+      ]
+    },
+    {
+      "beam_index": 214,
+      "nivel": 16.0,
+      "tributary_area_m2": 20.600000000000005,
+      "loads_kN": {
+        "D": 116.15976925000004,
+        "L": 40.40339800000001
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 162.62367695000003,
+        "U_1_2D_1_6L": 204.03715990000003
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 20.600000000000005
+        }
+      ]
+    },
+    {
+      "beam_index": 205,
+      "nivel": 12.0,
+      "tributary_area_m2": 1.2100000000000002,
+      "loads_kN": {
+        "D": 7.5349395275000015,
+        "L": 5.933023250000001
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 10.5489153385,
+        "U_1_2D_1_6L": 18.534764633
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 1.2100000000000002
+        }
+      ]
+    },
+    {
+      "beam_index": 206,
+      "nivel": 12.0,
+      "tributary_area_m2": 1.6609999999999994,
+      "loads_kN": {
+        "D": 10.343416987749997,
+        "L": 8.144422824999996
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 14.480783782849993,
+        "U_1_2D_1_6L": 25.44317690529999
+      },
+      "source_edges": [
+        {
+          "side": "right",
+          "tributary_area_m2": 1.6609999999999994
+        }
+      ]
+    },
+    {
+      "beam_index": 207,
+      "nivel": 12.0,
+      "tributary_area_m2": 1.6609999999999994,
+      "loads_kN": {
+        "D": 10.343416987749997,
+        "L": 8.144422824999996
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 14.480783782849993,
+        "U_1_2D_1_6L": 25.44317690529999
+      },
+      "source_edges": [
+        {
+          "side": "left",
+          "tributary_area_m2": 1.6609999999999994
+        }
+      ]
+    },
+    {
+      "beam_index": 220,
+      "nivel": 8.0,
+      "tributary_area_m2": 12.300000000000004,
+      "loads_kN": {
+        "D": 76.59483982500002,
+        "L": 60.31089750000002
+      },
+      "load_combinations_kN": {
+        "U_1_4D": 107.23277575500003,
+        "U_1_2D_1_6L": 188.41124379000004
+      },
+      "source_edges": [
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.150000000000002
+        },
+        {
+          "side": "bottom",
+          "tributary_area_m2": 6.150000000000002
+        }
+      ]
+    }
+  ],
+  "tributary_checks": {
+    "0.0": {
+      "panel_area_m2": 139.332,
+      "tributary_area_m2": 139.33200000000002,
+      "D_kN": 867.6514002029999,
+      "L_kN": 683.1900789000001,
+      "D_expected_kN": 867.6514002030001,
+      "L_expected_kN": 683.1900789,
+      "area_error_m2": 2.842170943040401e-14,
+      "D_error_kN": -2.2737367544323206e-13,
+      "L_error_kN": 1.1368683772161603e-13
+    },
+    "4.0": {
+      "panel_area_m2": 735.5232,
+      "tributary_area_m2": 735.5231999999999,
+      "D_kN": 4580.266804192802,
+      "L_kN": 3606.509294639998,
+      "D_expected_kN": 4580.266804192799,
+      "L_expected_kN": 3606.509294640001,
+      "area_error_m2": -1.1368683772161603e-13,
+      "D_error_kN": 2.7284841053187847e-12,
+      "L_error_kN": -2.7284841053187847e-12
+    },
+    "8.0": {
+      "panel_area_m2": 760.1231999999999,
+      "tributary_area_m2": 760.1231999999998,
+      "D_kN": 4733.456483842802,
+      "L_kN": 3727.131089639999,
+      "D_expected_kN": 4733.4564838428,
+      "L_expected_kN": 3727.131089640001,
+      "area_error_m2": -1.1368683772161603e-13,
+      "D_error_kN": 2.7284841053187847e-12,
+      "L_error_kN": -1.8189894035458565e-12
+    },
+    "12.0": {
+      "panel_area_m2": 832.274,
+      "tributary_area_m2": 832.2739999999999,
+      "D_kN": 5182.755587033503,
+      "L_kN": 4080.909911049999,
+      "D_expected_kN": 5182.755587033498,
+      "L_expected_kN": 4080.9099110500006,
+      "area_error_m2": -1.1368683772161603e-13,
+      "D_error_kN": 4.547473508864641e-12,
+      "L_error_kN": -1.3642420526593924e-12
+    },
+    "16.0": {
+      "panel_area_m2": 848.6999999999999,
+      "tributary_area_m2": 848.7,
+      "D_kN": 4785.6697166250015,
+      "L_kN": 1664.580771,
+      "D_expected_kN": 4785.6697166250015,
+      "L_expected_kN": 1664.5807710000001,
+      "area_error_m2": 1.1368683772161603e-13,
+      "D_error_kN": 0.0,
+      "L_error_kN": -2.2737367544323206e-13
+    }
+  }
+}

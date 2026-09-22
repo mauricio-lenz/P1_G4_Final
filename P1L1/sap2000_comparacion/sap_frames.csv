@@ -1,0 +1,9 @@
+Frame,JointI,JointJ,Section,Type
+1,1,5,COL_TUB_30x30x1p2,Column
+2,2,6,COL_TUB_30x30x1p2,Column
+3,3,7,COL_TUB_30x30x1p2,Column
+4,4,8,COL_TUB_30x30x1p2,Column
+5,5,6,VIGA_RECT_25x40,BeamX
+6,6,7,VIGA_RECT_25x40,BeamY
+7,8,7,VIGA_RECT_25x40,BeamX
+8,5,8,VIGA_RECT_25x40,BeamY

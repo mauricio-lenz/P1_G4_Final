@@ -1,0 +1,59 @@
+{
+  "capacityTitle": "Parte D - Capacidad HA COL70/70_FIBER",
+  "sectionId": "COL70/70_FIBER",
+  "b_m": 0.7,
+  "h_m": 0.7,
+  "fc_MPa": 25.0,
+  "fy_MPa": 420.0,
+  "steelBars": 8,
+  "barArea_m2": 0.0004908738521234052,
+  "barArea_mm2": 490.87385212340524,
+  "barDiameter_mm": 25.000000000000004,
+  "Ast_m2": 0.003926990816987242,
+  "Ast_mm2": 3926.990816987242,
+  "rho_percent": 0.8014266973443351,
+  "Po_kN": 11978.387588273663,
+  "interpretation": "El diagrama P-M se construye con cinco estados manuales: compresion pura, balance, ultima falla ductil, flexion pura y traccion pura. La curva M-phi se mantiene como verificacion fibra a fibra de momento-curvatura.",
+  "pmPoints": [
+    {
+      "label": "A) Compresion pura",
+      "P_kN": 11978.387588273663,
+      "M_kN_m": 0.0,
+      "phiP_kN": 7785.951932377881,
+      "phiM_kN_m": 0.0,
+      "phi_1_m": 0.0
+    },
+    {
+      "label": "B) Balance",
+      "P_kN": 5020.93017446567,
+      "M_kN_m": 1270.813168492073,
+      "phiP_kN": 3263.604613402685,
+      "phiM_kN_m": 826.0285595198475,
+      "phi_1_m": 0.0
+    },
+    {
+      "label": "C) Ultima falla ductil",
+      "P_kN": 2825.1492783123726,
+      "M_kN_m": 1130.503519168185,
+      "phiP_kN": 2542.6343504811352,
+      "phiM_kN_m": 1017.4531672513665,
+      "phi_1_m": 0.0
+    },
+    {
+      "label": "D) Flexion pura",
+      "P_kN": 0.0,
+      "M_kN_m": 513.1746866604899,
+      "phiP_kN": 0.0,
+      "phiM_kN_m": 461.85721799444093,
+      "phi_1_m": 0.0
+    },
+    {
+      "label": "E) Traccion pura",
+      "P_kN": -1649.3361431346416,
+      "M_kN_m": 0.0,
+      "phiP_kN": -1484.4025288211774,
+      "phiM_kN_m": 0.0,
+      "phi_1_m": 0.0
+    }
+  ]
+}
