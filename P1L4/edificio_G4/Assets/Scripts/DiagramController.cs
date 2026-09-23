@@ -17,12 +17,12 @@ public class DiagramController : MonoBehaviour
     }
 
     public float diagramScale = 1.3f;
-    public float axialMultiplier = 0.9f;
-    public float shearMultiplier = 1.0f;
-    public float momentMultiplier = 1.2f;
-    public float diagramBaseOffset = 0.06f;
+    public float axialMultiplier = 1.1f;
+    public float shearMultiplier = 1.2f;
+    public float momentMultiplier = 1.4f;
+    public float diagramBaseOffset = 0.12f;
     public float deformedMultiplier = 120f;
-    public float deformedTargetPct = 0.06f;
+    public float deformedTargetPct = 0.05f;
 
     private readonly List<ElementSelectable> elements = new List<ElementSelectable>();
     private readonly List<ElementSelectable> structuralElements = new List<ElementSelectable>();
@@ -84,7 +84,7 @@ public class DiagramController : MonoBehaviour
         if (PressedKey(KeyCode.Alpha1)) ShowDiagram(DiagramMode.Axial);
         if (PressedKey(KeyCode.Alpha2)) ShowDiagram(DiagramMode.Shear);
         if (PressedKey(KeyCode.Alpha3)) ShowDiagram(DiagramMode.Moment);
-        if (PressedKey(KeyCode.Alpha5)) ShowDiagram(DiagramMode.Deformed);
+        if (PressedKey(KeyCode.Alpha4)) ShowDiagram(DiagramMode.Deformed);
     }
 
     private bool PressedKey(KeyCode key)
@@ -97,7 +97,7 @@ public class DiagramController : MonoBehaviour
             if (key == KeyCode.Alpha1) return keyboard.digit1Key.wasPressedThisFrame;
             if (key == KeyCode.Alpha2) return keyboard.digit2Key.wasPressedThisFrame;
             if (key == KeyCode.Alpha3) return keyboard.digit3Key.wasPressedThisFrame;
-            if (key == KeyCode.Alpha5) return keyboard.digit5Key.wasPressedThisFrame;
+            if (key == KeyCode.Alpha4) return keyboard.digit4Key.wasPressedThisFrame;
         }
 #endif
         return Input.GetKeyDown(key);
@@ -128,6 +128,10 @@ public class DiagramController : MonoBehaviour
 
         foreach (ElementSelectable element in structuralElements)
         {
+            if (element.data != null && element.data.type == "arriostre")
+            {
+                continue;
+            }
             if ((mode == DiagramMode.Moment || mode == DiagramMode.Shear) && element.data.type != "viga")
             {
                 continue;
@@ -163,6 +167,10 @@ public class DiagramController : MonoBehaviour
         var scales = new List<string>();
         foreach (ElementSelectable element in structuralElements)
         {
+            if (element.data != null && element.data.type == "arriostre")
+            {
+                continue;
+            }
             string building = string.IsNullOrEmpty(element.data.sourceBuilding) ? "?" : element.data.sourceBuilding;
             float scale = GetDeformedScale(building, combo);
             if (scale <= 0f)
@@ -221,7 +229,7 @@ public class DiagramController : MonoBehaviour
 
         foreach (ElementSelectable e in structuralElements)
         {
-            if (e.data == null) continue;
+            if (e.data == null || e.data.type == "arriostre") continue;
             string eb = string.IsNullOrEmpty(e.data.sourceBuilding) ? "?" : e.data.sourceBuilding;
             if (eb != building) continue;
 
@@ -262,6 +270,7 @@ public class DiagramController : MonoBehaviour
         foreach (ElementSelectable element in structuralElements)
         {
             if (element.data == null) continue;
+            if (element.data.type == "arriostre") continue;
             if ((mode == DiagramMode.Moment || mode == DiagramMode.Shear) && element.data.type != "viga")
             {
                 continue;
@@ -289,19 +298,28 @@ public class DiagramController : MonoBehaviour
 
     private void CreateElementDiagram(ElementSelectable element, DiagramMode mode)
     {
-        int segments = 12;
-        Vector3[] points = new Vector3[segments + 1];
+        int segments = 16;
         Vector3 axis = element.endPoint - element.startPoint;
         Vector3 offsetDirection = GetOffsetDirection(axis, mode);
         float length = axis.magnitude;
+        float dispScale = Mathf.Clamp(length * 0.18f, 0.35f, 0.9f);
 
+        float[] values = new float[segments + 1];
+        float vmax = 0f;
+        for (int i = 0; i <= segments; i++)
+        {
+            float t = i / (float)segments;
+            values[i] = GetValue(element, mode, t, length);
+            vmax = Mathf.Max(vmax, Mathf.Abs(values[i]));
+        }
+        if (vmax < 1e-6f) vmax = 1e-6f;
+
+        Vector3[] points = new Vector3[segments + 1];
         for (int i = 0; i <= segments; i++)
         {
             float t = i / (float)segments;
             Vector3 basePoint = Vector3.Lerp(element.startPoint, element.endPoint, t);
-            float value = GetValue(element, mode, t, length);
-            float maxValue = MaxForElement(element);
-            points[i] = basePoint + offsetDirection * (diagramBaseOffset + value / maxValue * ScaleFor(mode));
+            points[i] = basePoint + offsetDirection * (diagramBaseOffset + values[i] / vmax * dispScale);
         }
 
         GameObject lineObject = new GameObject($"Diagrama_{mode}_E{element.data.id}");
@@ -310,15 +328,11 @@ public class DiagramController : MonoBehaviour
         LineRenderer line = lineObject.AddComponent<LineRenderer>();
         line.positionCount = points.Length;
         line.SetPositions(points);
-        line.startWidth = 0.08f;
-        line.endWidth = 0.08f;
+        line.startWidth = 0.09f;
+        line.endWidth = 0.09f;
         line.useWorldSpace = true;
         line.material = CreateMaterial(GetColor(mode));
         diagramObjects.Add(lineObject);
-
-        CreateLabel(points[0], GetValue(element, mode, 0f, length), UnitFor(mode), lineObject.transform);
-        CreateLabel(points[segments / 2], GetValue(element, mode, 0.5f, length), UnitFor(mode), lineObject.transform);
-        CreateLabel(points[segments], GetValue(element, mode, 1f, length), UnitFor(mode), lineObject.transform);
     }
 
     private float MaxForElement(ElementSelectable element)
@@ -417,20 +431,6 @@ public class DiagramController : MonoBehaviour
     {
         if (mode == DiagramMode.Moment) return " kN*m";
         return " kN";
-    }
-
-    private void CreateLabel(Vector3 position, float value, string unit, Transform parent)
-    {
-        GameObject labelObject = new GameObject("ValorDiagrama");
-        labelObject.transform.SetParent(parent);
-        labelObject.hideFlags = HideFlags.DontSave;
-        labelObject.transform.position = position + Vector3.up * 0.18f;
-
-        TextMesh text = labelObject.AddComponent<TextMesh>();
-        text.text = value.ToString("0.0") + unit;
-        text.characterSize = 0.2f;
-        text.anchor = TextAnchor.MiddleCenter;
-        text.color = Color.white;
     }
 
     private Material CreateMaterial(Color color)

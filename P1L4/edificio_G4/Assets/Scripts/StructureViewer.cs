@@ -19,6 +19,7 @@ public class StructureViewer : MonoBehaviour
     private Material defaultSupportMaterial;
     private Material defaultWallMaterial;
     private Material defaultDiaphragmMaterial;
+    private Material defaultBraceMaterial;
 
     private readonly Dictionary<int, Vector3> nodes = new Dictionary<int, Vector3>();
     private readonly List<ElementSelectable> selectables = new List<ElementSelectable>();
@@ -252,18 +253,26 @@ public class StructureViewer : MonoBehaviour
             Vector3 direction = end - start;
 
             bool isColumn = element.type == "columna";
+            bool isArriostre = element.type == "arriostre";
             float sectionWidth = GetSectionWidth(element, isColumn);
             float sectionHeight = GetSectionHeight(element, isColumn);
+
+            // Factor SOLO visual (no cambia width_m/height_m del JSON, por lo que
+            // no repercute en los cálculos): vigas levemente más esbeltas y
+            // columnas levemente más gruesas.
+            bool isBeam = !isColumn && !isArriostre;
+            float visualFactorWidth = isColumn ? 1.08f : (isBeam ? 0.82f : 1.0f);
+            float visualFactorDepth = isColumn ? 1.08f : (isBeam ? 0.85f : 1.0f);
 
             GameObject member = GameObject.CreatePrimitive(PrimitiveType.Cube);
             member.name = $"Elemento_{element.id}_{element.type}_{GetSectionName(element)}";
             member.transform.SetParent(transform);
             member.transform.position = midpoint;
             member.transform.rotation = GetMemberRotation(direction, isColumn);
-            member.transform.localScale = new Vector3(sectionWidth, direction.magnitude, sectionHeight);
+            member.transform.localScale = new Vector3(sectionWidth * visualFactorWidth, direction.magnitude, sectionHeight * visualFactorDepth);
 
             Renderer renderer = member.GetComponent<Renderer>();
-            renderer.material = isColumn ? ColumnMaterial() : BeamMaterial();
+            renderer.material = isArriostre ? BraceMaterial() : isColumn ? ColumnMaterial() : BeamMaterial();
             (isColumn ? columnObjects : beamObjects).Add(member);
             RegisterFloor(member, element.piso);
 
@@ -1220,11 +1229,12 @@ public class StructureViewer : MonoBehaviour
 
     private void CreateDefaultMaterials()
     {
-        defaultBeamMaterial = CreateMaterial(new Color(0.05f, 0.72f, 0.64f));
-        defaultColumnMaterial = CreateMaterial(new Color(0.16f, 0.24f, 0.38f));
+        defaultBeamMaterial = CreateMaterial(new Color(0.44f, 0.47f, 0.52f));
+        defaultColumnMaterial = CreateMaterial(new Color(0.20f, 0.22f, 0.26f));
         defaultSupportMaterial = CreateMaterial(new Color(1f, 0.58f, 0.15f));
-        defaultWallMaterial = CreateMaterial(new Color(0.42f, 0.47f, 0.60f));
-        defaultDiaphragmMaterial = CreateMaterial(new Color(0.38f, 0.76f, 0.92f, 0.30f));
+        defaultWallMaterial = CreateMaterial(new Color(0.66f, 0.69f, 0.74f, 0.55f));
+        defaultDiaphragmMaterial = CreateMaterial(new Color(0.38f, 0.76f, 0.92f, 0.22f));
+        defaultBraceMaterial = CreateMaterial(new Color(0.30f, 0.33f, 0.38f));
     }
 
     private void CreateGroundGrid()
@@ -1315,5 +1325,10 @@ public class StructureViewer : MonoBehaviour
     private Material DiaphragmMaterial()
     {
         return defaultDiaphragmMaterial;
+    }
+
+    private Material BraceMaterial()
+    {
+        return defaultBraceMaterial;
     }
 }

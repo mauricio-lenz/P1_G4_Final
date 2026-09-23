@@ -159,7 +159,7 @@ public class ElementPicker : MonoBehaviour
         if (contentH < panelH - 40f) contentH = panelH - 40f;
 
         int prevSize = UiTheme.Label.fontSize;
-        var rect = new Rect(px + UiTheme.SideM, 0f, innerW, contentH);
+        var rect = new Rect(UiTheme.SideM, 2f, innerW, contentH);
         scroll = GUI.BeginScrollView(new Rect(px, py + 28f, panelW, panelH - 34f), scroll,
             new Rect(0f, 0f, panelW - 14f, contentH + 80f));
 
