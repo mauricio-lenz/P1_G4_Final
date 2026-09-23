@@ -3,7 +3,7 @@
 **Proyecto:** modelo estructural UANDES, edificio 1 (visualizador P1L4).
 **Unidades:** kN, m, kN·m, rad.
 
-Los resultados numéricos de este informe provienen del pipeline reproducible de `P1L4/` (reanálisis OpenSees de la sección 2). El visualizador y los datos se mantienen en `P1L4/unity_visualizador`, con el JSON de trabajo en `P1L4/unity_visualizador/Assets/Resources/estructura_p1l4_unity.json`.
+Los resultados numéricos de este informe provienen del pipeline reproducible de `P1L4/` (reanálisis OpenSees de la sección 2). El visualizador y los datos se mantienen en `P1L4/edificio_G4`, con el JSON de trabajo en `P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json`.
 
 ## 1. Funciones implementadas
 
@@ -161,7 +161,7 @@ Se documenta la funcionalidad con más lógica de esta semana, implementada por 
 
 **Verificación**
 - Reanálisis OpenSees local y comparación de órdenes de magnitud: muro 1 → C1 `P=442.6 kN`, `M=600.8 kN·m`, `V=37.55 kN`. La suma de las `V_kN` de los 75 muros acumula el corte basal sísmico combinado de cada combinación (el reparto por `t·L` suma 1 por construcción); para C1 esa suma es `3421.85 kN`.
-- Compilación Unity sin errores `CS`: editor log `P1L4/unity_visualizador/Logs/Editor.log` → «Estructura lista: 537 elementos interactivos, 3 combinaciones», sin NullReference ni excepciones.
+- Compilación Unity sin errores `CS`: editor log `P1L4/edificio_G4/Logs/Editor.log` → «Estructura lista: 537 elementos interactivos, 3 combinaciones», sin NullReference ni excepciones.
 - El script `verificar_superposicion.py` de la sección 3 corrió sobre el JSON final y confirmó que las fuerzas de muro son consistentes con la superposición lineal (error `10⁻¹¹`).
 
 ## Archivos de reproducción
@@ -173,6 +173,6 @@ Se documenta la funcionalidad con más lógica de esta semana, implementada por 
 - `P1L4/semana5/resultados/escenario_Q600.json` — modificación A.
 - `P1L4/semana5/resultados/escenario_SC030.json` — modificación B.
 - `P1L4/semana5/resultados/escenario_restaurado.json` — restauración (idéntico SHA256 al base).
-- `P1L4/unity_visualizador/` — proyecto y escena del viewer.
-- `P1L4/unity_visualizador/Assets/Resources/estructura_p1l4_unity.json` — JSON vigente (estado base entregado).
-- `P1L4/unity_visualizador/Assets/Scripts/` — `StructureViewer.cs` (cargas), `ElementSelectable.cs`, `DiagramController.cs`, `StructureData.cs`, `UnityData.cs`, `PMPanel.cs`.
+- `P1L4/edificio_G4/` — proyecto y escena del viewer.
+- `P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json` — JSON vigente (estado base entregado).
+- `P1L4/edificio_G4/Assets/Scripts/` — `StructureViewer.cs` (cargas), `ElementSelectable.cs`, `DiagramController.cs`, `StructureData.cs`, `UnityData.cs`, `PMPanel.cs`.

@@ -17,7 +17,7 @@ Visualizador Unity de la estructura 3D con resultados de análisis estático lin
 ```
 P1L4/
 ├── exportar_resultados_unity.py   ← Generador del JSON enriquecido (requiere venv con openseespy)
-├── unity_visualizador/
+├── edificio_G4/
 │   ├── Assets/
 │   │   ├── Resources/
 │   │   │   ├── estructura_completo_unity.json   ← JSON base (P1L2)
@@ -57,12 +57,12 @@ El exportador:
 3. Extrae desplazamientos (553 nodos x 3 combos) y fuerzas internas (462 elementos x 3 combos, 12 componentes x 2 extremos).
 4. Genera curvas P-M: COL70/70_FIBER (5 puntos) y W_DPRIME_OPENING_TO_3 (24 puntos envolvente).
 5. Genera demandas P-M por muro y por combinacion activa.
-6. Guarda `estructura_p1l4_unity.json` (~1.3 MB) en `P1L4/unity_visualizador/Assets/Resources/`.
+6. Guarda `estructura_p1l4_unity.json` (~1.3 MB) en `P1L4/edificio_G4/Assets/Resources/`.
 
 ## 2. Abrir en Unity
 
-1. Copiar la carpeta `P1L4/unity_visualizador` completa (o usar el `Assets/` como tu Unity project si ya tienes uno).
-2. Abrir Unity Hub → Open → seleccionar `P1L4/unity_visualizador`.
+1. Copiar la carpeta `P1L4/edificio_G4` completa (o usar el `Assets/` como tu Unity project si ya tienes uno).
+2. Abrir Unity Hub → Open → seleccionar `P1L4/edificio_G4`.
 3. Dejar que Unity regenere `Library/` (excluido del gitignore).
 4. Crear una escena vacía.
 5. Ir al menú **MCOC → Crear Visualizador** (o confiar en la creación automática del editor script).

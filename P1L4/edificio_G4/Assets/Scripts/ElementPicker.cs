@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ElementPicker : MonoBehaviour
 {
@@ -8,20 +8,6 @@ public class ElementPicker : MonoBehaviour
 
     public ElementSelectable Selected { get; private set; }
     private Vector3 lastHitPoint;
-
-    [Header("Info Panel")]
-    public Vector2 panelOffset = new Vector2(24f, 18f);
-    public Vector2 panelMinSize = new Vector2(380f, 0f);
-    public float panelMaxWidthRatio = 0.42f;
-    public int panelFontSize = 11;
-    public float panelPaddingX = 18f;
-    public float panelLineSpacing = 2f;
-    public float panelSectionSpacing = 12f;
-
-    private GUIStyle boxStyle;
-    private GUIStyle labelStyle;
-    private GUIStyle titleStyle;
-    private GUIStyle headerStyle;
     private Vector2 scroll;
 
     void Awake()
@@ -156,36 +142,30 @@ public class ElementPicker : MonoBehaviour
     {
         if (Selected == null && selectedInfo == null) return;
 
-        EnsureStyles();
-
         string info = Selected != null
             ? Selected.GetValuesAt(lastHitPoint)
             : $"==={selectedInfo.name}===\n{selectedInfo.GetInfo()}";
-        float pmZone = Mathf.Min(440f, Screen.width * 0.42f) + 24f;
-        float maxW = Screen.width - panelOffset.x * 2f - pmZone;
-        float panelW = Mathf.Max(panelMinSize.x, Mathf.Min(Screen.width * 0.54f, maxW));
-        float maxPanelH = Mathf.Max(280f, Screen.height - panelOffset.y * 2f - 82f);
-        float panelH = Mathf.Min(Mathf.Max(480f, Screen.height * 0.86f), maxPanelH);
 
-        float px = Screen.width - panelOffset.x - panelW;
-        float py = Screen.height - panelOffset.y - panelH;
+        Rect zone = UiTheme.InfoPanel();
+        float panelW = zone.width;
+        float panelH = zone.height - 8f;
+        float px = zone.x;
+        float py = zone.y + 4f;
 
-        GUI.Box(new Rect(px, py, panelW, panelH), GUIContent.none, boxStyle);
+        UiTheme.GUIBox(new Rect(px, py, panelW, panelH), "RESULTADOS DE ESFUERZOS");
 
-        float innerW = panelW - panelPaddingX * 2f;
+        float innerW = panelW - UiTheme.SideM * 2f;
         float contentH = CalculateContentHeight(info, innerW);
-        if (contentH < panelH - 60f) contentH = panelH - 60f;
+        if (contentH < panelH - 40f) contentH = panelH - 40f;
 
-        var rect = new Rect(panelPaddingX, 0f, innerW, contentH);
-        scroll = GUI.BeginScrollView(new Rect(px, py + 8f, panelW, panelH - 16f), scroll,
-            new Rect(0f, 0f, panelW - 20f, contentH + 80f));
-
-        int prevSize = labelStyle.fontSize;
-        labelStyle.fontSize = panelFontSize;
+        int prevSize = UiTheme.Label.fontSize;
+        var rect = new Rect(px + UiTheme.SideM, 0f, innerW, contentH);
+        scroll = GUI.BeginScrollView(new Rect(px, py + 28f, panelW, panelH - 34f), scroll,
+            new Rect(0f, 0f, panelW - 14f, contentH + 80f));
 
         DrawLabel(info, rect, innerW, ref contentH);
 
-        labelStyle.fontSize = prevSize;
+        UiTheme.Label.fontSize = prevSize;
         GUI.EndScrollView();
     }
 
@@ -193,7 +173,7 @@ public class ElementPicker : MonoBehaviour
     {
         string[] sections = text.Split('\n');
         float y = area.y;
-        float lineH = panelFontSize + panelLineSpacing;
+        float lineH = 14f;
 
         foreach (string raw in sections)
         {
@@ -201,8 +181,8 @@ public class ElementPicker : MonoBehaviour
             bool isTitle = line.StartsWith("===");
             bool isHeader = line.StartsWith("---") && line.EndsWith("---");
 
-            GUIStyle style = isTitle ? titleStyle : isHeader ? headerStyle : labelStyle;
-            float styleLineH = isTitle || isHeader ? lineH + 2f : lineH;
+            GUIStyle style = isTitle ? UiTheme.TitleSm : isHeader ? UiTheme.Header : UiTheme.Label;
+            float styleLineH = isTitle || isHeader ? lineH + 4f : lineH;
 
             var content = new GUIContent(line);
             float h = style.CalcHeight(content, width);
@@ -212,11 +192,11 @@ public class ElementPicker : MonoBehaviour
 
             if (line == "" || line.Contains("---"))
             {
-                y += h + panelSectionSpacing;
+                y += h + 10f;
             }
             else
             {
-                y += h + panelLineSpacing;
+                y += h + 2f;
             }
         }
 
@@ -225,62 +205,22 @@ public class ElementPicker : MonoBehaviour
 
     private float CalculateContentHeight(string text, float width)
     {
-        EnsureStyles();
         string[] sections = text.Split('\n');
         float y = 0f;
-        float lineH = panelFontSize + panelLineSpacing;
-
-        int prevLabelSize = labelStyle.fontSize;
-        int prevTitleSize = titleStyle.fontSize;
-        labelStyle.fontSize = panelFontSize;
-        titleStyle.fontSize = panelFontSize + 2;
-        headerStyle.fontSize = panelFontSize;
+        float lineH = 14f;
 
         foreach (string raw in sections)
         {
             string line = raw.TrimEnd('\r');
             bool isTitle = line.StartsWith("===");
             bool isHeader = line.StartsWith("---") && line.EndsWith("---");
-            GUIStyle style = isTitle ? titleStyle : isHeader ? headerStyle : labelStyle;
-            float styleLineH = isTitle || isHeader ? lineH + 2f : lineH;
+            GUIStyle style = isTitle ? UiTheme.TitleSm : isHeader ? UiTheme.Header : UiTheme.Label;
+            float styleLineH = isTitle || isHeader ? lineH + 4f : lineH;
             float h = style.CalcHeight(new GUIContent(line), width);
             if (h < styleLineH) h = styleLineH;
-            y += h + ((line == "" || line.Contains("---")) ? panelSectionSpacing : panelLineSpacing);
+            y += h + ((line == "" || line.Contains("---")) ? 10f : 2f);
         }
 
-        labelStyle.fontSize = prevLabelSize;
-        titleStyle.fontSize = prevTitleSize;
-        headerStyle.fontSize = prevLabelSize;
-        return y + 60f;
-    }
-
-    private void EnsureStyles()
-    {
-        if (boxStyle != null) return;
-
-        boxStyle = new GUIStyle(GUI.skin.box);
-        Texture2D bg = new Texture2D(1, 1);
-        bg.SetPixel(0, 0, new Color(0.07f, 0.07f, 0.15f, 0.92f));
-        bg.Apply();
-        boxStyle.normal.background = bg;
-        boxStyle.border = new RectOffset(2, 2, 2, 2);
-        boxStyle.padding = new RectOffset(8, 8, 8, 8);
-
-        labelStyle = new GUIStyle(GUI.skin.label);
-        labelStyle.fontSize = panelFontSize;
-        labelStyle.normal.textColor = Color.white;
-        labelStyle.wordWrap = true;
-        labelStyle.richText = false;
-        labelStyle.alignment = TextAnchor.UpperLeft;
-        labelStyle.padding = new RectOffset(0, 0, 0, 0);
-
-        titleStyle = new GUIStyle(labelStyle);
-        titleStyle.fontSize = panelFontSize + 2;
-        titleStyle.fontStyle = FontStyle.Bold;
-        titleStyle.normal.textColor = new Color(0.3f, 0.8f, 1f);
-
-        headerStyle = new GUIStyle(labelStyle);
-        headerStyle.fontStyle = FontStyle.Bold;
-        headerStyle.normal.textColor = new Color(0.7f, 0.85f, 0.95f);
+        return y + 40f;
     }
 }

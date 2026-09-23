@@ -16,7 +16,7 @@ import math
 import sys
 from pathlib import Path
 
-JSON_PATH = (Path(__file__).resolve().parent / "unity_visualizador"
+JSON_PATH = (Path(__file__).resolve().parent / "edificio_G4"
              / "Assets" / "Resources" / "estructura_p1l4_unity.json")
 
 

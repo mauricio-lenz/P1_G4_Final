@@ -18,7 +18,7 @@ Uso:
   python P1L4/exportar_resultados_unity.py --q-kg-m2 500 --sc 0.20
 
 El JSON se escribe en:
-  P1L4/unity_visualizador/Assets/Resources/estructura_p1l4_unity.json
+  P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json
 """
 
 import sys
@@ -32,7 +32,7 @@ ROOT_DIR = BASE_DIR.parent
 P1L3_DIR = ROOT_DIR / "P1L3"
 P1L2_RESOURCES = ROOT_DIR / "P1L2" / "unity_visualizador" / "Assets" / "Resources"
 JSON_BASE = P1L2_RESOURCES / "estructura_completo_unity.json"
-JSON_OUT = BASE_DIR / "unity_visualizador" / "Assets" / "Resources" / "estructura_p1l4_unity.json"
+JSON_OUT = BASE_DIR / "edificio_G4" / "Assets" / "Resources" / "estructura_p1l4_unity.json"
 
 # Metadata de materiales para las secciones
 SECTION_MATERIALS = [

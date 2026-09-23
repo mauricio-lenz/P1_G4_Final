@@ -128,6 +128,7 @@ public class StructureViewer : MonoBehaviour
         CreateGlobalAxes();
         CreateDiagramController();
         CreatePMPanel();
+        CreateGroundGrid();
 
         BuildComboOptions();
         BuildFloorOptions();
@@ -578,15 +579,16 @@ public class StructureViewer : MonoBehaviour
 
     private void CreateDiagramController()
     {
-        if (diagramController != null)
+        DiagramController existing = GetComponent<DiagramController>();
+        if (existing != null)
         {
             if (Application.isPlaying)
             {
-                Destroy(diagramController);
+                Destroy(existing);
             }
             else
             {
-                DestroyImmediate(diagramController);
+                DestroyImmediate(existing);
             }
         }
         diagramController = gameObject.AddComponent<DiagramController>();
@@ -595,15 +597,16 @@ public class StructureViewer : MonoBehaviour
 
     private void CreatePMPanel()
     {
-        if (pmPanel != null)
+        PMPanel existing = GetComponent<PMPanel>();
+        if (existing != null)
         {
             if (Application.isPlaying)
             {
-                Destroy(pmPanel);
+                Destroy(existing);
             }
             else
             {
-                DestroyImmediate(pmPanel);
+                DestroyImmediate(existing);
             }
         }
         pmPanel = gameObject.AddComponent<PMPanel>();
@@ -1035,24 +1038,24 @@ public class StructureViewer : MonoBehaviour
     {
         DrawTopBar();
         DrawLeftPanel();
-        DrawViewportHint();
         RefreshVisibility();
     }
 
     private void DrawTopBar()
     {
-        float x = 12f;
-        float y = 10f;
-        float w = Screen.width - 24f;
-        float h = 70f;
-        GUI.Box(new Rect(x, y, w, h), "P1L4 Visualizador | TopBar");
+        float x = UiTheme.SideM;
+        float y = 7f;
+        float w = Screen.width - UiTheme.SideM * 2f;
+        float h = UiTheme.TopBarH - 14f;
+        UiTheme.GUIBox(new Rect(x, y, w, h));
+        GUI.Label(new Rect(x + 12f, y + 4f, 320f, 16f), "GRUPO 4 · MCOP P1L4 — MODELO TRIBUTARIO · OPENSEES", UiTheme.Brand);
 
+        float cy = y + 26f;
         float cx = x + 12f;
-        float cy = y + 25f;
-        GUI.Label(new Rect(cx, cy, 54f, 22f), "Combo");
+        GUI.Label(new Rect(cx, cy, 52f, 20f), "Combo", UiTheme.DimLabel);
         if (comboOptions.Length > 0)
         {
-            int index = GUI.Toolbar(new Rect(cx + 54f, cy, 245f, 22f), comboIndex, comboOptions);
+            int index = GUI.Toolbar(new Rect(cx + 54f, cy, 232f, 20f), comboIndex, comboOptions);
             if (index != comboIndex)
             {
                 comboIndex = index;
@@ -1061,9 +1064,13 @@ public class StructureViewer : MonoBehaviour
             }
         }
 
-        cx += 320f;
-        GUI.Label(new Rect(cx, cy, 72f, 22f), "Resultado");
-        int nextResult = GUI.Toolbar(new Rect(cx + 78f, cy, 380f, 22f), resultIndex, resultOptions);
+        cx = x + 330f;
+        GUI.Label(new Rect(cx, cy, 62f, 20f), "Resultado", UiTheme.DimLabel);
+        float bx = x + w - 240f;
+        float resultW = Mathf.Max(120f, Mathf.Min(430f, w - 560f));
+        float maxResultW = bx - (cx + 66f) - 24f;
+        if (resultW > maxResultW) resultW = Mathf.Max(120f, maxResultW);
+        int nextResult = GUI.Toolbar(new Rect(cx + 66f, cy, resultW, 20f), resultIndex, resultOptions);
         if (nextResult != resultIndex)
         {
             resultIndex = nextResult;
@@ -1074,53 +1081,57 @@ public class StructureViewer : MonoBehaviour
             statusMessage = "Resultado activo: " + resultOptions[resultIndex];
         }
 
-        float bx = x + w - 245f;
-        if (GUI.Button(new Rect(bx, cy, 55f, 22f), "ISO")) SetCameraPreset("ISO");
-        if (GUI.Button(new Rect(bx + 60f, cy, 55f, 22f), "TOP")) SetCameraPreset("TOP");
-        if (GUI.Button(new Rect(bx + 120f, cy, 55f, 22f), "FRONT")) SetCameraPreset("FRONT");
-        if (GUI.Button(new Rect(bx + 180f, cy, 55f, 22f), "RIGHT")) SetCameraPreset("RIGHT");
+        if (GUI.Button(new Rect(bx, cy, 55f, 20f), "ISO")) SetCameraPreset("ISO");
+        if (GUI.Button(new Rect(bx + 60f, cy, 55f, 20f), "TOP")) SetCameraPreset("TOP");
+        if (GUI.Button(new Rect(bx + 120f, cy, 55f, 20f), "FRONT")) SetCameraPreset("FRONT");
+        if (GUI.Button(new Rect(bx + 180f, cy, 55f, 20f), "RIGHT")) SetCameraPreset("RIGHT");
+
+        GUI.Label(new Rect(x + 12f, y + 50f, w - 24f, 14f),
+            "Estado: " + statusMessage + "   |   Click izq: seleccionar · Click der: orbitar · Rueda: zoom · I/J: extremos locales",
+            UiTheme.DimLabel);
     }
 
     private void DrawLeftPanel()
     {
-        float x = 12f;
-        float y = 90f;
-        float w = Mathf.Min(340f, Screen.width * 0.34f);
-        float h = Mathf.Min(Screen.height - 112f, 520f);
-        GUI.Box(new Rect(x, y, w, h), "LeftPanel | Capas y filtro");
+        Rect area = UiTheme.LeftArea();
+        float x = area.x;
+        float y = area.y;
+        float w = area.width;
+        float h = area.height;
+        UiTheme.GUIBox(new Rect(x, y, w, h), "CONSOLA DE CAPAS Y FILTROS");
 
         float innerX = x + 12f;
-        float innerY = y + 26f;
+        float innerY = y + 30f;
         float innerW = w - 24f;
-        leftScroll = GUI.BeginScrollView(new Rect(x + 4f, innerY, w - 8f, h - 34f), leftScroll,
-            new Rect(x + 4f, innerY, w - 24f, 520f));
+        leftScroll = GUI.BeginScrollView(new Rect(x + 4f, innerY, w - 8f, h - 38f), leftScroll,
+            new Rect(x + 4f, innerY, w - 24f, 540f));
 
-        GUI.Label(new Rect(innerX, innerY, innerW, 20f), "Visibilidad");
+        GUI.Label(new Rect(innerX, innerY, innerW, 20f), "VISIBILIDAD", UiTheme.Header);
         innerY += 22f;
-        showColumns = GUI.Toggle(new Rect(innerX, innerY, 105f, 20f), showColumns, "Columnas");
-        showBeams = GUI.Toggle(new Rect(innerX + 110f, innerY, 85f, 20f), showBeams, "Vigas");
-        showWalls = GUI.Toggle(new Rect(innerX + 205f, innerY, 85f, 20f), showWalls, "Muros");
-        innerY += 22f;
-        showSupports = GUI.Toggle(new Rect(innerX, innerY, 105f, 20f), showSupports, "Apoyos");
-        showDiaphragms = GUI.Toggle(new Rect(innerX + 110f, innerY, 85f, 20f), showDiaphragms, "Losas");
-        showNodeMarkers = GUI.Toggle(new Rect(innerX + 205f, innerY, 85f, 20f), showNodeMarkers, "Nodos");
-        innerY += 22f;
-        showIds = GUI.Toggle(new Rect(innerX, innerY, 105f, 20f), showIds, "IDs");
-        showLocalAxes = GUI.Toggle(new Rect(innerX + 110f, innerY, 120f, 20f), showLocalAxes, "Ejes locales");
-        showLoads = GUI.Toggle(new Rect(innerX + 235f, innerY, 80f, 20f), showLoads, "Cargas");
-        innerY += 34f;
+        showColumns = GUI.Toggle(new Rect(innerX, innerY, 104f, 20f), showColumns, "Columnas");
+        showBeams = GUI.Toggle(new Rect(innerX + 108f, innerY, 82f, 20f), showBeams, "Vigas");
+        showWalls = GUI.Toggle(new Rect(innerX + 200f, innerY, 82f, 20f), showWalls, "Muros");
+        innerY += 24f;
+        showSupports = GUI.Toggle(new Rect(innerX, innerY, 104f, 20f), showSupports, "Apoyos");
+        showDiaphragms = GUI.Toggle(new Rect(innerX + 108f, innerY, 82f, 20f), showDiaphragms, "Losas");
+        showNodeMarkers = GUI.Toggle(new Rect(innerX + 200f, innerY, 82f, 20f), showNodeMarkers, "Nodos");
+        innerY += 26f;
+        showIds = GUI.Toggle(new Rect(innerX, innerY, 104f, 20f), showIds, "IDs");
+        showLocalAxes = GUI.Toggle(new Rect(innerX + 108f, innerY, 118f, 20f), showLocalAxes, "Ejes locales");
+        showLoads = GUI.Toggle(new Rect(innerX + 234f, innerY, 78f, 20f), showLoads, "Cargas");
+        innerY += 36f;
 
-        GUI.Label(new Rect(innerX, innerY, innerW, 20f), "Filtro por piso");
+        GUI.Label(new Rect(innerX, innerY, innerW, 20f), "FILTRO POR PISO", UiTheme.Header);
         innerY += 22f;
-        int nextFloor = GUI.SelectionGrid(new Rect(innerX, innerY, innerW, Mathf.Ceil(floorOptions.Length / 2f) * 24f), floorIndex, floorOptions, 2);
+        int nextFloor = GUI.SelectionGrid(new Rect(innerX, innerY, innerW, Mathf.Ceil(floorOptions.Length / 2f) * 22f), floorIndex, floorOptions, 2);
         if (nextFloor != floorIndex)
         {
             floorIndex = nextFloor;
             statusMessage = "Filtro de piso: " + floorOptions[floorIndex];
         }
-        innerY += Mathf.Ceil(floorOptions.Length / 2f) * 24f + 12f;
+        innerY += Mathf.Ceil(floorOptions.Length / 2f) * 22f + 12f;
 
-        if (GUI.Button(new Rect(innerX, innerY, 102f, 24f), "Mostrar todo"))
+        if (GUI.Button(new Rect(innerX, innerY, 102f, 22f), "Mostrar todo"))
         {
             showColumns = showBeams = showWalls = showSupports = showDiaphragms = true;
             showNodeMarkers = showIds = showLocalAxes = showLoads = false;
@@ -1132,7 +1143,7 @@ public class StructureViewer : MonoBehaviour
             floorIndex = 0;
             statusMessage = "Vista restablecida.";
         }
-        if (GUI.Button(new Rect(innerX + 110f, innerY, 102f, 24f), "Solo estructura"))
+        if (GUI.Button(new Rect(innerX + 110f, innerY, 102f, 22f), "Solo estructura"))
         {
             showColumns = showBeams = showWalls = true;
             showSupports = showDiaphragms = showNodeMarkers = showIds = showLocalAxes = showLoads = false;
@@ -1145,40 +1156,33 @@ public class StructureViewer : MonoBehaviour
         }
         innerY += 34f;
 
-        showTributarySummary = GUI.Toggle(new Rect(innerX, innerY, 180f, 20f), showTributarySummary, "Resumen tributario");
-        innerY += 24f;
+        showTributarySummary = GUI.Toggle(new Rect(innerX, innerY, 186f, 20f), showTributarySummary, "Resumen tributario");
+        innerY += 23f;
         if (showTributarySummary)
         {
             foreach (KeyValuePair<string, TributaryFloorData> kv in tributaryFloors)
             {
                 TributaryFloorData td = kv.Value;
-                GUI.Label(new Rect(innerX, innerY, innerW, 18f), $"{kv.Key}: A={td.area_total:0.##} m2 | carga={td.carga_total:0.##} kN");
-                innerY += 18f;
+                GUI.Label(new Rect(innerX, innerY, innerW, 17f), $"{kv.Key}: A={td.area_total:0.##} m2 | carga={td.carga_total:0.##} kN", UiTheme.Label);
+                innerY += 17f;
             }
         }
         innerY += 6f;
 
-        bool nextUtilization = GUI.Toggle(new Rect(innerX, innerY, 210f, 20f), showUtilization, "Colorear por utilizacion (C)");
+        bool nextUtilization = GUI.Toggle(new Rect(innerX, innerY, 216f, 20f), showUtilization, "Colorear por utilizacion (C)");
         if (nextUtilization != showUtilization)
         {
             SetUtilizationVisible(nextUtilization);
             statusMessage = showUtilization ? "Colores por C = demanda/capacidad P-M." : "Colores por capa restaurados.";
         }
-        innerY += 20f;
+        innerY += 22f;
         if (showUtilization)
         {
-            GUI.Label(new Rect(innerX, innerY, innerW, 20f), "verde: C<=0.7 | amarillo: C~1 | rojo: C>1");
-            innerY += 20f;
+            GUI.Label(new Rect(innerX, innerY, innerW, 18f), "verde: C<=0.7 | amarillo: C~1 | rojo: C>1", UiTheme.DimLabel);
+            innerY += 18f;
         }
 
         GUI.EndScrollView();
-    }
-
-    private void DrawViewportHint()
-    {
-        float w = Mathf.Min(520f, Screen.width - 380f);
-        if (w < 240f) return;
-        GUI.Box(new Rect(370f, Screen.height - 46f, w, 32f), "MainViewport | " + statusMessage + " | Click izquierdo: seleccionar | Click derecho: orbitar | rueda: zoom");
     }
 
     private void SetCameraPreset(string preset)
@@ -1216,11 +1220,49 @@ public class StructureViewer : MonoBehaviour
 
     private void CreateDefaultMaterials()
     {
-        defaultBeamMaterial = CreateMaterial(new Color(0.0f, 0.62f, 0.85f));
-        defaultColumnMaterial = CreateMaterial(new Color(0.18f, 0.18f, 0.24f));
-        defaultSupportMaterial = CreateMaterial(new Color(0.95f, 0.38f, 0.12f));
-        defaultWallMaterial = CreateMaterial(new Color(0.55f, 0.6f, 0.42f));
-        defaultDiaphragmMaterial = CreateMaterial(new Color(0.7f, 0.8f, 0.95f, 0.35f));
+        defaultBeamMaterial = CreateMaterial(new Color(0.05f, 0.72f, 0.64f));
+        defaultColumnMaterial = CreateMaterial(new Color(0.16f, 0.24f, 0.38f));
+        defaultSupportMaterial = CreateMaterial(new Color(1f, 0.58f, 0.15f));
+        defaultWallMaterial = CreateMaterial(new Color(0.42f, 0.47f, 0.60f));
+        defaultDiaphragmMaterial = CreateMaterial(new Color(0.38f, 0.76f, 0.92f, 0.30f));
+    }
+
+    private void CreateGroundGrid()
+    {
+        Material line = CreateMaterial(new Color(0.22f, 0.55f, 0.80f, 0.5f));
+        Material basePlane = CreateMaterial(new Color(0.05f, 0.07f, 0.12f, 0.85f));
+
+        GameObject baseGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        baseGo.name = "Env_BasePlane";
+        baseGo.transform.SetParent(transform);
+        baseGo.transform.localPosition = new Vector3(-2f, -1.5f, -0.14f);
+        baseGo.transform.localScale = new Vector3(115f, 42f, 1f);
+        baseGo.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        baseGo.GetComponent<Renderer>().material = basePlane;
+        baseGo.GetComponent<Collider>().enabled = false;
+        baseGo.hideFlags = HideFlags.DontSave;
+
+        for (int i = -5; i <= 5; i++)
+        {
+            CreateGridLine(new Vector3(-60f, i * 10f, -0.08f), new Vector3(60f, i * 10f, -0.08f), 0.05f, line);
+            CreateGridLine(new Vector3(i * 10f, -22f, -0.08f), new Vector3(i * 10f, 22f, -0.08f), 0.05f, line);
+        }
+    }
+
+    private void CreateGridLine(Vector3 a, Vector3 b, float thickness, Material material)
+    {
+        Vector3 mid = (a + b) * 0.5f;
+        Vector3 dir = b - a;
+        float len = dir.magnitude;
+        GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        obj.name = "Env_GridLine";
+        obj.transform.SetParent(transform);
+        obj.transform.position = mid;
+        obj.transform.rotation = Quaternion.FromToRotation(Vector3.right, dir.normalized);
+        obj.transform.localScale = new Vector3(len, thickness, thickness);
+        obj.GetComponent<Renderer>().material = material;
+        obj.GetComponent<Collider>().enabled = false;
+        obj.hideFlags = HideFlags.DontSave;
     }
 
     private Material CreateMaterial(Color color)

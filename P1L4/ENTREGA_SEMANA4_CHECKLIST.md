@@ -5,7 +5,7 @@
 Unity funciona como postprocesador estructural conectado a resultados OpenSees ya exportados en:
 
 ```text
-P1L4/unity_visualizador/Assets/Resources/estructura_p1l4_unity.json
+- JSON enriquecido: `P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json`
 ```
 
 ## Datos Verificados
@@ -95,5 +95,5 @@ python -X utf8 P1L4\exportar_resultados_unity.py
 Abrir Unity:
 
 ```text
-C:\Users\mauwa\OneDrive\Desktop\Grupo4_MCOC\P1_G4_Final\P1L4\unity_visualizador
+C:\Users\mauwa\OneDrive\Desktop\Grupo4_MCOC\P1_G4_Final\P1L4\edificio_G4
 ```

@@ -12,7 +12,7 @@ Etapa del proyecto MCOC que implementa el visualizador 3D mejorado en Unity con:
 ## Estructura
 
 - `exportar_resultados_unity.py` — Exportador Python que genera el JSON enriquecido desde OpenSeesPy (requiere venv con `openseespy`).
-- `unity_visualizador/` — Proyecto Unity completo, autocontenido. Ver `unity_visualizador/README_Unity.md` para instrucciones de uso.
+- `edificio_G4/` — Proyecto Unity completo, autocontenido. Ver `edificio_G4/README_Unity.md` para instrucciones de uso.
 
 ## Generar datos
 
@@ -32,4 +32,4 @@ Genera `P1L4/resultados/esfuerzos_por_elemento.xlsx` (hoja por caso G/Q/EX/EY y 
 
 ## Abrir en Unity
 
-Copiar `unity_visualizador/` como proyecto Unity, crear escena, y usar el menú **MCOC → Crear Visualizador`. En el panel izquierdo, "Colorear por utilizacion" pinta cada elemento segun su relacion C = M/Mcap del combo activo.
+Copiar `edificio_G4/` como proyecto Unity, crear escena, y usar el menú **MCOC → Crear Visualizador`. En el panel izquierdo, "Colorear por utilizacion" pinta cada elemento segun su relacion C = M/Mcap del combo activo.

@@ -65,7 +65,7 @@ Genera el JSON del visualizador Unity con esfuerzos por elemento (con `tag` de O
 python -X utf8 P1L4\exportar_resultados_unity.py
 ```
 
-Salida: `P1L4/unity_visualizador/Assets/Resources/estructura_p1l4_unity.json` (claves ordenadas) y `P1L2/unity_visualizador/Assets/Resources/semana3_resultados_unity.json`.
+Salida: `P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json` (claves ordenadas) y `P1L2/unity_visualizador/Assets/Resources/semana3_resultados_unity.json`.
 
 Exportar fuerzas internas por elemento a Excel (hoja por caso/combinacion mas resumen de muros):
 
@@ -75,10 +75,10 @@ python -X utf8 P1L4\exportar_excel_esfuerzos.py
 
 Salida: `P1L4/resultados/esfuerzos_por_elemento.xlsx`. Requiere `openpyxl` (ya incluido en `requirements.txt`).
 
-Unity del visualizador unificado:
+Unity del visualizador unificado (`edificio_G4`):
 
 ```text
-P1L4/unity_visualizador
+P1L4/edificio_G4
 ```
 
 ## Limitaciones conocidas

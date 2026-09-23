@@ -105,12 +105,13 @@ public class PMPanel : MonoBehaviour
 
         EnsureStyles();
 
-        float pw = Mathf.Min(panelSize.x, Screen.width * 0.42f);
-        float ph = Mathf.Min(panelSize.y, Mathf.Max(300f, Screen.height * 0.48f));
-        float px = Screen.width > 840f ? 370f : panelOffset.x;
-        float py = Screen.height - panelOffset.y - ph;
+        Rect zone = UiTheme.PMArea();
+        float pw = zone.width;
+        float ph = zone.height;
+        float px = zone.x;
+        float py = zone.y;
 
-        GUI.Box(new Rect(px - 2, py - 2, pw + 4, ph + 4), GUIContent.none, boxStyle);
+        UiTheme.GUIBox(new Rect(px - 2, py - 2, pw + 4, ph + 4), null);
 
         float innerW = pw - padding * 2f;
         float y = py + padding;

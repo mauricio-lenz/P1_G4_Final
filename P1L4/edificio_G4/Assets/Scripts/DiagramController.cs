@@ -30,9 +30,6 @@ public class DiagramController : MonoBehaviour
     private DiagramMode currentMode = DiagramMode.None;
     private readonly Dictionary<string, float> deformedScaleByBuilding = new Dictionary<string, float>();
     private Dictionary<string, float> currentMaxByBuilding = new Dictionary<string, float>();
-    private GUIStyle tableBoxStyle;
-    private GUIStyle tableTextStyle;
-    private GUIStyle tableTitleStyle;
 
     public void Initialize(List<ElementSelectable> selectables)
     {
@@ -409,11 +406,11 @@ public class DiagramController : MonoBehaviour
 
     private Color GetColor(DiagramMode mode)
     {
-        if (mode == DiagramMode.Axial) return Color.red;
-        if (mode == DiagramMode.Shear) return new Color(1f, 0.55f, 0f);
-        if (mode == DiagramMode.Moment) return Color.magenta;
-        if (mode == DiagramMode.Deformed) return new Color(0.3f, 1f, 0.4f);
-        return Color.green;
+        if (mode == DiagramMode.Axial) return new Color(1f, 0.35f, 0.42f);
+        if (mode == DiagramMode.Shear) return new Color(1f, 0.62f, 0.15f);
+        if (mode == DiagramMode.Moment) return new Color(0.95f, 0.2f, 0.85f);
+        if (mode == DiagramMode.Deformed) return new Color(0.25f, 1f, 0.75f);
+        return new Color(0.65f, 0.75f, 0.95f);
     }
 
     private string UnitFor(DiagramMode mode)
@@ -484,7 +481,6 @@ public class DiagramController : MonoBehaviour
             return;
         }
 
-        EnsureTableStyles();
         ElementSelectable selected = picker.Selected;
         if (selected.data == null && selected.isWall)
         {
@@ -543,12 +539,10 @@ public class DiagramController : MonoBehaviour
         }
 
         float w = Mathf.Min(380f, Screen.width * 0.34f);
-        float h = 132f;
-        float x = Mathf.Max(16f, (Screen.width - w) * 0.5f);
-        float y = Screen.height - h - 18f;
-        GUI.Box(new Rect(x, y, w, h), GUIContent.none, tableBoxStyle);
-        GUI.Label(new Rect(x + 12f, y + 8f, w - 24f, 22f), title, tableTitleStyle);
-        GUI.Label(new Rect(x + 12f, y + 32f, w - 24f, h - 40f), body, tableTextStyle);
+        float h = 138f;
+        Rect r = UiTheme.CenterTop(w, h);
+        UiTheme.GUIBox(new Rect(r.x, r.y, r.width, r.height), title);
+        GUI.Label(new Rect(r.x + 12f, r.y + 26f, r.width - 24f, r.height - 34f), body, UiTheme.Label);
     }
 
     private void DrawSelectedWallValueTable(ElementSelectable selected)
@@ -585,13 +579,12 @@ public class DiagramController : MonoBehaviour
                       $"Max abs = {value:0.##} {unit}\n" +
                       detail;
 
+        string title2 = $"Valores {currentMode} - Muro {selected.wallId}";
         float w = Mathf.Min(380f, Screen.width * 0.34f);
-        float h = 118f;
-        float x = Mathf.Max(16f, (Screen.width - w) * 0.5f);
-        float y = Screen.height - h - 18f;
-        GUI.Box(new Rect(x, y, w, h), GUIContent.none, tableBoxStyle);
-        GUI.Label(new Rect(x + 12f, y + 8f, w - 24f, 22f), $"Valores {currentMode} - Muro {selected.wallId}", tableTitleStyle);
-        GUI.Label(new Rect(x + 12f, y + 32f, w - 24f, h - 40f), body, tableTextStyle);
+        float h = 124f;
+        Rect r = UiTheme.CenterTop(w, h);
+        UiTheme.GUIBox(new Rect(r.x, r.y, r.width, r.height), title2);
+        GUI.Label(new Rect(r.x + 12f, r.y + 26f, r.width - 24f, r.height - 34f), body, UiTheme.Label);
     }
 
     private void GetForcesAt(ElementSelectable element, float t, float length,
@@ -608,27 +601,5 @@ public class DiagramController : MonoBehaviour
         {
             mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
         }
-    }
-
-    private void EnsureTableStyles()
-    {
-        if (tableBoxStyle != null) return;
-        tableBoxStyle = new GUIStyle(GUI.skin.box);
-        tableBoxStyle.normal.background = MakeTex(new Color(0.03f, 0.03f, 0.04f, 0.88f));
-        tableTextStyle = new GUIStyle(GUI.skin.label);
-        tableTextStyle.fontSize = 13;
-        tableTextStyle.normal.textColor = Color.white;
-        tableTextStyle.wordWrap = true;
-        tableTitleStyle = new GUIStyle(tableTextStyle);
-        tableTitleStyle.fontStyle = FontStyle.Bold;
-        tableTitleStyle.fontSize = 14;
-    }
-
-    private Texture2D MakeTex(Color color)
-    {
-        Texture2D tex = new Texture2D(1, 1);
-        tex.SetPixel(0, 0, color);
-        tex.Apply();
-        return tex;
     }
 }
