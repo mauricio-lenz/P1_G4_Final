@@ -258,11 +258,11 @@ public class StructureViewer : MonoBehaviour
             float sectionHeight = GetSectionHeight(element, isColumn);
 
             // Factor SOLO visual (no cambia width_m/height_m del JSON, por lo que
-            // no repercute en los cálculos): vigas levemente más esbeltas y
-            // columnas levemente más gruesas.
+            // no repercute en los cálculos): vigas claramente más esbeltas y
+            // columnas claramente más robustas.
             bool isBeam = !isColumn && !isArriostre;
-            float visualFactorWidth = isColumn ? 1.08f : (isBeam ? 0.82f : 1.0f);
-            float visualFactorDepth = isColumn ? 1.08f : (isBeam ? 0.85f : 1.0f);
+            float visualFactorWidth = isColumn ? 1.30f : (isBeam ? 0.60f : 1.0f);
+            float visualFactorDepth = isColumn ? 1.30f : (isBeam ? 0.70f : 1.0f);
 
             GameObject member = GameObject.CreatePrimitive(PrimitiveType.Cube);
             member.name = $"Elemento_{element.id}_{element.type}_{GetSectionName(element)}";
