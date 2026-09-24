@@ -119,94 +119,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &278769678
-GameObject:
+--- !u!115 &542876339
+MonoScript:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 278769682}
-  - component: {fileID: 278769681}
-  - component: {fileID: 278769680}
-  - component: {fileID: 278769679}
-  m_Layer: 0
-  m_Name: StructureViewer
-  m_TagString: Untagged
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &278769679
-MonoBehaviour:
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: StructureViewer
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
+--- !u!115 &935665804
+MonoScript:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 278769678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b25bec0994ad2d6479932ddf1ff5178c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PMPanel
-  panelOffset: {x: 24, y: 20}
-  panelSize: {x: 440, y: 400}
-  fontSize: 14
-  padding: 14
-  diagramMargin: 50
---- !u!114 &278769680
-MonoBehaviour:
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ElementPicker
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
+--- !u!115 &1124793558
+MonoScript:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 278769678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a9090fa1d9e21cd43a5c0f421ad06d93, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DiagramController
-  diagramScale: 1.3
-  axialMultiplier: 1.1
-  shearMultiplier: 1.2
-  momentMultiplier: 1.4
-  diagramBaseOffset: 0.12
-  deformedMultiplier: 120
-  deformedTargetPct: 0.05
---- !u!114 &278769681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 278769678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90262ee88d166c541a61ab6f975391b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StructureViewer
-  structureJson: {fileID: 4900000, guid: 64bfc0db787d302428294eaca763eefe, type: 3}
-  elementRadius: 0.06
-  wallScale: 1.6
-  beamMaterial: {fileID: 0}
-  columnMaterial: {fileID: 0}
-  supportMaterial: {fileID: 0}
---- !u!4 &278769682
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 278769678}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: OrbitCamera
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1383113719
 GameObject:
   m_ObjectHideFlags: 0
@@ -220,6 +177,8 @@ GameObject:
   - component: {fileID: 1383113722}
   - component: {fileID: 1383113721}
   - component: {fileID: 1383113720}
+  - component: {fileID: 1383113726}
+  - component: {fileID: 1383113725}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -336,6 +295,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1383113725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383113719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1124793558}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OrbitCamera
+  target: {fileID: 0}
+  distance: 75
+  xSpeed: 120
+  ySpeed: 80
+  zoomSpeed: 4
+  panSpeed: 8
+--- !u!114 &1383113726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383113719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 935665804}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ElementPicker
+  cam: {fileID: 1383113723}
+  maxDistance: 500
+  selectableLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!115 &1425526440
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: DiagramController
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1881116875
 GameObject:
   m_ObjectHideFlags: 0
@@ -433,10 +442,113 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &1911707654
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1911707658}
+  - component: {fileID: 1911707657}
+  - component: {fileID: 1911707656}
+  - component: {fileID: 1911707655}
+  m_Layer: 0
+  m_Name: StructureViewer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1911707655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911707654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 2059521876}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PMPanel
+  panelOffset: {x: 24, y: 20}
+  panelSize: {x: 440, y: 400}
+  fontSize: 14
+  padding: 14
+  diagramMargin: 50
+--- !u!114 &1911707656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911707654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1425526440}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DiagramController
+  diagramScale: 1.3
+  axialMultiplier: 1.1
+  shearMultiplier: 1.2
+  momentMultiplier: 1.4
+  diagramBaseOffset: 0.12
+  deformedMultiplier: 120
+  deformedTargetPct: 0.05
+--- !u!114 &1911707657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911707654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 542876339}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StructureViewer
+  structureJson: {fileID: 4900000, guid: 64bfc0db787d302428294eaca763eefe, type: 3}
+  elementRadius: 0.06
+  wallScale: 1.6
+  beamMaterial: {fileID: 0}
+  columnMaterial: {fileID: 0}
+  supportMaterial: {fileID: 0}
+--- !u!4 &1911707658
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911707654}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &2059521876
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: PMPanel
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1383113724}
   - {fileID: 1881116877}
-  - {fileID: 278769682}
+  - {fileID: 1911707658}
