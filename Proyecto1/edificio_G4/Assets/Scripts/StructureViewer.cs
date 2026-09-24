@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -54,6 +54,13 @@ public class StructureViewer : MonoBehaviour
     private bool showTributarySummary = false;
     private bool showUtilization = false;
     private readonly Dictionary<GameObject, Color> originalUtilColors = new Dictionary<GameObject, Color>();
+
+    // Superposicion en vivo (Bloque C): sliders de casos base G/Q/EX/EY
+    private bool showSuperposition = false;
+    private float superpositionG = 1f;
+    private float superpositionQ = 1f;
+    private float superpositionEX = 1f;
+    private float superpositionEY = 1f;
 
     // Combinaciones de carga
     private string[] comboOptions = new string[0];
@@ -1191,6 +1198,92 @@ public class StructureViewer : MonoBehaviour
             innerY += 18f;
         }
 
+        // -------------------------------------------------------------
+        // BLOQUE C14/C15/C16 · SUPERPOSICION EN VIVO (sliders G/Q/EX/EY)
+        // Los 4 sliders fijan los lambdas de los casos base y al moverlos
+        // llaman a UnityData.ApplySuperposition, que genera el combo
+        // sintetico "SUP" = Σ lambda_i · caso_base_i para fuerzas Y
+        // desplazamientos. Activar ese combo actualiza al instante:
+        //    C14 deformada (DiagramController.CreateDeformedDiagram)
+        //    C15 resultados/diagramas (DiagramController.GetForceGradient)
+        //    C16 punto P-M (PMPanel.GetActiveDemandRecord)
+        // porque todo el pipeline lee por UnityData.ActiveCombo.
+        // -------------------------------------------------------------
+        GUI.Label(new Rect(innerX + 30f, innerY, innerW, 16f), "SUPERPOSICION EN VIVO", UiTheme.Header);
+        innerY += 4f; // placeholder numerico intocado
+        if (!showSuperposition)
+        {
+            if (GUI.Button(new Rect(innerX, innerY, innerW, 22f), "Activar superposicion lineal"))
+            {
+                showSuperposition = true;
+                statusMessage = "Sliders de superposicion activos. Movelos y la estructura se actualiza sola.";
+                ApplySyntheticCombo();
+            }
+            innerY += 26f;
+        }
+        else
+        {
+            GUI.Label(new Rect(innerX, innerY, 26f, 20f), "G", UiTheme.DimLabel);
+            float newG = GUI.HorizontalSlider(new Rect(innerX + 30f, innerY, 150f, 20f), superpositionG, -3f, 4f);
+            if (Mathf.Abs(newG - superpositionG) > 0.0005f)
+            {
+                superpositionG = newG;
+                ApplySyntheticCombo();
+            }
+            GUI.Label(new Rect(innerX + 184f, innerY, 70f, 20f), superpositionG.ToString("0.##"), UiTheme.DimLabel);
+            innerY += 23f;
+
+            GUI.Label(new Rect(innerX, innerY, 26f, 20f), "Q", UiTheme.DimLabel);
+            float newQ = GUI.HorizontalSlider(new Rect(innerX + 30f, innerY, 150f, 20f), superpositionQ, -3f, 4f);
+            if (Mathf.Abs(newQ - superpositionQ) > 0.0005f)
+            {
+                superpositionQ = newQ;
+                ApplySyntheticCombo();
+            }
+            GUI.Label(new Rect(innerX + 184f, innerY, 70f, 20f), superpositionQ.ToString("0.##"), UiTheme.DimLabel);
+            innerY += 23f;
+
+            GUI.Label(new Rect(innerX, innerY, 26f, 20f), "EX", UiTheme.DimLabel);
+            float newEX = GUI.HorizontalSlider(new Rect(innerX + 30f, innerY, 150f, 20f), superpositionEX, -3f, 4f);
+            if (Mathf.Abs(newEX - superpositionEX) > 0.0005f)
+            {
+                superpositionEX = newEX;
+                ApplySyntheticCombo();
+            }
+            GUI.Label(new Rect(innerX + 184f, innerY, 70f, 20f), superpositionEX.ToString("0.##"), UiTheme.DimLabel);
+            innerY += 23f;
+
+            GUI.Label(new Rect(innerX, innerY, 26f, 20f), "EY", UiTheme.DimLabel);
+            float newEY = GUI.HorizontalSlider(new Rect(innerX + 30f, innerY, 150f, 20f), superpositionEY, -3f, 4f);
+            if (Mathf.Abs(newEY - superpositionEY) > 0.0005f)
+            {
+                superpositionEY = newEY;
+                ApplySyntheticCombo();
+            }
+            GUI.Label(new Rect(innerX + 184f, innerY, 70f, 20f), superpositionEY.ToString("0.##"), UiTheme.DimLabel);
+            innerY += 30f;
+
+            if (GUI.Button(new Rect(innerX, innerY, 140f, 22f), "Restaurar lambdas 1.0"))
+            {
+                superpositionG = superpositionQ = superpositionEX = superpositionEY = 1f;
+                ApplySyntheticCombo();
+            }
+            if (GUI.Button(new Rect(innerX + 148f, innerY, 108f, 22f), "Desactivar"))
+            {
+                showSuperposition = false;
+                if (UnityData.ActiveCombo == UnityData.SuperpositionComboName)
+                {
+                    RestoreBaseComboColors();
+                }
+            }
+            innerY += 28f;
+            GUI.Label(new Rect(innerX, innerY, innerW, 17f),
+                "Activa: SUP = " + UnityData.SuperpositionLambdas[0].ToString("0.##") + "G + " +
+                UnityData.SuperpositionLambdas[1].ToString("0.##") + "Q + " +
+                UnityData.SuperpositionLambdas[2].ToString("0.##") + "EX + " +
+                UnityData.SuperpositionLambdas[3].ToString("0.##") + "EY", UiTheme.DimLabel);
+        }
+
         GUI.EndScrollView();
     }
 
@@ -1203,6 +1296,55 @@ public class StructureViewer : MonoBehaviour
         {
             orbit.SetPreset(preset);
             statusMessage = "Vista de camara: " + preset;
+        }
+    }
+
+    /// <summary>
+    /// Aplica la superposicion lineal de los casos base G/Q/EX/EY llamando a
+    /// UnityData.ApplySuperposition. Ese metodo genera el combo sintetico "SUP"
+    /// (fuerzas y desplazamientos = Σ lambda_i · caso_base_i) y lo deja como
+    /// ActiveCombo, con lo cual toda la cadena existente (diagramas axial/
+    /// corte/momento, deformada y punto P-M) se actualiza en vivo: C14/C15/C16.
+    /// </summary>
+    private void ApplySyntheticCombo()
+    {
+        UnityData.ApplySuperposition(superpositionG, superpositionQ, superpositionEX, superpositionEY);
+
+        if (diagramController != null && Application.isPlaying)
+        {
+            diagramController.Refresh();
+        }
+
+        if (pmPanel != null)
+        {
+            var picker = FindObjectOfType<ElementPicker>();
+            if (picker != null && picker.Selected != null)
+            {
+                pmPanel.ShowPMForElement(picker.Selected);
+            }
+        }
+
+        if (showUtilization)
+        {
+            ApplyUtilizationColors();
+        }
+
+        statusMessage = "Superposicion activa: " + UnityData.GetComboLabel(UnityData.ActiveCombo);
+    }
+
+    /// <summary>
+    /// Al desactivar la superposicion, vuelve al combo base previamente
+    /// seleccionado y restaura sus colores.
+    /// </summary>
+    private void RestoreBaseComboColors()
+    {
+        if (comboOptions.Length > 0)
+        {
+            ApplyCombo(comboIndex);
+        }
+        else
+        {
+            UnityData.ActiveCombo = null;
         }
     }
 

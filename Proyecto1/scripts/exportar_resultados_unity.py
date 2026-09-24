@@ -272,7 +272,11 @@ def main():
     # ── Empaquetar desplazamientos ───────────────────────────────────
     print("\nEmpaquetando resultados...")
     displacements_flat = []
-    for combo_name, result in all_results.items():
+    # Incluye los casos base (G/Q/EX/EY) Y los combos (C1/C2/C3).
+    # El JSON de Unity ya almacenaba fuerzas por caso base; ahora los
+    # desplazamientos tambien quedan por caso base para permitir en el
+    # viewer la superposicion en vivo (sliders G/Q/EX/EY -> deformada).
+    for combo_name, result in {**base_results, **all_results}.items():
         if result is None:
             continue
         disp_dict = result.get("displacements", {})
