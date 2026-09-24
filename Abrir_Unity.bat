@@ -7,17 +7,12 @@ echo  Abriendo el proyecto Unity del repositorio
 echo ================================================
 echo.
 
-rem Busca cualquier proyecto Unity (carpeta con ProjectSettings\ProjectVersion.txt)
-set "projDir="
-for /r "%~dp0" %%F in (ProjectVersion.txt) do (
-    if not defined projDir (
-        for %%I in ("%%~dpF..\") do set "projDir=%%~fI"
-    )
-)
+rem Proyecto Unity real (Assets con escena + ProjectSettings)
+set "projDir=%~dp0Proyecto1\edificio_G4"
 
-if not defined projDir (
-    echo ERROR: No encontre ningun proyecto Unity en %~dp0
-    echo Coloca este script dentro del repositorio del proyecto.
+if not exist "%projDir%\ProjectSettings\ProjectVersion.txt" (
+    echo ERROR: No encontre el proyecto Unity en:
+    echo   %projDir%
     pause
     exit /b 1
 )
@@ -32,9 +27,12 @@ for /f "tokens=2 delims= " %%A in ('type "%projDir%\ProjectSettings\ProjectVersi
     if not defined ver set "ver=%%A"
 )
 
-rem Localiza el ejecutable de Unity para esa version
+rem Localiza el ejecutable de Unity para esa version (Hub la instala en Program Files o LOCALAPPDATA)
 set "unityExe="
-if defined ver if exist "%LOCALAPPDATA%\Unity\Editor\%ver%\Editor\Unity.exe" (
+if defined ver if exist "C:\Program Files\Unity\Hub\Editor\%ver%\Editor\Unity.exe" (
+    set "unityExe=C:\Program Files\Unity\Hub\Editor\%ver%\Editor\Unity.exe"
+)
+if defined ver if not defined unityExe if exist "%LOCALAPPDATA%\Unity\Editor\%ver%\Editor\Unity.exe" (
     set "unityExe=%LOCALAPPDATA%\Unity\Editor\%ver%\Editor\Unity.exe"
 )
 
