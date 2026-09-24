@@ -443,7 +443,7 @@ def aplicar_ediciones(data, dry=False):
     resumen(data)
 
     # === EDITAR DESDE AQUI ===
-    # quitar_elemento(data, tag="E1_5")
+    quitar_elemento(data, tag="E1_5")
     # quitar_elemento(data, tipo="viga", piso="CIELO_2")
     # quitar_loza(data, "L1")
     # cambiar_seccion(data, tag="E1_10", seccion="V30/45")
