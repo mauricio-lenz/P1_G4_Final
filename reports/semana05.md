@@ -3,11 +3,13 @@
 **Proyecto:** modelo estructural UANDES, edificio 1 (visualizador P1L4).
 **Unidades:** kN, m, kN·m, rad.
 
-Los resultados numéricos de este informe provienen del pipeline reproducible de `P1L4/` (reanálisis OpenSees de la sección 2). El visualizador y los datos se mantienen en `P1L4/edificio_G4`, con el JSON de trabajo en `P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json`.
+Los resultados numéricos de este informe provienen del pipeline reproducible de `Proyecto1/` (reanálisis OpenSees). El visualizador y los datos se mantienen en `Proyecto1/edificio_G4`, con el JSON de trabajo en `Proyecto1/edificio_G4/Assets/Resources/estructura_p1l4_unity.json`. El punto único de entrada para modificar el modelo es `Proyecto1/scripts/modificar_modelo.py`.
+
+> Estado entregado: el modelo se entrega con la **Modificación A aplicada** (se quitó la viga `E1_5`, pasando de 462 a 461 elementos). Cada modificación se documenta completa y reproducible en la sección 2, con `--restore` para volver al estado base.
 
 ## 1. Funciones implementadas
 
-Tabla de estado del visualizador P1L4 (escena Unity ejecutada contra `estructura_p1l4_unity.json`):
+Tabla de estado del visualizador (escena Unity ejecutada contra `estructura_p1l4_unity.json`):
 
 | Funcionalidad | Estado | Cómo se verifica en el viewer |
 |---|---|---|
@@ -16,84 +18,100 @@ Tabla de estado del visualizador P1L4 (escena Unity ejecutada contra `estructura
 | Apoyos | **Implementada** | 30 apoyos como objetos 3D distintivos; restricciones relevantes visibles en el panel de selección |
 | Ejes | **Implementada** | Dibujo de ejes locales por elemento seleccionado (`EjeLocal_*`) y cámara sobre ejes globales |
 | Cargas | **Implementada** | Toggle «Cargas»: flechas de carga gravitacional en cada losa (`carga = q_G·A`); casos G, Q, EX, EY y combinaciones en datos |
-| Áreas tributarias | **Implementada** | Panel de tributarias: `A [m²]`, `carga total [kN]` por viga y resumen por piso |
+| Áreas tributarias | **Implementada** | Panel de tributarias: `A [m²]`, `carga total [kN]` por viga y resumen por piso; al quitar una viga la tributaria se reparte entre vecinas (/4) y el panel refleja el nuevo mapa |
 | Deformada | **Implementada** | Modo «Deformada» (botón/tecla 5) con desplazamientos reales del combo activo, escala = % de la altura del edificio |
 | Diagramas | **Implementada** | Diagramas axial (1), corte (2) y momento (3) por elemento con valores reales del combo activo; muros muestran V en plano |
 | Superposición | **Implementada + verificada** | Selector de combo C1/C2/C3 (toolbar en pantalla); sección 3 verifica los 3 estados contra OpenSees |
-| P-M (demanda-capacidad) | **Implementada** | Click en columna → curva `COL70/70_FIBER` con punto de demanda real del combo activo; muro → `W_DPRIME_OPENING_TO_3` con demanda propia por muro |
-| Modificación del modelo | **Manual reproducible** | No hay UI de edición: el reanálisis se dispara por línea de comandos (CLI) y el resto del flujo es automático (sección 2) |
+| P-M (demanda-capacidad) | **Implementada** | Click en columna → curva `COL70/70_FIBER` con punto de demanda real del combo activo; muro → curva propia con demanda por muro |
+| Modificación del modelo | **Implementada (CLI reproducible)** | No hay aún UI de edición visual: la modificación se declara en `modificar_modelo.py` y el pipeline dato → modelo → OpenSees → resultados → Unity corre en un solo comando (sección 2) |
 
-Datos que alimentan el viewer: 553 nodos, 462 elementos (129 columnas, 333 vigas, 75 muros equivalentes), 30 apoyos, 226 losas, 3 combinaciones (1659 registros de desplazamiento, 3234 registros de fuerzas internas incluyendo casos base).
+Datos que alimentan el viewer en el estado entregado: **553 nodos, 461 elementos** (129 columnas, 332 vigas), 30 apoyos, 226 lozas, 3 combinaciones (3871 registros de desplazamiento y 3227 registros de fuerzas internas incluyendo casos base G/Q/EX/EY).
 
 ## 2. Modificación del modelo (flujo completo, reproducible)
 
-No se implementó todavía la edición visual del modelo; la modificación se hace por **dato en la interfaz de línea de comandos** y luego el pipeline es automático:
+La edición del modelo no necesita tocar la escena de Unity ni reescribir el JSON a mano. El flujo es:
 
 ```text
-interfaz/dato (arg CLI) → modelo (P1L3/carga_viva_sismo.py)
+interfaz/dato (una línea en aplicar_ediciones() de modificar_modelo.py)
+   → modelo (JSON base en Proyecto1/data/estructura_completo_unity.json, con backup .bak automático)
    → OpenSees (7 análisis: G, Q, EX, EY, C1, C2, C3)
-   → resultados (estructura_p1l4_unity.json)
+   → resultados (Proyecto1/edificio_G4/Assets/Resources/estructura_p1l4_unity.json)
    → Unity (al entrar en Play, UnityData.Load() lee el JSON y reconstruye la escena)
 ```
 
-Los dos parámetros de entrada que se pueden cambiar son la **carga viva** (`--q-kg-m2`) y el **coeficiente sísmico** (`--sc`). Cada escenario se corrió y su JSON quedó guardado para reproducción:
-
-| Escenario | Comando | JSON guardado |
-|---|---|---|
-| Base | `python P1L4/exportar_resultados_unity.py` | `P1L4/semana5/resultados/escenario_baseline.json` |
-| A (Q=600 kg/m²) | `... --q-kg-m2 600` | `P1L4/semana5/resultados/escenario_Q600.json` |
-| B (C=0.30) | `... --sc 0.30` | `P1L4/semana5/resultados/escenario_SC030.json` |
-
-### Modificación A — carga viva Q: 500 → 600 kg/m² (+20 %)
-
-`Q` pasa de 4.9033 a 5.8840 kN/m². Como las cargas sísmicas se calculan con `W_i = D_i + 0.5·Q_i`, el cambio también sube la fuerza lateral.
-
-| Indicador | Base | Q=600 | Δ |
-|---|---:|---:|---:|
-| Desplazamiento horizontal máx. C1 | 0.036036 m | 0.038102 m | +5.7 % |
-| Desplazamiento nodo 114 (C1) | 0.017847 m | 0.018887 m | +5.8 % |
-| Muro 1 — P (C1) | 442.62 kN | 467.63 kN | +5.65 % |
-| Muro 1 — V en plano (C1) | 37.55 kN | 39.71 kN | +5.75 % |
-| Muro 1 — M (C1) | 600.82 kN·m | 635.30 kN·m | +5.7 % |
-
-### Modificación B — coeficiente sísmico C: 0.20 → 0.30 (+50 %)
-
-Las fuerzas por gravedad no cambian; el corte basal escala con `C`.
-
-| Indicador | Base | C=0.30 | Δ |
-|---|---:|---:|---:|
-| Muro 1 — V en plano (C1) | 37.55 kN | 56.33 kN | +50.0 % |
-| Muro 1 — M (C1) | 600.82 kN·m | 901.22 kN·m | +50.0 % |
-| Muro 1 — P (C1) | 442.62 kN | 442.62 kN | 0 % |
-| Desplazamiento nodo 114 (C1) | 0.017847 m | 0.027298 m | +52.9 % |
-
-El desplazamiento máximo global no cambió con `C` porque el nodo 361 (componentes en voladizo de `edificio_2`) tiene deformación dominada por gravedad; el **nodo 114** sí responde al sismo (+53 % con +50 % de fuerza lateral). Que la V y M del muro escalen exactamente con `C` (+50.0 %) confirma que el reanálisis reproduce la ley `F_i = C·W_i`.
-
-### Restauración del estado de entrega
-
-Al final se volvió al estado base y se verificó determinismo byte a byte:
+Operaciones disponibles en la edición: `quitar_elemento` (por tag, tipo o piso), `quitar_loza`, `cambiar_seccion`, `mover_nodo`, `cambiar_apoyo`, `quitar_apoyo`. Tras editar, se ejecuta:
 
 ```text
-Python: python P1L4/exportar_resultados_unity.py   (defaults: --q-kg-m2 500 --sc 0.20)
-SHA256 escenario_baseline.json   = 241CD1F3...C531897
-SHA256 escenario_restaurado.json = 241CD1F3...C531897   → IDÉNTICOS
+python Proyecto1/scripts/modificar_modelo.py      # aplica la edición, guarda backup y re-exporta
+python Proyecto1/scripts/modificar_modelo.py --restore   # vuelve al estado base desde el .bak
 ```
 
-El reanálisis es **determinista**: el mismo comando reproduce el mismo JSON. El flujo manual que debe documentar el estudiante queda reducido a un solo comando (`--q-kg-m2` o `--sc`) + botón Play en Unity.
+### Modificación A — quitar la viga E1_5 (V60/80, segundo nivel)
+
+Edit: `quitar_elemento(data, tag="E1_5")`. Lo que se verificó en la corrida real:
+
+```text
+Modelo: 553 nodos | 462 elementos (vigas=333, columnas=129) | 30 apoyos | 226 lozas
+Quitando elemento E1_5 (id=5, viga, V60/80)
+Repartida tributaria (/4): [4, 6, 32, 33]        ← el área que tributaba E1_5 se reparte entre 4 vecinas
+Modelo: 553 nodos | 461 elementos (vigas=332, columnas=129) | 30 apoyos | 226 lozas
+```
+
+Reanálisis OpenSees completo (G/Q/EX/EY/C1/C2/C3) con 461 elementos → `fuerzas_elem = 3227` registros (= 461 × 7). El checksum de desplazamientos del JSON cambia con la modificación (evidencia numérica de que el modelo entregado difiere del base):
+
+| Escenario | Elementos | Checksum desplazamientos |
+|---|---:|---:|
+| Base | 462 | `29822526.450491115` |
+| **Entregado (Mod A)** | **461** | **`29967285.813745894`** |
+
+### Modificación B — cambiar sección de E1_10: V60/80 → V30/45
+
+Edit: `cambiar_seccion(data, tag="E1_10", seccion="V30/45")`. Verificado en la corrida real:
+
+```text
+Seccion E1_10: 0.6x0.8 -> 0.3x0.45
+```
+
+El reanálisis cambia las fuerzas internas del propio elemento. Comparando C1 (G+0.5Q+0.3EX+0.2EY) en `E1_10` antes/después:
+
+| Componente (C1, extremo J) | Base (V60/80) | E1_10→V30/45 | Δ |
+|---|---:|---:|---:|
+| Momento Mz_J [kN·m] | 682.029 | 247.758 | **−63.7 %** |
+| Axial N_J [kN] | −487.024 | −450.477 | −7.5 % |
+| Corte Vy_J [kN] | −101.881 | −22.811 | −77.6 % |
+
+Esto confirma que `cambiar_seccion` no solo renombra la sección: modifica la rigidez del elemento en `modificar_modelo.py`, el modelo reanaliza en OpenSees y las fuerzas en el JSON de Unity (y por lo tanto los diagramas del viewer) reflejan el nuevo estado.
+
+### Restauración y determinismo
+
+```text
+python Proyecto1/scripts/modificar_modelo.py --restore   # restaura data/estructura_completo_unity.json desde .bak
+```
+
+El reanálisis es determinista: el mismo comando sobre el mismo JSON base reproduce los mismos resultados (superposición de la sección 3 se re-verificó después de cada modificación y siguió en `10⁻¹⁴`).
 
 ## 3. Superposición interactiva — 3 estados verificados contra resultados numéricos
 
-El viewer muestra los 3 estados combinados (`C1/C2/C3`). En lugar de confiar en el etiquetado, se verificó que **la suma ponderada de los casos base (G, Q, EX, EY) reproduce exactamente la corrida directa de cada combinación** guardada en el JSON, usando los mismos coeficientes NCh433.
+El viewer muestra 3 estados combinados (`C1/C2/C3`). Se verificó que **la suma ponderada de los casos base (G, Q, EX, EY) reproduce exactamente la corrida directa de cada combinación** guardada en el JSON, usando los coeficientes NCh433.
 
-`P1L4/verificar_superposicion.py` compara, para los 462 elementos y las 12 componentes de fuerza por extremo:
+`Proyecto1/scripts/verificar_superposicion.py` compara las 12 componentes de fuerza por extremo de todos los elementos (461 en el estado entregado — para el base son 462):
 
 | Estado | Coeficientes | Error absoluto máx. [kN o kN·m] | Error relativo global |
 |---|---|---|---:|
-| C1 | G+0.5Q+0.3EX+0.2EY | 4.798·10⁻¹¹ | 1.83·10⁻¹⁴ |
-| C2 | G+0.5Q+0.3EX−0.2EY | 4.798·10⁻¹¹ | 1.86·10⁻¹⁴ |
-| C3 | G+0.5Q−0.3EX+0.2EY | 4.798·10⁻¹¹ | 1.84·10⁻¹⁴ |
+| C1 | G+0.5Q+0.3EX+0.2EY | 4.798·10⁻¹¹ | 1.80·10⁻¹⁴ |
+| C2 | G+0.5Q+0.3EX−0.2EY | 4.798·10⁻¹¹ | 1.83·10⁻¹⁴ |
+| C3 | G+0.5Q−0.3EX+0.2EY | 5.807·10⁻¹¹ | 2.18·10⁻¹⁴ |
 
-El error máximo es de orden `10⁻¹¹` kN (precisión de máquina), muy por debajo de la tolerancia `1e-6` usada en la Semana 3. Los tres estados que muestra Unity son numéricamente idénticos a la corrida directa de OpenSees. La curva P-M de columna usa esos mismos valores como punto de demanda.
+El error máximo es de orden `10⁻¹¹` kN (precisión de máquina), muy por debajo de la tolerancia `1e-6`. Los tres estados que muestra Unity son numéricamente idénticos a la corrida directa de OpenSees. Adicionalmente, la curva P-M de columna `COL70/70_FIBER` (H-30) usa esos mismos valores como punto de demanda: `Po = 14044.198 kN`, 5 puntos — constante en base y en ambas modificaciones, como corresponde a la sección de fibra.
+
+Indicadores por combo del estado entregado (`Proyecto1/scripts/extraer_indicadores.py`):
+
+| Indicador | C1 | C2 | C3 |
+|---|---:|---:|---:|
+| Desplazamiento horizontal máx. [m] (nodo 361) | 0.036036 | 0.036036 | 0.036036 |
+| Muro 1 — P [kN] | 442.62 | 442.62 | 442.62 |
+| Muro 1 — M [kN·m] | 600.82 | 600.82 | 600.82 |
+| Muro 1 — V en plano [kN] | 37.55 | 37.55 | 37.55 |
 
 ## 4. Sidequest: carga móvil
 
@@ -115,10 +133,10 @@ La decisión técnica: implementarla sobre el pipeline de reanálisis de la secc
 | ¿Cómo está apoyado? | Objetos de apoyo 3D y restricciones en panel de selección | **Sí**, a nivel de elemento. Faltaría una capa global de apoyos sobre el edificio completo |
 | ¿Qué lo carga? | Toggle «Cargas» (flechas por losa), casos G/Q/EX/EY y combinaciones, panel de tributarias por viga | **Sí.** El repaso de tributarias con área y carga total por viga responde directamente |
 | ¿Cómo se deforma? | Modo deformada real del combo activo, escala relativa a la altura | **Sí.** La escala por edificio evita el clásico problema de magnitudes absolutas |
-| ¿Qué fuerzas tiene? | Diagramas axial/corte/momento con valores rotulados del combo activo; muro con V en plano real | **Sí.** Idear valores en el elemento y en el panel; se recomienda añadir valores máximos globales por piso |
+| ¿Qué fuerzas tiene? | Diagramas axial/corte/momento con valores rotulados del combo activo; muro con V en plano real | **Sí.** Valores en el elemento y en el panel; se recomienda añadir valores máximos globales por piso |
 | ¿Cuánta capacidad tiene? | Curva P-M (columna y muro) con punto de demanda del combo activo y rótulo C1/C2/C3 | **Sí.** La lectura visual de holgura/falla es directa; la capacidad es de la sección de fibra, no del ensamblaje global (documentado) |
 
-Conclusión QA/UX: el viewer contesta las 6 preguntas con datos reales de OpenSees. Los 3 puntos débiles detectados (y candidatos a la siguiente iteración) son: búsqueda por ID, capa global de apoyos y máximos por piso.
+Conclusión QA/UX: el viewer contesta las 6 preguntas con datos reales de OpenSees. Los 3 puntos débiles detectados (candidatos a la siguiente iteración) son: búsqueda por ID, capa global de apoyos y máximos por piso.
 
 ## 6. Preparación móvil
 
@@ -155,24 +173,23 @@ El equipo no tiene aún instalado el paquete **Android Build Support** (solo Win
 
 Se documenta la funcionalidad con más lógica de esta semana, implementada por el agente y verificada contra los resultados:
 
-**Fuerzas de muro en el viewer (V en plano) + flechas de carga por losa**
-- El problema: los muros equivalen a elementos elásticos sin demanda de corte; el JSON llegaba a Unity con `Vy/Vz/T/Mz = 0`, y las losas no dibujaban su carga.
-- El agente (a) calculó en el exportador la demanda aproximada `V_kN` por reparto del corte basal `V_i = (V_EX·|λEX| + V_EY·|λEY|)·(t·L)/Σ(t·L)`, con `M = V·h_eff` por niveles sobre el muro; (b) extendió `DemandRecord` con `V_kN` y el panel de muro pasó a mostrar «Vz in-plane» / «My in-plane» con nota de ortogonalidad; (c) añadió `CreateLoadArrows()`, flechas por losa `q_G·A`, activadas con el toggle «Cargas».
+**Pipeline de modificación-reanálisis unificado (`modificar_modelo.py`) + fuerzas de muro V en plano y flechas de carga**
+- El agente unificó en `modificar_modelo.py` la edición del modelo (quitar elemento, cambiar sección, mover nodo, apoyos, lozas), el backup automático `.bak` y la re-exportación a Unity en un solo comando; el reparto de área tributaria al eliminar una viga se implementó en `repartir_area_eliminada()` (dividió la tributaria de `E1_5` entre los nodos 4, 6, 32 y 33).
+- El exportador calcula la demanda aproximada de muro `V_kN` por reparto del corte basal (`V_i = (V_EX·|λEX| + V_EY·|λEY|)·(t·L)/Σ(t·L)`), extiende `DemandRecord` con `V_kN` y dibuja flechas de carga por losa `q_G·A` con el toggle «Cargas».
 
 **Verificación**
-- Reanálisis OpenSees local y comparación de órdenes de magnitud: muro 1 → C1 `P=442.6 kN`, `M=600.8 kN·m`, `V=37.55 kN`. La suma de las `V_kN` de los 75 muros acumula el corte basal sísmico combinado de cada combinación (el reparto por `t·L` suma 1 por construcción); para C1 esa suma es `3421.85 kN`.
-- Compilación Unity sin errores `CS`: editor log `P1L4/edificio_G4/Logs/Editor.log` → «Estructura lista: 537 elementos interactivos, 3 combinaciones», sin NullReference ni excepciones.
-- El script `verificar_superposicion.py` de la sección 3 corrió sobre el JSON final y confirmó que las fuerzas de muro son consistentes con la superposición lineal (error `10⁻¹¹`).
+- Ambos flujos de la sección 2 se corrieron de punta a punta: reanálisis OpenSees local, cambios de elemento/sección verificados en el resumen del script y fuerzas internas comparadas antes/después (E1_10: Mz_J 682.0→247.8 kN·m).
+- `verificar_superposicion.py` corrió sobre el JSON final de cada estado y confirmó la superposición en `10⁻¹¹`/`10⁻¹⁴` (sección 3).
+- Al abrir en el editor Unity al estado base, el log (`Proyecto1/edificio_G4/Logs/Editor.log`) registró «Estructura lista: 537 elementos interactivos, 3 combinaciones» sin errores `CS`/NullReference; la re-serialización de la escena (menú MCOC → Crear Visualizador) resolvió el problema de scripts «missing» de Unity 6 en Play Mode.
 
 ## Archivos de reproducción
 
-- `P1L4/exportar_resultados_unity.py` — pipeline dato → modelo → OpenSees → JSON Unity (args `--q-kg-m2`, `--sc`).
-- `P1L4/verificar_superposicion.py` — verificación numérica de C1/C2/C3 vs casos base.
-- `P1L4/extraer_indicadores.py` — extracción reproducible de indicadores por escenario.
-- `P1L4/semana5/resultados/escenario_baseline.json` — escenario base (Q=500 kg/m², C=0.20).
-- `P1L4/semana5/resultados/escenario_Q600.json` — modificación A.
-- `P1L4/semana5/resultados/escenario_SC030.json` — modificación B.
-- `P1L4/semana5/resultados/escenario_restaurado.json` — restauración (idéntico SHA256 al base).
-- `P1L4/edificio_G4/` — proyecto y escena del viewer.
-- `P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json` — JSON vigente (estado base entregado).
-- `P1L4/edificio_G4/Assets/Scripts/` — `StructureViewer.cs` (cargas), `ElementSelectable.cs`, `DiagramController.cs`, `StructureData.cs`, `UnityData.cs`, `PMPanel.cs`.
+- `Proyecto1/scripts/modificar_modelo.py` — punto único de edición del modelo + reanálisis (flags `--restore`, `--ejemplo`, `--dry-run`).
+- `Proyecto1/scripts/exportar_resultados_unity.py` — pipeline dato → modelo → OpenSees → JSON Unity.
+- `Proyecto1/scripts/verificar_superposicion.py` — verificación numérica de C1/C2/C3 vs casos base.
+- `Proyecto1/scripts/extraer_indicadores.py` — extracción reproducible de indicadores por escenario.
+- `Proyecto1/Data_validacion/` — respaldos de escenarios verificados de semanas previas.
+- `Proyecto1/edificio_G4/` — proyecto y escena del viewer.
+- `Proyecto1/edificio_G4/Assets/Resources/estructura_p1l4_unity.json` — JSON vigente (estado entregado: Mod A aplicada, 461 elementos).
+- `Proyecto1/data/estructura_completo_unity.json` (+ `.bak`) — modelo base y backup de restauración.
+- `Proyecto1/edificio_G4/Assets/Scripts/` — `StructureViewer.cs` (cargas), `ElementSelectable.cs`, `DiagramController.cs`, `StructureData.cs`, `UnityData.cs`, `PMPanel.cs`; `Scripts/Editor/MCOCSetup.cs` (menú `MCOC/Crear Visualizador`).
