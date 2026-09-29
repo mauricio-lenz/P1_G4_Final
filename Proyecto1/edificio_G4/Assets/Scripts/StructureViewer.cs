@@ -93,11 +93,7 @@ public class StructureViewer : MonoBehaviour
             structureJson = Resources.Load<TextAsset>("estructura_p1l4_unity");
             if (structureJson == null)
             {
-                structureJson = Resources.Load<TextAsset>("estructura_completo_unity");
-            }
-            if (structureJson == null)
-            {
-                Debug.LogError("Asigna estructura_p1l4_unity.json (o estructura_completo_unity.json) a Assets/Resources.");
+                Debug.LogError("Asigna estructura_p1l4_unity.json a Assets/Resources.");
                 return;
             }
         }
@@ -136,6 +132,7 @@ public class StructureViewer : MonoBehaviour
         CreateGlobalAxes();
         CreateDiagramController();
         CreatePMPanel();
+        CreateMovingLoadPanel();
         CreateGroundGrid();
 
         BuildComboOptions();
@@ -626,6 +623,49 @@ public class StructureViewer : MonoBehaviour
             }
         }
         pmPanel = gameObject.AddComponent<PMPanel>();
+    }
+
+    private void CreateMovingLoadPanel()
+    {
+        MovingLoadPanel existing = GetComponent<MovingLoadPanel>();
+        if (existing != null)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(existing);
+            }
+            else
+            {
+                DestroyImmediate(existing);
+            }
+        }
+        if (Application.isPlaying)
+        {
+            MovingLoadPanel panel = gameObject.AddComponent<MovingLoadPanel>();
+            panel.Initialize(this, diagramController);
+        }
+    }
+
+    /// <summary>Cambia el resultado mostrado (Axial/Corte/Momento/Deformada) manteniendo la barra superior sincronizada.</summary>
+    public void SetResult(string resultName)
+    {
+        int index = System.Array.IndexOf(resultOptions, resultName);
+        if (index < 0) return;
+        resultIndex = index;
+        if (diagramController != null)
+        {
+            diagramController.SetResultMode(resultName);
+        }
+    }
+
+    /// <summary>Vuelve al combo seleccionado en la barra superior (al cerrar la carga movil).</summary>
+    public void RestoreSelectedCombo()
+    {
+        RestoreBaseComboColors();
+        if (diagramController != null && Application.isPlaying)
+        {
+            diagramController.Refresh();
+        }
     }
 
     private void CreateSupports(StructureData data)

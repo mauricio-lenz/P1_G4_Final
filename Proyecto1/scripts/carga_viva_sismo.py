@@ -41,6 +41,9 @@ G_ACCEL = 9.80665
 E_CONCRETE = 25_000_000.0
 NU_CONCRETE = 0.20
 G_CONCRETE = E_CONCRETE / (2.0 * (1.0 + NU_CONCRETE))
+E_STEEL = 200_000_000.0     # perfiles metalicos (P.M. / V.M.) [kN/m2]
+NU_STEEL = 0.30
+G_STEEL = E_STEEL / (2.0 * (1.0 + NU_STEEL))
 DEFAULT_LAMBDAS = {"G": 1.0, "Q": 0.5, "EX": 1.0, "EY": 0.3}
 
 OUT_DIR = BASE_DIR / "resultados"
@@ -204,48 +207,82 @@ def dead_load_by_floor(data):
     return by_floor
 
 
-def floor_nodes_at_z(nodes, z):
-    return [node for node in nodes.values() if abs(round(node["z"], 3) - float(z)) < 1e-6]
-
-
 def closest_node_to_xy(nodes, x, y):
     return min(nodes, key=lambda node: (node["x"] - x) ** 2 + (node["y"] - y) ** 2)
 
 
-def build_seismic_cases(data, live_transfer, seismic_coeff):
-    nodes = node_map(data)
-    connected_nodes = set()
+def node_buildings(data):
+    """Edificio de cada nodo estructural segun el sourceBuilding de sus elementos."""
+    building = {}
     for element in data.get("elements", []):
-        connected_nodes.add(element.get("nodeI"))
-        connected_nodes.add(element.get("nodeJ"))
-    dead = dead_load_by_floor(data)
-    live = {floor: values["Q_kN"] for floor, values in live_transfer["por_piso"].items()}
+        for node_id in (element.get("nodeI"), element.get("nodeJ")):
+            building[node_id] = element.get("sourceBuilding") or "edificio_1"
+    return building
+
+
+def diaphragm_groups(data):
+    """Diafragma rigido por edificio y por piso.
+
+    Agrupa los nodos conectados a elementos (sin apoyos) por (edificio, z);
+    el maestro es el nodo mas cercano al centroide de los nodos del piso.
+    Los edificios estan separados por junta de dilatacion, por eso cada uno
+    tiene su propio diafragma.
+    """
+    nodes = node_map(data)
+    supports = {support.get("node") for support in data.get("supports", [])}
+    groups = {}
+    for node_id, building in node_buildings(data).items():
+        if node_id in nodes and node_id not in supports:
+            groups.setdefault((building, round(nodes[node_id]["z"], 3)), []).append(node_id)
+    result = {}
+    for key, ids in sorted(groups.items()):
+        if len(ids) < 2:
+            continue
+        cm_x = sum(nodes[i]["x"] for i in ids) / len(ids)
+        cm_y = sum(nodes[i]["y"] for i in ids) / len(ids)
+        master = closest_node_to_xy([nodes[i] for i in ids], cm_x, cm_y)["id"]
+        result[key] = {"master": master, "slaves": sorted(set(ids) - {master}), "cm": (cm_x, cm_y)}
+    return result
+
+
+def build_seismic_cases(data, live_transfer, seismic_coeff):
+    """Fuerza lateral C*(D+0.5Q) por edificio y por piso, aplicada en el
+    nodo maestro del diafragma rigido de ese edificio y piso."""
+    nodes = node_map(data)
+    dead = {}
+    for element in data.get("elements", []):
+        if element.get("type") != "viga" or element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
+            continue
+        key = (element.get("sourceBuilding") or "edificio_1", round(element_mid_z(element, nodes), 3))
+        dead[key] = dead.get(key, 0.0) + float(element.get("deadLoad") or 0.0)
+    live = {}
+    for beam in live_transfer["vigas"]:
+        key = (beam.get("sourceBuilding") or "edificio_1", round(float(beam["floor_z_m"]), 3))
+        live[key] = live.get(key, 0.0) + beam["Q_total_kN"]
+    diaphragms = diaphragm_groups(data)
     floor_names = floor_name_by_z(data)
-    floor_groups = group_close_floors(set(dead) | set(live), FLOOR_GROUP_TOL_M)
     ex_nodal = {}
     ey_nodal = {}
     floor_rows = []
 
-    for floor_group in floor_groups:
-        floor_nodes = floor_nodes_for_group(nodes, floor_group)
-        if not floor_nodes:
+    for key in sorted(set(dead) | set(live), key=lambda k: (k[1], k[0])):
+        building, floor = key
+        diaphragm = diaphragms.get(key)
+        if diaphragm is None:
             continue
-        structural_floor_nodes = [node for node in floor_nodes if node["id"] in connected_nodes]
-        if structural_floor_nodes:
-            floor_nodes = structural_floor_nodes
-        floor = weighted_floor_z(floor_group, dead, live)
-        cm_x = sum(node["x"] for node in floor_nodes) / len(floor_nodes)
-        cm_y = sum(node["y"] for node in floor_nodes) / len(floor_nodes)
-        application_node = closest_node_to_xy(floor_nodes, cm_x, cm_y)
-        d = sum(dead.get(level, 0.0) for level in floor_group)
-        q = sum(live.get(level, 0.0) for level in floor_group)
+        cm_x, cm_y = diaphragm["cm"]
+        application_node = nodes[diaphragm["master"]]
+        d = dead.get(key, 0.0)
+        q = live.get(key, 0.0)
         seismic_weight = d + 0.5 * q
         lateral = seismic_coeff * seismic_weight
 
         ex_nodal[str(application_node["id"])] = {"Fx": lateral, "Fy": 0.0, "Fz": 0.0}
         ey_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": lateral, "Fz": 0.0}
+        floor_group = [str(floor)]
         floor_rows.append({
-            "piso": floor_label(floor_group, floor, floor_names),
+            "piso": f"{floor_label(floor_group, floor, floor_names)} [{building}]",
+            "edificio": building,
             "floor_z_m": float(floor),
             "niveles_agrupados_z_m": [float(level) for level in floor_group],
             "D_kN": d,
@@ -279,6 +316,7 @@ def build_seismic_cases(data, live_transfer, seismic_coeff):
             "sentido_deformada_esperado_EX": "+X para coeficiente positivo",
             "sentido_deformada_esperado_EY": "+Y para coeficiente positivo",
             "torsion": "Se reporta como F por excentricidad del nodo de aplicacion respecto del CM estimado.",
+            "diafragma": "Diafragma rigido por edificio y piso (rigidDiaphragm); la fuerza de cada edificio se aplica en su nodo maestro.",
         },
     }
 
@@ -483,15 +521,21 @@ def build_model(data):
     for element in data.get("elements", []):
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
-        width = float(element.get("width_m") or 0.60)
-        height = float(element.get("height_m") or 0.80)
-        area, iy, iz, j = section_properties(width, height)
+        if element.get("material") == "acero":
+            # Perfil metalico: propiedades de la seccion cajon guardadas en el JSON
+            area, iy, iz, j = (float(element[k]) for k in ("A_m2", "Iy_m4", "Iz_m4", "J_m4"))
+            e_mod, g_mod = E_STEEL, G_STEEL
+        else:
+            width = float(element.get("width_m") or 0.60)
+            height = float(element.get("height_m") or 0.80)
+            area, iy, iz, j = section_properties(width, height)
+            e_mod, g_mod = E_CONCRETE, G_CONCRETE
         ni = nodes[element["nodeI"]]
         nj = nodes[element["nodeJ"]]
         length = element_length(element, nodes)
         dz = abs(nj["z"] - ni["z"])
         transf = 2 if length > 0.0 and dz / length > 0.90 else 1
-        ops.element("elasticBeamColumn", element["id"], element["nodeI"], element["nodeJ"], area, E_CONCRETE, G_CONCRETE, j, iy, iz, transf)
+        ops.element("elasticBeamColumn", element["id"], element["nodeI"], element["nodeJ"], area, e_mod, g_mod, j, iy, iz, transf)
 
     for node_id in nodes:
         if node_id not in connected_nodes and node_id not in support_nodes:
@@ -514,6 +558,13 @@ def build_model(data):
         if not any(node in support_nodes for node in component):
             anchor = min(component, key=lambda n: nodes[n]["z"])
             ops.fix(anchor, 1, 1, 1, 1, 1, 1)
+            support_nodes.add(anchor)
+
+    # Diafragma rigido por edificio y piso (requiere constraints Transformation)
+    for diaphragm in diaphragm_groups(data).values():
+        slaves = [n for n in diaphragm["slaves"] if n not in support_nodes]
+        if diaphragm["master"] not in support_nodes and slaves:
+            ops.rigidDiaphragm(3, diaphragm["master"], *slaves)
 
     return nodes
 
@@ -552,9 +603,11 @@ def apply_nodal_loads(nodal_loads):
     ops.timeSeries("Linear", 1)
     ops.pattern("Plain", 1, 1)
     for node, load in nodal_loads.items():
-        if max(abs(load[0]), abs(load[1]), abs(load[2])) < 1e-12:
+        # load = [Fx, Fy, Fz] o [Fx, Fy, Fz, Mx, My, Mz]
+        full = list(load) + [0.0] * (6 - len(load))
+        if max(abs(v) for v in full) < 1e-12:
             continue
-        ops.load(node, load[0], load[1], load[2], 0.0, 0.0, 0.0)
+        ops.load(node, *full[:6])
 
 
 def analyze_case(data, nodal_loads, control_node, element_id):
@@ -562,7 +615,7 @@ def analyze_case(data, nodal_loads, control_node, element_id):
     apply_nodal_loads(nodal_loads)
     ops.system("BandGeneral")
     ops.numberer("RCM")
-    ops.constraints("Plain")
+    ops.constraints("Transformation")
     ops.integrator("LoadControl", 1.0)
     ops.algorithm("Linear")
     ops.analysis("Static")
@@ -730,7 +783,7 @@ def verify_building(data, live_transfer, seismic, lambdas):
     apply_nodal_loads(combined)
     ops.system("BandGeneral")
     ops.numberer("RCM")
-    ops.constraints("Plain")
+    ops.constraints("Transformation")
     ops.integrator("LoadControl", 1.0)
     ops.algorithm("Linear")
     ops.analysis("Static")
@@ -1386,7 +1439,7 @@ def run_and_extract(data, nodal_loads):
     apply_nodal_loads(nodal_loads)
     ops.system("BandGeneral")
     ops.numberer("RCM")
-    ops.constraints("Plain")
+    ops.constraints("Transformation")
     ops.integrator("LoadControl", 1.0)
     ops.algorithm("Linear")
     ops.analysis("Static")

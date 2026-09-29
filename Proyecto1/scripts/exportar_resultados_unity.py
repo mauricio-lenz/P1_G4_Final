@@ -122,6 +122,37 @@ SECTION_MATERIALS = [
         "b_m": 0.30,
         "h_m": 0.45,
         "note": "Viga 30x45 cm"
+    },
+    {
+        "sectionId": "V40/60",
+        "elementType": "viga",
+        "materialName": "H-25 / Acero A630-420 (viga)",
+        "fc_MPa": 25.0,
+        "fy_MPa": 420.0,
+        "E_MPa": 25000.0,
+        "b_m": 0.40,
+        "h_m": 0.60,
+        "note": "Viga 40x60 cm (eje x=37.55, pisos 3 y 4)"
+    },
+    {
+        "sectionId": "PM300x300x20",
+        "elementType": "columna",
+        "materialName": "Acero estructural (perfil cajon)",
+        "E_MPa": 200000.0,
+        "b_m": 0.30,
+        "h_m": 0.30,
+        "t_m": 0.020,
+        "note": "Pilar metalico cajon 300x300x20 mm (P.M. planos 2017_67)"
+    },
+    {
+        "sectionId": "VM300x300x5",
+        "elementType": "arriostre",
+        "materialName": "Acero estructural (perfil cajon)",
+        "E_MPa": 200000.0,
+        "b_m": 0.30,
+        "h_m": 0.30,
+        "t_m": 0.005,
+        "note": "Arriostre metalico cajon 300x300x5 mm (V.M. (ARR) planos 2017_67)"
     }
 ]
 
@@ -131,10 +162,13 @@ def load_json(path):
         return json.load(f)
 
 
-def write_json(path, data):
+def write_json(path, data, compact=False):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
+        if compact:
+            json.dump(data, f, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        else:
+            json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
 
 
 def main():
@@ -486,6 +520,11 @@ def main():
             "demands": entry["demands"]
         })
 
+    # ── Sidequest: carga movil (casos unitarios por nodo del recorrido) ──
+    print("\nPrecalculando carga movil (casos unitarios OpenSees)...")
+    import carga_movil
+    carga_movil_data = carga_movil.construir(data, cvm)
+
     # ── JSON de salida ───────────────────────────────────────────────
     curva_muro_n = len(wall_pm_data) if wall_pm_data else 0
     output = {
@@ -496,7 +535,8 @@ def main():
             "elementForces": element_forces_flat,
             "pmCurves": pm_curves,
             "sectionMaterials": SECTION_MATERIALS,
-            "wallRegistry": wall_registry
+            "wallRegistry": wall_registry,
+            "cargaMovil": carga_movil_data
         },
         "units": data.get("units", "m, kN, kN*m"),
         "q_G": data.get("q_G", q_g),
@@ -520,7 +560,8 @@ def main():
     }
 
     # ── Guardar ──────────────────────────────────────────────────────
-    write_json(JSON_OUT, output)
+    # Compacto: el JSON de Unity es generado y la indentacion lo triplica de tamano
+    write_json(JSON_OUT, output, compact=True)
     n_nodes = len(data.get("nodes", []))
     n_elements = len(data.get("elements", []))
     n_combos = len(combos_list)

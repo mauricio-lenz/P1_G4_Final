@@ -29,10 +29,6 @@ public static class MCOCSetup
         TextAsset json = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Resources/estructura_p1l4_unity.json");
         if (json == null)
         {
-            json = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Resources/estructura_completo_unity.json");
-        }
-        if (json == null)
-        {
             if (showDialog && !Application.isBatchMode)
             {
                 EditorUtility.DisplayDialog(

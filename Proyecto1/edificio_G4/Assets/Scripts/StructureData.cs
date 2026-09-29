@@ -51,6 +51,72 @@ public class P1L4Extras
     public PMCurveData[] pmCurves;
     public SectionMaterialData[] sectionMaterials;
     public WallRegistryEntry[] wallRegistry;
+    public MovingLoadData cargaMovil;
+}
+
+// Sidequest carga movil: casos unitarios precalculados (carga_movil.py)
+[Serializable]
+public class MovingLoadData
+{
+    public float P_default_kN;
+    public MovingLoadPath[] paths;
+    public string nota;
+}
+
+[Serializable]
+public class MovingLoadPath
+{
+    public string id;
+    public string nombre;
+    public string edificio;
+    public string nivel;
+    public float z;
+    public int[] nodeIds;      // nodos del edificio (orden de disp)
+    public int[] elementIds;   // elementos del edificio (orden de forces)
+    public MovingLoadPoint origen;
+    public float[] dir;
+    public float largo;
+    public MovingLoadBeam[] beams;
+    public MovingLoadUnitCase[] unitCases;
+    public MovingLoadCheck[] validacion;
+}
+
+[Serializable]
+public class MovingLoadPoint
+{
+    public float x;
+    public float y;
+}
+
+[Serializable]
+public class MovingLoadBeam
+{
+    public int element;
+    public string tag;
+    public int nodeA;
+    public int nodeB;
+    public float s0;
+    public float s1;
+}
+
+[Serializable]
+public class MovingLoadUnitCase
+{
+    public int node;
+    public string tipo;   // "F" = Fz unitaria hacia abajo, "M" = momento unitario en torno a z x dir
+    public float sumRz;
+    public float[] disp;  // ux, uy, uz por nodo (orden nodeIds)
+    public float[] forces; // 12 fuerzas por elemento (orden elementIds)
+}
+
+[Serializable]
+public class MovingLoadCheck
+{
+    public float s;
+    public float sumRz_comb_kN;
+    public float sumRz_directo_kN;
+    public float errDisp_m;
+    public float errReac_kN;
 }
 
 [Serializable]

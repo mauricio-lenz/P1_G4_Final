@@ -96,14 +96,6 @@ def find_elements(data, tag=None, elem_id=None, tipo=None, piso=None):
     return [e for e in data["elements"] if _match(e, tag, elem_id, tipo, piso)]
 
 
-def show(e, extra=""):
-    print(
-        f"    - id={e.get('id')} tag={e.get('elementTag')} "
-        f"({e.get('type')}) {e.get('nodeI')}->{e.get('nodeJ')} "
-        f"{e.get('sectionId')} piso={e.get('piso')} {extra}".strip()
-    )
-
-
 # ── Operaciones de modificacion ───────────────────────────────────────
 def quitar_elemento(data, tag=None, elem_id=None, tipo=None, piso=None,
                     redistribuir=True, dry=False):

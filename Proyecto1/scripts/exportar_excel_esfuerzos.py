@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 JSON_IN = ROOT_DIR / "edificio_G4" / "Assets" / "Resources" / "estructura_p1l4_unity.json"
-OUT_DEFAULT = BASE_DIR / "resultados" / "esfuerzos_por_elemento.xlsx"
+OUT_DEFAULT = ROOT_DIR / "resultados" / "esfuerzos_por_elemento.xlsx"
 
 COMBO_ORDER = ["G", "Q", "EX", "EY", "C1", "C2", "C3"]
 

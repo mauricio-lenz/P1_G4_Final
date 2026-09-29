@@ -260,6 +260,146 @@ public static class UnityData
         return ids.ToArray();
     }
 
+    // ---------------------------------------------------------------
+    // SIDEQUEST · CARGA MOVIL
+    // Combo sintetico "MOV" = Σ coef_k · caso_unitario_k, con coef de las
+    // fuerzas de empotramiento de P en la posicion s (ver carga_movil.py).
+    // Es exacto (modelo lineal) y continuo en s; P es un factor de escala.
+    // ---------------------------------------------------------------
+    public const string MovingLoadComboName = "MOV";
+
+    public class MovingLoadState
+    {
+        public MovingLoadPath path;
+        public MovingLoadBeam beam;
+        public float s, P, a, b, L;
+        public float FA, FB, MA, MB;
+        public float sumRz;
+        public Vector3 worldPoint;     // punto de aplicacion (coordenadas Unity)
+        public int loadedElement;
+        public bool loadedFromNodeI;   // true si nodeI del elemento es el nodo A del camino
+    }
+
+    public static MovingLoadState MovingLoad;
+
+    public static MovingLoadData GetMovingLoadData()
+    {
+        return Structure != null && Structure.p1l4 != null ? Structure.p1l4.cargaMovil : null;
+    }
+
+    public static MovingLoadState ApplyMovingLoad(MovingLoadPath path, float s, float P)
+    {
+        MovingLoadData ml = GetMovingLoadData();
+        if (ml == null || path == null || path.beams == null || path.beams.Length == 0) return null;
+
+        s = Mathf.Clamp(s, 0f, path.largo);
+        MovingLoadBeam beam = path.beams[path.beams.Length - 1];
+        foreach (MovingLoadBeam bm in path.beams)
+        {
+            if (s <= bm.s1 + 1e-6f) { beam = bm; break; }
+        }
+        float L = beam.s1 - beam.s0;
+        float a = Mathf.Clamp(s - beam.s0, 0f, L);
+        float b = L - a;
+        var st = new MovingLoadState
+        {
+            path = path, beam = beam, s = s, P = P, a = a, b = b, L = L,
+            FA = P * b * b * (3f * a + b) / (L * L * L),
+            FB = P * a * a * (a + 3f * b) / (L * L * L),
+            MA = P * a * b * b / (L * L),
+            MB = -P * a * a * b / (L * L),
+            loadedElement = beam.element
+        };
+
+        // coeficientes de los 4 casos unitarios involucrados
+        var coefs = new List<KeyValuePair<MovingLoadUnitCase, float>>();
+        foreach (MovingLoadUnitCase uc in path.unitCases)
+        {
+            float c = 0f;
+            if (uc.node == beam.nodeA) c = uc.tipo == "F" ? st.FA : st.MA;
+            else if (uc.node == beam.nodeB) c = uc.tipo == "F" ? st.FB : st.MB;
+            if (Mathf.Abs(c) > 1e-9f) coefs.Add(new KeyValuePair<MovingLoadUnitCase, float>(uc, c));
+        }
+
+        // desplazamientos (solo el edificio cargado responde: junta de dilatacion)
+        var disp = new List<DisplacementRecord>(path.nodeIds.Length);
+        for (int i = 0; i < path.nodeIds.Length; i++)
+        {
+            float ux = 0f, uy = 0f, uz = 0f;
+            foreach (var kv in coefs)
+            {
+                ux += kv.Value * kv.Key.disp[3 * i];
+                uy += kv.Value * kv.Key.disp[3 * i + 1];
+                uz += kv.Value * kv.Key.disp[3 * i + 2];
+            }
+            disp.Add(new DisplacementRecord { combo = MovingLoadComboName, node = path.nodeIds[i], ux = ux, uy = uy, uz = uz });
+        }
+
+        // fuerzas internas (+ fuerzas de empotramiento en la viga cargada);
+        // los elementos del otro edificio quedan con fuerzas nulas
+        float dx = path.dir[0], dy = path.dir[1];
+        Vector3 axis = new Vector3(-dy, dx, 0f);   // z x dir en coordenadas del modelo
+        var index = new Dictionary<int, int>(path.elementIds.Length);
+        for (int e = 0; e < path.elementIds.Length; e++) index[path.elementIds[e]] = e;
+        var forces = new List<ElementForceRecord>();
+        foreach (ElementData ed in Structure.elements)
+        {
+            float[] f = new float[12];
+            if (ed != null && index.TryGetValue(ed.id, out int e))
+            {
+                foreach (var kv in coefs)
+                {
+                    for (int k = 0; k < 12; k++) f[k] += kv.Value * kv.Key.forces[12 * e + k];
+                }
+            }
+            if (ed != null && ed.id == beam.element)
+            {
+                st.loadedFromNodeI = ed.nodeI == beam.nodeA;
+                int iA = st.loadedFromNodeI ? 0 : 6;
+                int iB = st.loadedFromNodeI ? 6 : 0;
+                f[iA + 2] += st.FA;
+                f[iB + 2] += st.FB;
+                for (int k = 0; k < 3; k++)
+                {
+                    f[iA + 3 + k] += -st.MA * axis[k];
+                    f[iB + 3 + k] += -st.MB * axis[k];
+                }
+            }
+            if (ed != null) forces.Add(new ElementForceRecord { combo = MovingLoadComboName, id = ed.id, f = f });
+        }
+
+        foreach (var kv in coefs) st.sumRz += kv.Value * kv.Key.sumRz;
+
+        float gx = path.origen.x + dx * s;
+        float gy = path.origen.y + dy * s;
+        st.worldPoint = new Vector3(gx, path.z, gy);
+
+        if (DisplacementsByCombo == null) DisplacementsByCombo = new Dictionary<string, List<DisplacementRecord>>();
+        if (ElementForcesByCombo == null) ElementForcesByCombo = new Dictionary<string, List<ElementForceRecord>>();
+        DisplacementsByCombo[MovingLoadComboName] = disp;
+        ElementForcesByCombo[MovingLoadComboName] = forces;
+        if (comboLookup == null) comboLookup = new Dictionary<string, ComboInfo>();
+        comboLookup[MovingLoadComboName] = new ComboInfo
+        {
+            name = MovingLoadComboName,
+            label = $"Carga movil P={P:0.#} kN en s={s:0.00} m ({path.nombre})"
+        };
+        MovingLoad = st;
+        ActiveCombo = MovingLoadComboName;
+        return st;
+    }
+
+    /// Momento de viga simplemente apoyada de la carga puntual (se suma al
+    /// diagrama lineal de extremos, igual que la parabola de la carga uniforme).
+    public static float MovingLoadSpanMoment(int elementId, float t, float length)
+    {
+        MovingLoadState st = MovingLoad;
+        if (st == null || ActiveCombo != MovingLoadComboName || elementId != st.loadedElement || length <= 0f) return 0f;
+        float aE = st.loadedFromNodeI ? st.a : st.L - st.a;
+        float x = t * length;
+        return x <= aE ? st.P * (length - aE) * x / length : st.P * aE * (length - x) / length;
+    }
+
     public static ComboInfo GetComboInfo(string combo)
     {
         if (string.IsNullOrEmpty(combo) || comboLookup == null) return null;

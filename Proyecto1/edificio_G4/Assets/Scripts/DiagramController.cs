@@ -365,10 +365,11 @@ public class DiagramController : MonoBehaviour
 
         float my = GetForceGradient(data, t, 4, 10);
         float mz = GetForceGradient(data, t, 5, 11);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f)
+        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName)
         {
             mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
         }
+        mz += UnityData.MovingLoadSpanMoment(data.id, t, length);
         float momentSign = Mathf.Abs(my) >= Mathf.Abs(mz) ? Mathf.Sign(my) : Mathf.Sign(mz);
         return momentSign * Mathf.Sqrt(my * my + mz * mz);
     }
@@ -597,9 +598,10 @@ public class DiagramController : MonoBehaviour
         torsion = GetForceGradient(data, t, 3, 9);
         my = GetForceGradient(data, t, 4, 10);
         mz = GetForceGradient(data, t, 5, 11);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f)
+        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName)
         {
             mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
         }
+        mz += UnityData.MovingLoadSpanMoment(data.id, t, length);
     }
 }

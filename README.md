@@ -13,7 +13,7 @@ Proyecto1/
 │  ├─ exportar_resultados_unity.py   # JSON enriquecido -> Unity (pipeline P1L4)
 │  ├─ exportar_excel_esfuerzos.py    # esfuerzos por elemento -> .xlsx
 │  ├─ extraer_indicadores.py         # indicadores por escenario (despl., muros)
-│  ├─ anadir_arriostres_unity.py     # arriostres diagonales en voladizos (Unity)
+│  ├─ ajustar_modelo_planos.py       # ajustes del modelo segun planos DXF (acero, muros, voladizos)
 │  └─ verificar_superposicion.py     # verificación numérica de superposición C1/C2/C3
 ├─ data/                             # JSON base + resultados Unity (autocontenido)
 │  ├─ estructura_completo_unity.json
