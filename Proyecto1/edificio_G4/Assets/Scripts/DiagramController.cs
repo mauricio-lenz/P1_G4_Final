@@ -506,6 +506,7 @@ public class DiagramController : MonoBehaviour
 
     private void OnGUI()
     {
+        UiTheme.ApplyScale();
         DrawSelectedValueTable();
     }
 
@@ -579,7 +580,7 @@ public class DiagramController : MonoBehaviour
                     $"T I/J = {tI:0.##} / {tJ:0.##} kN*m";
         }
 
-        float w = Mathf.Min(380f, Screen.width * 0.34f);
+        float w = Mathf.Min(380f, UiTheme.ScreenW * 0.34f);
         float h = 138f;
         Rect r = UiTheme.CenterTop(w, h);
         UiTheme.GUIBox(new Rect(r.x, r.y, r.width, r.height), title);
@@ -621,7 +622,7 @@ public class DiagramController : MonoBehaviour
                       detail;
 
         string title2 = $"Valores {currentMode} - Muro {selected.wallId}";
-        float w = Mathf.Min(380f, Screen.width * 0.34f);
+        float w = Mathf.Min(380f, UiTheme.ScreenW * 0.34f);
         float h = 124f;
         Rect r = UiTheme.CenterTop(w, h);
         UiTheme.GUIBox(new Rect(r.x, r.y, r.width, r.height), title2);

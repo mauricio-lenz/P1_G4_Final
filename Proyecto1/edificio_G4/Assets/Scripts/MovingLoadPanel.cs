@@ -261,6 +261,7 @@ public class MovingLoadPanel : MonoBehaviour
     // ------------------------------------------------------------------
     private void OnGUI()
     {
+        UiTheme.ApplyScale();
         MovingLoadData data = UnityData.GetMovingLoadData();
         if (data == null || data.paths == null || data.paths.Length == 0) return;
         // mientras la carga en elemento esta activa, este panel se oculta
@@ -284,7 +285,7 @@ public class MovingLoadPanel : MonoBehaviour
         }
 
         MovingLoadPath path = CurrentPath();
-        float h = Mathf.Max(250f, Screen.height - y - 12f);
+        float h = Mathf.Max(250f, UiTheme.ScreenH - y - 12f);
         h = Mathf.Min(h, 356f);
         UiTheme.GUIBox(new Rect(x, y, w, h), "CARGA MOVIL (SIDEQUEST)");
         float ix = x + 10f;

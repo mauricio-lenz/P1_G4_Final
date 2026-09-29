@@ -35,3 +35,4 @@ P1L2/Builds/
 *.csproj
 *.slnx
 .vsconfig
+**/edificio_G4/.utmp/

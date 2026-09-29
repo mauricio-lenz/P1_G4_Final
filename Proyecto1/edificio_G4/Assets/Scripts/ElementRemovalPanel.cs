@@ -255,6 +255,9 @@ public class ElementRemovalPanel : MonoBehaviour
     // ------------------------------------------------------------------
     private void OnGUI()
     {
+        UiTheme.ApplyScale();
+        // requiere Python/OpenSees: no se muestra en el celular
+        if (!PythonJob.Available) return;
         // mientras una carga movil / en elemento esta activa, este panel se oculta
         if (UnityData.ActiveCombo == UnityData.MovingLoadComboName || UnityData.ActiveCombo == UnityData.ElementLoadComboName) return;
 
@@ -293,7 +296,7 @@ public class ElementRemovalPanel : MonoBehaviour
 
         // Modelo modificado: resumen del reanalisis
         ElementRemovalResult r = UnityData.Removal;
-        float h = Mathf.Min(Mathf.Max(340f, Screen.height - y - 12f), 450f);
+        float h = Mathf.Min(Mathf.Max(340f, UiTheme.ScreenH - y - 12f), 450f);
         UiTheme.GUIBox(new Rect(x, y, w0, h), "MODELO MODIFICADO (REANALISIS)");
         float jy = y + 28f;
         var tags = new List<string>();

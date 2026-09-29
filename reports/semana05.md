@@ -167,9 +167,23 @@ Puntos débiles detectados: centrar la cámara en el elemento buscado, salto del
 
 **Teléfono de referencia:** Samsung Galaxy A54 5G (Android 13, Exynos 1380, GPU Mali-G68 MP5 con Vulkan 1.1 / OpenGL ES 3.2, pantalla 2340×1080). Requisitos mínimos equivalentes: Android 10+ (API 29), OpenGL ES 3.0+/Vulkan, ARM64.
 
-**Configuración de build** (Unity 6000.6.0f1): módulo *Android Build Support* (+ OpenJDK, SDK & NDK), plataforma Android, IL2CPP, ARM64, orientación horizontal, Vulkan con respaldo OpenGLES3.
+**Build móvil inicial: generado.** `Proyecto1/edificio_G4/Builds/Android/P1G4_Viewer.apk` (22 MB; 0 errores). Se reproduce con el menú **MCOC → Build Android (APK)** o por consola:
 
-**Estado:** build inicial en preparación. En el teléfono funcionan las funciones que usan datos precalculados (navegación, selección, combos, diagramas, deformada, superposición, P-M y carga móvil). La carga en elemento y quitar elemento requieren Python/OpenSees y quedan solo para el editor o PC. Falta la órbita táctil de cámara (la actual usa botón derecho del mouse).
+```text
+Unity.exe -batchmode -quit -projectPath Proyecto1/edificio_G4 -buildTarget Android -executeMethod BuildAndroid.Build
+```
+
+`Assets/Scripts/Editor/BuildAndroid.cs` fija la configuración: paquete `cl.uandes.mcoc.p1g4`, IL2CPP, ARM64, Android 10+ (API 29), Vulkan con respaldo OpenGLES3, solo orientación horizontal. Módulo *Android Build Support* (+ OpenJDK, SDK & NDK) instalado en Unity 6000.6.0f1.
+
+**Adaptaciones para el teléfono:**
+- controles táctiles de cámara: 1 dedo orbita, pellizco hace zoom, 2 dedos desplazan;
+- selección con un toque corto sin arrastre;
+- interfaz escalada a una pantalla virtual de ~720 px de alto, para que los paneles sean legibles en alta densidad;
+- los toques sobre los paneles no mueven la cámara ni seleccionan.
+
+En el teléfono funcionan navegación, selección, combos, diagramas, deformada, superposición en vivo, P-M y carga móvil, porque usan datos precalculados en el JSON. Carga en elemento y quitar elemento requieren Python/OpenSees y se ocultan en el celular.
+
+**Pendiente:** validar la experiencia en el equipo físico (legibilidad de los paneles en 2340×1080 y sensibilidad de los gestos).
 
 ## 7. IA — funcionalidad compleja implementada por el agente
 

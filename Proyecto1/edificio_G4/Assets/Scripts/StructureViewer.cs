@@ -86,6 +86,11 @@ public class StructureViewer : MonoBehaviour
 
     private void CreateStructure()
     {
+        // Consola de diagnostico en pantalla solo en builds de desarrollo del celular
+        if (Application.isPlaying && Debug.isDebugBuild && !Application.isEditor && GetComponent<DebugOverlay>() == null)
+        {
+            gameObject.AddComponent<DebugOverlay>();
+        }
         CreateDefaultMaterials();
 
         if (structureJson == null)
@@ -1128,6 +1133,7 @@ public class StructureViewer : MonoBehaviour
 
     private void OnGUI()
     {
+        UiTheme.ApplyScale();
         DrawTopBar();
         DrawLeftPanel();
         RefreshVisibility();
@@ -1137,7 +1143,7 @@ public class StructureViewer : MonoBehaviour
     {
         float x = UiTheme.SideM;
         float y = 7f;
-        float w = Screen.width - UiTheme.SideM * 2f;
+        float w = UiTheme.ScreenW - UiTheme.SideM * 2f;
         float h = UiTheme.TopBarH - 14f;
         UiTheme.GUIBox(new Rect(x, y, w, h));
         GUI.Label(new Rect(x + 12f, y + 4f, 320f, 16f), "GRUPO 4 · MCOP P1L4 — MODELO TRIBUTARIO · OPENSEES", UiTheme.Brand);
@@ -1179,7 +1185,9 @@ public class StructureViewer : MonoBehaviour
         if (GUI.Button(new Rect(bx + 180f, cy, 55f, 20f), "RIGHT")) SetCameraPreset("RIGHT");
 
         GUI.Label(new Rect(x + 12f, y + 50f, w - 24f, 14f),
-            "Estado: " + statusMessage + "   |   Click izq: seleccionar · Click der: orbitar · Rueda: zoom · I/J: extremos locales",
+            "Estado: " + statusMessage + (Application.isMobilePlatform
+                ? "   |   Toque: seleccionar · 1 dedo: orbitar · Pellizco: zoom · 2 dedos: desplazar"
+                : "   |   Click izq: seleccionar · Click der: orbitar · Rueda: zoom · I/J: extremos locales"),
             UiTheme.DimLabel);
     }
 

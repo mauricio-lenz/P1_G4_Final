@@ -86,10 +86,72 @@ public class OrbitCamera : MonoBehaviour
         }
 
         float scroll = Input.GetAxis("Mouse ScrollWheel");
+        HandleTouch();
 #endif
         distance = Mathf.Clamp(distance - scroll * zoomSpeed, 5f, 120f);
 
         UpdatePosition();
+    }
+
+    // ------------------------------------------------------------------
+    // Celular: 1 dedo = orbitar, 2 dedos = pellizco (zoom) + arrastre (paneo).
+    // Los toques que empiezan sobre un panel no mueven la camara.
+    // ------------------------------------------------------------------
+    public float touchOrbitSpeed = 0.25f;   // grados por pixel
+    public float touchPanSpeed = 0.0025f;   // fraccion de la distancia por pixel
+    private bool touchOrbitActive;
+    private bool twoFingerActive;
+
+    private void HandleTouch()
+    {
+        if (Input.touchCount == 0)
+        {
+            touchOrbitActive = false;
+            twoFingerActive = false;
+            return;
+        }
+
+        var picker = FindAnyObjectByType<ElementPicker>();
+        bool infoVisible = picker != null && picker.Selected != null;
+
+        if (Input.touchCount == 1)
+        {
+            Touch t = Input.GetTouch(0);
+            if (t.phase == TouchPhase.Began)
+            {
+                touchOrbitActive = !UiTheme.IsOverUI(t.position, infoVisible);
+            }
+            if (touchOrbitActive && !twoFingerActive && t.phase == TouchPhase.Moved)
+            {
+                x += t.deltaPosition.x * touchOrbitSpeed;
+                y = Mathf.Clamp(y - t.deltaPosition.y * touchOrbitSpeed, -10f, 80f);
+            }
+            if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+            {
+                twoFingerActive = false;
+            }
+            return;
+        }
+
+        Touch a = Input.GetTouch(0);
+        Touch b = Input.GetTouch(1);
+        if (b.phase == TouchPhase.Began)
+        {
+            twoFingerActive = !UiTheme.IsOverUI((a.position + b.position) * 0.5f, infoVisible);
+        }
+        if (!twoFingerActive) return;
+        touchOrbitActive = false;
+
+        Vector2 prevA = a.position - a.deltaPosition;
+        Vector2 prevB = b.position - b.deltaPosition;
+        float prevDist = (prevA - prevB).magnitude;
+        float dist = (a.position - b.position).magnitude;
+        if (prevDist > 1f && dist > 1f)
+        {
+            distance = Mathf.Clamp(distance * prevDist / dist, 5f, 120f);
+        }
+        Vector2 move = (a.deltaPosition + b.deltaPosition) * 0.5f;
+        Pan(-move.x * touchPanSpeed * distance, -move.y * touchPanSpeed * distance);
     }
 
     private void Pan(float screenX, float screenY)

@@ -11,6 +11,19 @@ public class PythonJob
     public string Error { get; private set; }
     public bool Running => process != null;
 
+    /// true en el editor y en PC (hay Python/OpenSees); false en celular.
+    public static bool Available
+    {
+        get
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+
 #if UNITY_EDITOR || UNITY_STANDALONE
     private System.Diagnostics.Process process;
 #else

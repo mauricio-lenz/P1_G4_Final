@@ -323,6 +323,9 @@ public class ElementLoadPanel : MonoBehaviour
 
     private void OnGUI()
     {
+        UiTheme.ApplyScale();
+        // requiere Python/OpenSees: no se muestra en el celular
+        if (!PythonJob.Available) return;
         // mientras la carga movil esta activa, este panel se oculta
         if (UnityData.ActiveCombo == UnityData.MovingLoadComboName) return;
         // con el modelo modificado (elementos quitados) sus casos unitarios ya no aplican
@@ -361,7 +364,7 @@ public class ElementLoadPanel : MonoBehaviour
             return;
         }
 
-        float h = Mathf.Min(Mathf.Max(300f, Screen.height - y - 12f), 378f);
+        float h = Mathf.Min(Mathf.Max(300f, UiTheme.ScreenH - y - 12f), 378f);
         UiTheme.GUIBox(new Rect(x, y, w0, h), "CARGA EN ELEMENTO · " + cases.tag);
         float jy = y + 28f;
 

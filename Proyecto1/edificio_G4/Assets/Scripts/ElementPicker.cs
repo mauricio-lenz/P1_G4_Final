@@ -26,9 +26,9 @@ public class ElementPicker : MonoBehaviour
             if (cam == null) return;
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if (GetClick(out Vector2 clickPos))
         {
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            Ray ray = cam.ScreenPointToRay(clickPos);
             if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, selectableLayer))
             {
                 var selectable = hit.collider.GetComponent<ElementSelectable>();
@@ -75,6 +75,56 @@ public class ElementPicker : MonoBehaviour
 
     private ElementSelectable selectedElement;
     private InfoSelectable selectedInfo;
+
+    // Toque en celular: selecciona al levantar el dedo si no hubo arrastre
+    private Vector2 touchStart;
+    private float touchStartTime;
+    private bool touchCandidate;
+    private const float TapMaxMove = 25f;
+    private const float TapMaxTime = 0.45f;
+
+    /// Click izquierdo (PC) o toque corto (celular) fuera de los paneles.
+    private bool GetClick(out Vector2 position)
+    {
+        position = Vector2.zero;
+        bool infoVisible = Selected != null || selectedInfo != null;
+        if (Input.touchCount > 0)
+        {
+            if (Input.touchCount > 1)
+            {
+                touchCandidate = false;   // pellizco / paneo con dos dedos
+                return false;
+            }
+            Touch t = Input.GetTouch(0);
+            if (t.phase == TouchPhase.Began)
+            {
+                touchStart = t.position;
+                touchStartTime = Time.unscaledTime;
+                touchCandidate = !UiTheme.IsOverUI(t.position, infoVisible);
+            }
+            else if (t.phase == TouchPhase.Moved && (t.position - touchStart).magnitude > TapMaxMove)
+            {
+                touchCandidate = false;   // es un arrastre para orbitar
+            }
+            else if (t.phase == TouchPhase.Ended && touchCandidate)
+            {
+                touchCandidate = false;
+                if (Time.unscaledTime - touchStartTime <= TapMaxTime)
+                {
+                    position = t.position;
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (Application.isMobilePlatform) return false;   // evita el mouse simulado por el toque
+        if (Input.GetMouseButtonDown(0) && !UiTheme.IsOverUI(Input.mousePosition, infoVisible))
+        {
+            position = Input.mousePosition;
+            return true;
+        }
+        return false;
+    }
 
     public void SelectElement(ElementSelectable sel, bool centerCamera)
     {
@@ -140,6 +190,7 @@ public class ElementPicker : MonoBehaviour
 
     void OnGUI()
     {
+        UiTheme.ApplyScale();
         if (Selected == null && selectedInfo == null) return;
 
         string info = Selected != null

@@ -9,6 +9,35 @@ public static class UiTheme
     public const float CtrlW = 348f;
     public const float Gap = 16f;
 
+    // Escala de la interfaz: 1 en PC; en celular la GUI se dibuja sobre una
+    // pantalla virtual de ~720 px de alto (botones legibles en alta densidad).
+    public static float Scale
+    {
+        get { return Application.isMobilePlatform ? Mathf.Max(1f, Screen.height / 720f) : 1f; }
+    }
+
+    public static float ScreenW { get { return Screen.width / Scale; } }
+    public static float ScreenH { get { return Screen.height / Scale; } }
+
+    /// Llamar al inicio de cada OnGUI.
+    public static void ApplyScale()
+    {
+        float s = Scale;
+        GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
+    }
+
+    /// true si la posicion de pantalla (origen abajo-izquierda, pixeles reales)
+    /// cae sobre la barra superior, la columna de paneles o el panel de resultados.
+    public static bool IsOverUI(Vector2 screenPos, bool infoPanelVisible)
+    {
+        float gx = screenPos.x / Scale;
+        float gy = (Screen.height - screenPos.y) / Scale;
+        if (gy < TopBarH + 8f) return true;
+        if (gx < SideM + CtrlW + 4f) return true;
+        if (infoPanelVisible && gx > InfoLeft - 4f) return true;
+        return false;
+    }
+
     // Paleta "plano tecnico / blueprint"
     public static readonly Color PanelBg = new Color(0.035f, 0.05f, 0.095f, 0.97f);
     public static readonly Color Accent = new Color(0.27f, 0.85f, 1f, 1f);
@@ -33,7 +62,7 @@ public static class UiTheme
     {
         get
         {
-            float avail = Screen.height - TopBarH - 8f;
+            float avail = ScreenH - TopBarH - 8f;
             float maxLeft = 520f;
             float reservedPm = 372f;
             return Mathf.Clamp(avail - reservedPm, 250f, maxLeft);
@@ -42,12 +71,12 @@ public static class UiTheme
 
     public static float InfoWidth
     {
-        get { return Mathf.Clamp(Screen.width * 0.26f, 372f, 455f); }
+        get { return Mathf.Clamp(ScreenW * 0.26f, 372f, 455f); }
     }
 
     public static float InfoLeft
     {
-        get { return Screen.width - SideM - InfoWidth; }
+        get { return ScreenW - SideM - InfoWidth; }
     }
 
     public static Rect LeftArea()
@@ -58,7 +87,7 @@ public static class UiTheme
     public static Rect InfoPanel()
     {
         float w = InfoWidth;
-        return new Rect(Screen.width - SideM - w, TopBarH + 8f, w, Screen.height - TopBarH - 8f);
+        return new Rect(ScreenW - SideM - w, TopBarH + 8f, w, ScreenH - TopBarH - 8f);
     }
 
     public static Rect PMArea()
@@ -66,9 +95,9 @@ public static class UiTheme
         float x = SideM + CtrlW + Gap;
         float y = TopBarH + 8f + LeftHeight + 14f;
         float available = InfoLeft - Gap - x;
-        float pw = Mathf.Min(430f, Mathf.Min(Screen.width * 0.4f, available));
+        float pw = Mathf.Min(430f, Mathf.Min(ScreenW * 0.4f, available));
         if (pw < 300f) pw = 300f;
-        float ph = Screen.height - y - 12f;
+        float ph = ScreenH - y - 12f;
         if (ph < 280f) ph = 280f;
         return new Rect(x, y, pw, ph);
     }

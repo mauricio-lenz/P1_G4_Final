@@ -100,6 +100,7 @@ public class PMPanel : MonoBehaviour
 
     void OnGUI()
     {
+        UiTheme.ApplyScale();
         if (!visible || currentCurve == null || currentElement == null) return;
         if (currentCurve.points.Length < 2) return;
 
@@ -369,8 +370,8 @@ public class PMPanel : MonoBehaviour
         string label = $"{shortCombo}\nP = {p:0.0} kN\nM = {m:0.0} kN*m\nC = {cRatio:0.###}";
         float labelW = prominent ? 170f : 112f;
         float labelH = prominent ? 74f : 18f;
-        float lx = Mathf.Clamp(dx + 10f, 8f, Screen.width - labelW - 8f);
-        float ly = Mathf.Clamp(dy - 26f, 8f, Screen.height - labelH - 8f);
+        float lx = Mathf.Clamp(dx + 10f, 8f, UiTheme.ScreenW - labelW - 8f);
+        float ly = Mathf.Clamp(dy - 26f, 8f, UiTheme.ScreenH - labelH - 8f);
 
         GUI.color = new Color(0.05f, 0.05f, 0.12f, 0.88f);
         GUI.DrawTexture(new Rect(lx - 4f, ly - 3f, labelW, labelH), whiteTex);
