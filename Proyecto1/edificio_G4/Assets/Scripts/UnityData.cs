@@ -607,6 +607,12 @@ public static class UnityData
 
     public static bool IsModelModified => RemovedElements != null && RemovedElements.Count > 0;
 
+    // Deformada: comparar original (naranjo) vs modificada (verde) y escala fija opcional
+    public static bool CompareDeformed = true;
+    public static bool CompareDeformedActive => CompareDeformed && IsModelModified && originalDisp != null
+        && System.Array.IndexOf(AnalysisCombos, ActiveCombo) >= 0;
+    public static float DeformedScaleOverride = 0f;   // 0 = automatica por edificio
+
     public static bool IsRemoved(int elementId)
     {
         return RemovedElements != null && RemovedElements.Contains(elementId);

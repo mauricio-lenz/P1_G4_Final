@@ -435,7 +435,11 @@ def aplicar_ediciones(data, dry=False):
     resumen(data)
 
     # === EDITAR DESDE AQUI ===
-    quitar_elemento(data, tag="E1_5")
+    # Escenarios de la semana 5 (el modelo base es el de los planos, sin ellos):
+    #   Mod A: quitar_elemento(data, tag="E1_5")
+    #   Mod B: cambiar_seccion(data, tag="E1_10", seccion="V30/45")
+    # Tambien se pueden probar en vivo desde Unity (panel "Quitar elemento").
+    # quitar_elemento(data, tag="E1_5")
     # quitar_elemento(data, tipo="viga", piso="CIELO_2")
     # quitar_loza(data, "L1")
     # cambiar_seccion(data, tag="E1_10", seccion="V30/45")

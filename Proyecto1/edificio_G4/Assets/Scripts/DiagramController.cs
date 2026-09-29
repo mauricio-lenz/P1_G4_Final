@@ -177,7 +177,9 @@ public class DiagramController : MonoBehaviour
             {
                 continue;
             }
-            if (element.data != null && UnityData.IsRemoved(element.data.id))
+            bool removed = element.data != null && UnityData.IsRemoved(element.data.id);
+            bool compare = UnityData.CompareDeformedActive;
+            if (removed && !compare)
             {
                 continue;
             }
@@ -193,6 +195,18 @@ public class DiagramController : MonoBehaviour
 
             Vector3 p0 = element.startPoint + dI * scale;
             Vector3 p1 = element.endPoint + dJ * scale;
+
+            if (compare)
+            {
+                Vector3 oI = UnityData.GetOriginalNodeDisplacement(combo, element.data.nodeI);
+                Vector3 oJ = UnityData.GetOriginalNodeDisplacement(combo, element.data.nodeJ);
+                CreateLine(element.startPoint + oI * scale, element.endPoint + oJ * scale,
+                    new Color(1f, 0.6f, 0.15f, 0.9f), 0.1f, $"Deformada_Original_E{element.data.id}");
+            }
+            if (removed)
+            {
+                continue;
+            }
 
             CreateLine(element.startPoint, element.endPoint, new Color(0.5f, 0.5f, 0.55f, 0.6f), 0.04f,
                 $"Deformada_Ref_E{element.data.id}");
@@ -228,10 +242,15 @@ public class DiagramController : MonoBehaviour
 
     private float GetDeformedScale(string building, string combo)
     {
+        if (UnityData.DeformedScaleOverride > 0f)
+        {
+            return UnityData.DeformedScaleOverride;
+        }
         if (deformedScaleByBuilding.TryGetValue(building, out float cached))
         {
             return cached;
         }
+        bool compare = UnityData.CompareDeformedActive;
 
         Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
         float maxDisp = 0f;
@@ -260,6 +279,13 @@ public class DiagramController : MonoBehaviour
             Vector3 dI = UnityData.GetNodeDisplacement(combo, e.data.nodeI);
             Vector3 dJ = UnityData.GetNodeDisplacement(combo, e.data.nodeJ);
             maxDisp = Mathf.Max(maxDisp, dI.magnitude, dJ.magnitude);
+            if (compare)
+            {
+                // misma escala para la deformada original y la modificada
+                maxDisp = Mathf.Max(maxDisp,
+                    UnityData.GetOriginalNodeDisplacement(combo, e.data.nodeI).magnitude,
+                    UnityData.GetOriginalNodeDisplacement(combo, e.data.nodeJ).magnitude);
+            }
         }
 
         float scale = 0f;

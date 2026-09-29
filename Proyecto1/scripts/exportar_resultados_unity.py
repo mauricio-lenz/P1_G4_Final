@@ -443,7 +443,32 @@ def main():
         longitud = float(wall.get("longitud", 0.0))
         wall_base_info.append({"wall": wall, "x": x, "y": y, "z": z, "weight": max(grosor * longitud, 0.01)})
 
-    total_wall_weight = sum(item["weight"] for item in wall_base_info) or 1.0
+    # Reparto sismico: cada muro toma el corte de piso de SU edificio (suma de
+    # las fuerzas de los pisos sobre su base), segun su orientacion (un muro
+    # en X resiste EX, uno en Y resiste EY) y su rigidez relativa t*L entre
+    # los muros del mismo edificio y piso.
+    def wall_axis(wall):
+        ni = nodes_map.get(wall.get("nodeI"))
+        nj = nodes_map.get(wall.get("nodeJ"))
+        if not ni or not nj:
+            return 0.0, 0.0
+        dx, dy = abs(nj[0] - ni[0]), abs(nj[1] - ni[1])
+        length = (dx * dx + dy * dy) ** 0.5 or 1.0
+        return dx / length, dy / length
+
+    def wall_building(wall):
+        return wall.get("sourceBuilding") or "edificio_1"
+
+    storey_weight = {}
+    for item in wall_base_info:
+        cx, cy = wall_axis(item["wall"])
+        key = (wall_building(item["wall"]), round(item["z"], 2))
+        wx, wy = storey_weight.get(key, (0.0, 0.0))
+        storey_weight[key] = (wx + item["weight"] * cx, wy + item["weight"] * cy)
+
+    def storey_shear(building, z_base):
+        return sum(row["F_EX_kN"] for row in seismic.get("pisos", [])
+                   if row.get("edificio") == building and row["floor_z_m"] > z_base + 0.05)
 
     def levels_above_for_wall(item):
         count = 0
@@ -464,20 +489,26 @@ def main():
         tributary_area = max(longitud, 0.1) * tributary_width
         n_levels = levels_above_for_wall(item)
         h_eff = max(3.0, n_levels * 3.2)
-        lateral_share = item["weight"] / total_wall_weight
+        building = wall_building(wall)
+        cx, cy = wall_axis(wall)
+        wx, wy = storey_weight.get((building, round(z, 2)), (0.0, 0.0))
+        share_x = item["weight"] * cx / wx if wx > 1e-9 else 0.0
+        share_y = item["weight"] * cy / wy if wy > 1e-9 else 0.0
+        v_storey = storey_shear(building, z)
         out = []
         for combo_name, lambdas in combos.items():
             p_wall = tributary_area * (lambdas.get("G", 0) * q_g + lambdas.get("Q", 0) * q_Q) * n_levels
-            v_base_x = seismic.get("corte_basal_EX_kN", 0.0) * abs(lambdas.get("EX", 0))
-            v_base_y = seismic.get("corte_basal_EY_kN", 0.0) * abs(lambdas.get("EY", 0))
-            v_wall = (v_base_x + v_base_y) * lateral_share
+            # V en el plano del muro con signo: + en el sentido +X/+Y del sismo
+            v_wall = v_storey * (lambdas.get("EX", 0) * share_x + lambdas.get("EY", 0) * share_y)
             m_wall = v_wall * h_eff
             out.append({
                 "combo": combo_name,
                 "P_kN": round(p_wall, 2),
                 "M_kN_m": round(m_wall, 2),
                 "V_kN": round(v_wall, 2),
-                "note": f"Muro {wall.get('id')}: Atrib={tributary_area:.1f} m2, niveles sobre muro={n_levels}, reparto sismico por t*L={lateral_share:.3f}. V de corte en plano y M estimados por reparto del corte basal."
+                "note": f"Muro {wall.get('id')} ({building}): Atrib={tributary_area:.1f} m2, niveles sobre muro={n_levels}, "
+                        f"corte de piso={v_storey:.1f} kN, reparto t*L por direccion X={share_x:.3f} Y={share_y:.3f}. "
+                        f"V en plano y M estimados (el muro no esta en el analisis OpenSees)."
             })
         return out
 

@@ -260,7 +260,8 @@ public class ElementSelectable : MonoBehaviour
             }
         }
 
-        return mCap > 0.001f ? demand.y / mCap : 0f;
+        // curva P-M simetrica: la demanda de muro puede venir con signo (sentido del sismo)
+        return mCap > 0.001f ? Mathf.Abs(demand.y) / mCap : 0f;
     }
 
     private Vector2 GetPMDemandForCase(string caseName)

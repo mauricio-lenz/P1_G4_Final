@@ -23,6 +23,8 @@ public class ElementRemovalPanel : MonoBehaviour
     private Vector2 scroll;
 
     private string comparedCombo;
+    private float fixedScaleValue = 300f;
+    private float lastDiagramRefresh;
     private readonly List<string> comparison = new List<string>();
     private string dispSummary = "";
 
@@ -37,6 +39,12 @@ public class ElementRemovalPanel : MonoBehaviour
 
     private void Update()
     {
+        if (refreshPending && Time.unscaledTime - lastDiagramRefresh >= 0.08f)
+        {
+            refreshPending = false;
+            lastDiagramRefresh = Time.unscaledTime;
+            if (diagrams != null) diagrams.Refresh();
+        }
         if (job.Poll())
         {
             OnJobFinished();
@@ -127,9 +135,18 @@ public class ElementRemovalPanel : MonoBehaviour
                        : "ATENCION: algun caso no convergio (posible mecanismo).";
     }
 
+    private bool refreshPending;
+
+    private void RefreshDiagrams()
+    {
+        // se aplica en Update, limitado a ~12 veces por segundo al arrastrar el slider
+        refreshPending = true;
+    }
+
     private void Restore()
     {
         job.Kill();
+        UnityData.DeformedScaleOverride = 0f;
         UnityData.RestoreOriginalModel();
         DestroyGhosts();
         pending.Clear();
@@ -276,7 +293,7 @@ public class ElementRemovalPanel : MonoBehaviour
 
         // Modelo modificado: resumen del reanalisis
         ElementRemovalResult r = UnityData.Removal;
-        float h = Mathf.Min(Mathf.Max(300f, Screen.height - y - 12f), 400f);
+        float h = Mathf.Min(Mathf.Max(340f, Screen.height - y - 12f), 450f);
         UiTheme.GUIBox(new Rect(x, y, w0, h), "MODELO MODIFICADO (REANALISIS)");
         float jy = y + 28f;
         var tags = new List<string>();
@@ -298,7 +315,7 @@ public class ElementRemovalPanel : MonoBehaviour
 
         GUI.Label(new Rect(ix, jy, iw, 18f), $"Mayores aumentos de esfuerzo ({comparedCombo}):", UiTheme.Header);
         jy += 20f;
-        float listH = Mathf.Max(60f, h - (jy - y) - 110f);
+        float listH = Mathf.Max(52f, h - (jy - y) - 158f);
         scroll = GUI.BeginScrollView(new Rect(ix, jy, iw, listH), scroll, new Rect(0f, 0f, iw - 18f, Mathf.Max(listH, comparison.Count * 17f + 4f)));
         for (int i = 0; i < comparison.Count; i++)
         {
@@ -308,7 +325,40 @@ public class ElementRemovalPanel : MonoBehaviour
         GUI.EndScrollView();
         jy += listH + 4f;
         GUI.Label(new Rect(ix, jy, iw, 18f), dispSummary, UiTheme.DimLabel);
+        jy += 20f;
+
+        // Deformada: comparar original (naranjo) vs modificada (verde), misma escala
+        bool nextCompare = GUI.Toggle(new Rect(ix, jy, iw - 104f, 20f), UnityData.CompareDeformed, " Comparar deformada (naranjo = original)");
+        if (nextCompare != UnityData.CompareDeformed)
+        {
+            UnityData.CompareDeformed = nextCompare;
+            RefreshDiagrams();
+        }
+        if (GUI.Button(new Rect(ix + iw - 100f, jy, 100f, 20f), "Ver deformada") && viewer != null) viewer.SetResult("Deformada");
         jy += 22f;
+        bool fixedScale = UnityData.DeformedScaleOverride > 0f;
+        bool nextFixed = GUI.Toggle(new Rect(ix, jy, 110f, 20f), fixedScale, " Escala fija");
+        if (nextFixed != fixedScale)
+        {
+            UnityData.DeformedScaleOverride = nextFixed ? fixedScaleValue : 0f;
+            RefreshDiagrams();
+        }
+        if (nextFixed)
+        {
+            float next = GUI.HorizontalSlider(new Rect(ix + 112f, jy + 4f, iw - 180f, 16f), fixedScaleValue, 10f, 2000f);
+            if (Mathf.Abs(next - fixedScaleValue) > 0.5f)
+            {
+                fixedScaleValue = next;
+                UnityData.DeformedScaleOverride = fixedScaleValue;
+                RefreshDiagrams();
+            }
+            GUI.Label(new Rect(ix + iw - 62f, jy, 62f, 20f), $"x{fixedScaleValue:0}", UiTheme.DimLabel);
+        }
+        else
+        {
+            GUI.Label(new Rect(ix + 112f, jy, iw - 112f, 20f), "(automatica por edificio)", UiTheme.DimLabel);
+        }
+        jy += 24f;
 
         GUI.enabled = !job.Running;
         inputText = GUI.TextField(new Rect(ix, jy, iw - 128f, 20f), inputText);

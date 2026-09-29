@@ -29,7 +29,10 @@ COL70/70) coincide con los planos; aqui se corrigen detalles:
      V.M. 300x300x5 segun elevaciones 2017_67-800/801/802.
  10. Vigas secundarias del edificio_2 que llegaban a mitad de otra viga sin
      nodo comun: se parte la viga principal para conectarlas.
- 11. Losas en voladizo: borde norte (eje 1) de ambos edificios y bordes sur
+ 11. Edificio_2: extremos de vigas apoyados en muros sin pilar (ejes A' y
+     D'): columnas equivalentes de gravedad.
+ 12. Losas L91-L94 de la zona I'-J (pisos 3 y 4) cargan a sus vigas.
+ 13. Losas en voladizo: borde norte (eje 1) de ambos edificios y bordes sur
      y este de la zona I'-J en los pisos 3 y 4; su area tributaria se suma
      a las vigas de borde.
 
@@ -438,46 +441,141 @@ def cargar_viga_sin_area(e, d_area, q, length):
     e["momentI"] = e["momentJ"] = -w * length ** 2 / 12.0
 
 
+def repartir_franja(data, nodes, edif, nivel, eje, coord, extension, depth, side, sin_area):
+    """Suma el area de una franja (extension x depth) a las vigas del eje eje=coord.
+
+    El area se reparte por largo de viga cubierto; las esquinas que quedan
+    fuera de las vigas van a la viga extrema. Devuelve el area agregada.
+    """
+    a0, a1 = extension
+    z = Z_NIVEL[nivel]
+    along = "x" if eje == "y" else "y"
+    tramos = []
+    for e in data["elements"]:
+        if e.get("type") != "viga" or e.get("sourceBuilding") != edif:
+            continue
+        ni, nj = nodes[e["nodeI"]], nodes[e["nodeJ"]]
+        if not (close(ni["z"], z) and close(nj["z"], z) and close(ni[eje], coord) and close(nj[eje], coord)):
+            continue
+        s0, s1 = sorted((ni[along], nj[along]))
+        if s1 > a0 and s0 < a1:
+            tramos.append([s0, s1, e])
+    if not tramos:
+        raise RuntimeError(f"{side} {edif} {nivel}: no hay vigas en {eje}={coord}")
+    tramos.sort(key=lambda t: t[0])
+    tramos[0][0] = min(tramos[0][0], a0)
+    tramos[-1][1] = max(tramos[-1][1], a1)
+    total = 0.0
+    for s0, s1, e in tramos:
+        d_area = (min(s1, a1) - max(s0, a0)) * depth
+        if d_area <= 1e-9:
+            continue
+        area = float(e.get("areaTributaria") or 0.0)
+        if area <= 0.0:
+            length = math.dist(*[(nodes[n]["x"], nodes[n]["y"], nodes[n]["z"]) for n in (e["nodeI"], e["nodeJ"])])
+            cargar_viga_sin_area(e, d_area, cargas_por_m2(data, nodes, edif, z), length)
+            sin_area.append(e["elementTag"])
+        else:
+            factor = (area + d_area) / area
+            for campo in CAMPOS_CARGA:
+                if campo in e:
+                    e[campo] = e[campo] * factor
+        e.setdefault("sourceEdges", []).append({"side": side, "tributary_area_m2": round(d_area, 4)})
+        total += d_area
+    return total
+
+
+def losas_zona_ij(data, log):
+    """Losas L91-L94 (zona I'-J, pisos 3 y 4): no transmitian carga a ninguna viga.
+
+    Cada panel (x0..x1 entre ejes I', x=37.55 y J; y entre ejes 3-2 o 2-1)
+    tiene b/a >= 2, asi que trabaja en una direccion: cada viga larga (eje y)
+    recibe a*b/2.
+    """
+    nodes = {n["id"]: n for n in data["nodes"]}
+    sin_area = []
+    total = 0.0
+    for nivel in ("CIELO_3", "CIELO_4"):
+        for x0, x1 in ((35.0, 37.55), (37.55, 40.0)):
+            for y0, y1 in ((-7.25, 0.0), (0.0, 8.9)):
+                a = x1 - x0
+                for xb in (x0, x1):
+                    total += repartir_franja(data, nodes, "edificio_1", nivel, "x", xb, (y0, y1), a / 2.0,
+                                             "losa_zona_IJ", sin_area)
+    log.append(f"losas zona I'-J: {total:.2f} m2 asignados a las vigas de los ejes I', x=37.55 y J (pisos 3 y 4)")
+
+
+# Muros del edificio_2 que sostienen extremos de vigas sin pilar (plano 2024_22):
+# (tag, x, y, espesor, largo de muro asignado al nodo)
+MUROS_GRAVEDAD_E2 = [
+    ("MUROA_N", -41.475, 8.9, 0.60, 2.92),    # eje A', muro e=60 L=2.92 (esquina eje 1)
+    ("MUROA_S", -41.475, -7.25, 0.60, 2.92),  # eje A', muro e=60 L=2.92 (esquina eje 3)
+    ("MURODp_2", -10.0, 0.0, 0.25, 3.975),    # eje D', muro e=25 L=7.95 (mitad al eje 2)
+    ("MURODp_3", -10.0, -7.25, 0.25, 3.975),  # eje D', muro e=25 L=7.95 (mitad al eje 3)
+]
+
+
+def muros_gravedad_e2(data, log):
+    """Extremos de vigas del edificio_2 apoyados en muros (sin pilar en el plano).
+
+    Como los muros no estan en el analisis OpenSees, esos nodos quedaban
+    colgando de las vigas (la esquina A' bajaba ~9 cm y el eje D' ~5 cm). Se
+    modelan como columnas equivalentes de GRAVEDAD: area axial del tramo de
+    muro que sostiene el nodo y flexion de una columna t x t, para no
+    introducir una rigidez lateral que el resto de los muros tampoco tiene.
+    """
+    # solo nodos del edificio_2: en x=-10 coinciden el eje E del edificio_1 y
+    # el eje D' del edificio_2 (separados por la junta de dilatacion)
+    usados = {nid for e in data["elements"] if e.get("sourceBuilding") == "edificio_2"
+              for nid in (e["nodeI"], e["nodeJ"])}
+    next_node = max(n["id"] for n in data["nodes"]) + 1
+    next_elem = max(e["id"] for e in data["elements"]) + 1
+    niveles = [-H_PISO] + sorted(Z_NIVEL.values())
+    creados = apoyos = 0
+    for tag, x, y, t, largo in MUROS_GRAVEDAD_E2:
+        area = t * largo
+        inercia = t ** 4 / 12.0
+        sid = f"MURO_EQ_{int(t * 100)}x{int(round(largo * 100))}"
+        cadena = []
+        for z in niveles:
+            nid = next((n["id"] for n in data["nodes"] if n["id"] in usados and close(n["x"], x)
+                        and close(n["y"], y) and close(n["z"], z)), None)
+            if nid is None and close(z, -H_PISO):
+                data["nodes"].append({"id": next_node, "x": x, "y": y, "z": z})
+                data["supports"].append({"node": next_node, "type": "fixed",
+                                         "ux": 1, "uy": 1, "uz": 1, "rx": 1, "ry": 1, "rz": 1})
+                nid = next_node
+                next_node += 1
+                apoyos += 1
+            if nid is None:
+                raise RuntimeError(f"Muro {tag}: falta nodo en ({x}, {y}, {z})")
+            cadena.append(nid)
+        for k, (ni, nj) in enumerate(zip(cadena, cadena[1:]), start=1):
+            data["elements"].append({
+                "id": next_elem, "nodeI": ni, "nodeJ": nj, "type": "columna",
+                "sectionId": sid, "seccion": sid, "elementTag": f"E2_{tag}_{k}", "piso": "",
+                "sourceBuilding": "edificio_2", "sourceId": "muro_gravedad",
+                "width_m": t, "height_m": t,
+                "A_m2": area, "Iy_m4": inercia, "Iz_m4": inercia, "J_m4": 2 * inercia,
+                "nota": f"Columna equivalente de gravedad del muro e={t:.2f} (tramo L={largo:.2f} m)",
+            })
+            next_elem += 1
+            creados += 1
+        data["sections"][sid] = {"id": sid, "shape": "EQUIVALENTE", "width_m": t, "height_m": t,
+                                 "A_m2": area, "Iy_m4": inercia, "Iz_m4": inercia}
+    log.append(f"edificio_2: {creados} columnas equivalentes de gravedad en muros de los ejes A' y D' "
+               f"({apoyos} apoyos nuevos)")
+
+
 def losas_en_voladizo(data, log):
     nodes = {n["id"]: n for n in data["nodes"]}
     area_total = 0.0
     sin_area = []
     for k, (edif, nivel, eje, coord, (a0, a1), (b0, b1)) in enumerate(VOLADIZOS, start=1):
-        z = Z_NIVEL[nivel]
-        along = "x" if eje == "y" else "y"
-        tramos = []
-        for e in data["elements"]:
-            if e.get("type") != "viga" or e.get("sourceBuilding") != edif:
-                continue
-            ni, nj = nodes[e["nodeI"]], nodes[e["nodeJ"]]
-            if not (close(ni["z"], z) and close(nj["z"], z) and close(ni[eje], coord) and close(nj[eje], coord)):
-                continue
-            s0, s1 = sorted((ni[along], nj[along]))
-            if s1 > a0 and s0 < a1:
-                tramos.append([s0, s1, e])
-        if not tramos:
-            raise RuntimeError(f"Voladizo {edif} {nivel}: no hay vigas en {eje}={coord}")
-        tramos.sort(key=lambda t: t[0])
-        tramos[0][0] = min(tramos[0][0], a0)      # las esquinas van a la viga extrema
-        tramos[-1][1] = max(tramos[-1][1], a1)
-        depth = b1 - b0
-        for s0, s1, e in tramos:
-            d_area = (min(s1, a1) - max(s0, a0)) * depth
-            area = float(e.get("areaTributaria") or 0.0)
-            if area <= 0.0:
-                length = math.dist(*[(nodes[n]["x"], nodes[n]["y"], nodes[n]["z"]) for n in (e["nodeI"], e["nodeJ"])])
-                cargar_viga_sin_area(e, d_area, cargas_por_m2(data, nodes, edif, z), length)
-                sin_area.append(e["elementTag"])
-            else:
-                factor = (area + d_area) / area
-                for campo in CAMPOS_CARGA:
-                    if campo in e:
-                        e[campo] = e[campo] * factor
-            e.setdefault("sourceEdges", []).append({"side": "voladizo", "tributary_area_m2": round(d_area, 4)})
-            area_total += d_area
+        area_total += repartir_franja(data, nodes, edif, nivel, eje, coord, (a0, a1), b1 - b0, "voladizo", sin_area)
         x0, x1, y0, y1 = (a0, a1, b0, b1) if eje == "y" else (b0, b1, a0, a1)
         data["slabs"].append({"id": f"VOL{k:02d}", "nivel": nivel, "tipo": "voladizo",
-                              "sourceBuilding": edif, "x0": x0, "x1": x1, "y0": y0, "y1": y1, "z": z})
+                              "sourceBuilding": edif, "x0": x0, "x1": x1, "y0": y0, "y1": y1, "z": Z_NIVEL[nivel]})
     log.append(f"losas en voladizo: {len(VOLADIZOS)} paneles, {area_total:.2f} m2 sumados a las vigas de borde")
     if sin_area:
         log.append("vigas sin area previa cargadas con q promedio del piso: " + ", ".join(sin_area))
@@ -493,6 +591,8 @@ def aplicar(data):
     conectar_vigas(data, log)
     alturas_y_subterraneo(data, log)
     pilares_y_arriostres(data, log)
+    muros_gravedad_e2(data, log)
+    losas_zona_ij(data, log)
     losas_en_voladizo(data, log)
     data[MARCA] = log
     return log

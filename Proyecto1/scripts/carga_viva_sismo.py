@@ -531,10 +531,11 @@ def build_model(data):
     for element in structural_elements(data):
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
-        if element.get("material") == "acero":
-            # Perfil metalico: propiedades de la seccion cajon guardadas en el JSON
+        if all(k in element for k in ("A_m2", "Iy_m4", "Iz_m4", "J_m4")):
+            # Propiedades explicitas: perfiles metalicos (cajon) o columnas
+            # equivalentes de muro (hormigon); E segun el material
             area, iy, iz, j = (float(element[k]) for k in ("A_m2", "Iy_m4", "Iz_m4", "J_m4"))
-            e_mod, g_mod = E_STEEL, G_STEEL
+            e_mod, g_mod = (E_STEEL, G_STEEL) if element.get("material") == "acero" else (E_CONCRETE, G_CONCRETE)
         else:
             width = float(element.get("width_m") or 0.60)
             height = float(element.get("height_m") or 0.80)
