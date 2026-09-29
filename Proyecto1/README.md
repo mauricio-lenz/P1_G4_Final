@@ -1,6 +1,6 @@
 # Proyecto1 — Visualizador Unity con resultados OpenSees y P-M interactivo (autocontenido)
 
-Proyecto final MCOC (Semana 4/5) que implementa el visualizador 3D mejorado en
+Proyecto final MCOC (Semana 5) que implementa el visualizador 3D mejorado en
 Unity con OpenSees como backend. **Esta carpeta es autocontenida**: scripts,
 datos, resultados y proyecto Unity están todos dentro de `Proyecto1/`, sin
 dependencias a directorios externos (`P1L1`, `P1L2`, `P1L3` ya no se usan —
@@ -10,12 +10,12 @@ fueron movidos/borrados de la raíz).
 
 | Componente | Ubicación | Descripción |
 |---|---|---|
-| Scripts de pipeline | `scripts/` | 6 scripts autocontenidos (cargas, exportador JSON, Excel, indicadores, arriostres unity, verificación superposición) |
-| Datos base (OpenSees) | `data/` | `estructura_completo_unity.json` (H-30), `part_e_wall.json` (curva P-M muro) |
+| Scripts de pipeline | `scripts/` | Modelo y cargas, exportador a Unity, ajustes según planos, verificación de superposición, indicadores, modificación del modelo, quitar elemento, carga móvil, carga en elemento, Excel |
+| Datos base (OpenSees) | `data/` | `estructura_completo_unity.json` (modelo vigente), `estructura_completo_unity.pre_planos.json` (respaldo base de `ajustar_modelo_planos.py`), `part_e_wall.json` (curva P-M muro) |
 | Resultados Unity | `data/semana3_resultados_unity.json` | Curva P-M de columna (COL70/70_FIBER) + demandas por combo |
 | Proyecto Unity viewer | `edificio_G4/` | Visualizador 3D en Unity; JSON en `Assets/Resources/` |
 | Resultados exportados | `resultados/` | `esfuerzos_por_elemento.xlsx` (esfuerzos por elemento a Excel) |
-| Informes / entregables | `ENTREGA_SEMANA4_CHECKLIST.md`, `INFORME_SEMANA5.md` | Rúbrica + informe de autocontención |
+| Informes / entregables | `../reports/semana05.md` (vigente), `ENTREGA_SEMANA4_CHECKLIST.md` | Informe de la semana 5 + rúbrica de la semana 4 |
 
 ## Funcionalidades (tabla de estado)
 
@@ -23,20 +23,23 @@ fueron movidos/borrados de la raíz).
 |---|---|---|
 | 1 | Mostrar estructura 3D completa (edificio 1 + 2, H-30) | Implementada |
 | 2 | Selección de elemento (columna/viga/muro): ID, nodos, sección, material, eje local, restricciones | Implementada |
-| 3 | Apoyos visibles (30 apoyos, objetos 3D) | Implementada |
+| 3 | Apoyos visibles (34 apoyos, objetos 3D) | Implementada |
 | 4 | Toggle cargas (D, L, combinaciones; flechas por losa) | Implementada |
 | 5 | Toggle deformada (escala relativa a altura) | Implementada |
 | 6 | Diagramas axial/corte/momento por elemento | Implementada |
 | 7 | Curva P-M de columna + muro (demanda vs capacidad) | Implementada |
 | 8 | Superposición (verificar: C1/C2/C3 vs OpenSees) | Verificada numéricamente (error 1e-11) |
-| 9 | Sidequest carga móvil (cláusula 4) | No implementada (documentada en INFORME_SEMANA5.md) |
-| 10 | Autocontenido (scripts+datos+Unity en una carpeta) | Implementada en Proyecto1/ |
+| 9 | Sidequest carga móvil | Implementada (P editable, 5 pisos × 2 edificios, conservación ΣRz = P) |
+| 10 | Modificación del modelo desde Unity (quitar elemento + reanálisis) | Implementada |
+| 11 | Carga puntual/distribuida en un elemento elegido | Implementada |
+| 12 | Autocontenido (scripts+datos+Unity en una carpeta) | Implementada en Proyecto1/ |
 
-## Ejecutar (desde raíz del repo)
+## Ejecutar (desde la raíz del repo)
 
 ```bat
-cd "C:\Users\mauwa\OneDrive\Desktop\Grupo4_MCOC\P1_G4_Final\Proyecto1"
-python -X utf8 scripts\exportar_resultados_unity.py
+cd Proyecto1
+python -X utf8 scripts\ajustar_modelo_planos.py      & rem reconstruye el modelo segun los planos y re-exporta
+python -X utf8 scripts\exportar_resultados_unity.py  & rem solo re-exporta a Unity
 ```
 
 Regenera:
