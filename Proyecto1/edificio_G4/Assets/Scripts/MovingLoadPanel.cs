@@ -263,6 +263,10 @@ public class MovingLoadPanel : MonoBehaviour
     {
         MovingLoadData data = UnityData.GetMovingLoadData();
         if (data == null || data.paths == null || data.paths.Length == 0) return;
+        // mientras la carga en elemento esta activa, este panel se oculta
+        if (UnityData.ActiveCombo == UnityData.ElementLoadComboName) return;
+        // con el modelo modificado (elementos quitados) sus casos unitarios ya no aplican
+        if (UnityData.IsModelModified) return;
 
         Rect left = UiTheme.LeftArea();
         float x = left.x;

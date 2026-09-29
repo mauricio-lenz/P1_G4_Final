@@ -310,3 +310,61 @@ public class PMPoint
     public float M_kN_m;
     public float phi_1_m;
 }
+
+// Carga en elemento: 12 casos unitarios del elemento elegido (carga_elemento.py)
+[Serializable]
+public class ElementLoadCases
+{
+    public string error;
+    public int element;
+    public string tag;
+    public string type;
+    public string edificio;
+    public int nodeI;
+    public int nodeJ;
+    public float length;
+    public int[] nodeIds;
+    public int[] elementIds;
+    public ElementLoadUnitCase[] unitCases;
+}
+
+[Serializable]
+public class ElementLoadUnitCase
+{
+    public int node;
+    public int dof;        // 0..5 = Fx, Fy, Fz, Mx, My, Mz unitarios (ejes globales del modelo)
+    public float[] sumR;   // suma de reacciones Rx, Ry, Rz
+    public float[] disp;   // ux, uy, uz por nodo (orden nodeIds)
+    public float[] forces; // 12 fuerzas por elemento (orden elementIds)
+}
+
+// Quitar elemento: resultados del reanalisis (quitar_elemento.py)
+[Serializable]
+public class ElementRemovalResult
+{
+    public string error;
+    public RemovedElementInfo[] removed;
+    public RemovalCaseState[] estado;
+    public float G_aplicada_kN;
+    public float G_reaccion_kN;
+    public float carga_perdida_kN;
+    public int[] nodos_sin_elementos;
+    public DisplacementRecord[] displacements;
+    public ElementForceRecord[] elementForces;
+}
+
+[Serializable]
+public class RemovedElementInfo
+{
+    public int id;
+    public string tag;
+    public string type;
+}
+
+[Serializable]
+public class RemovalCaseState
+{
+    public string combo;
+    public bool ok;
+    public float u_max_m;
+}

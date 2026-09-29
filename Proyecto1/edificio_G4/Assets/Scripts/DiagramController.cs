@@ -132,7 +132,13 @@ public class DiagramController : MonoBehaviour
             {
                 continue;
             }
-            if ((mode == DiagramMode.Moment || mode == DiagramMode.Shear) && element.data.type != "viga")
+            if (element.data != null && UnityData.IsRemoved(element.data.id))
+            {
+                continue;
+            }
+            bool loadedElement = UnityData.ActiveCombo == UnityData.ElementLoadComboName && UnityData.ElementLoad != null
+                && UnityData.ElementLoad.cases.element == element.data.id;
+            if ((mode == DiagramMode.Moment || mode == DiagramMode.Shear) && element.data.type != "viga" && !loadedElement)
             {
                 continue;
             }
@@ -168,6 +174,10 @@ public class DiagramController : MonoBehaviour
         foreach (ElementSelectable element in structuralElements)
         {
             if (element.data != null && element.data.type == "arriostre")
+            {
+                continue;
+            }
+            if (element.data != null && UnityData.IsRemoved(element.data.id))
             {
                 continue;
             }
@@ -271,7 +281,9 @@ public class DiagramController : MonoBehaviour
         {
             if (element.data == null) continue;
             if (element.data.type == "arriostre") continue;
-            if ((mode == DiagramMode.Moment || mode == DiagramMode.Shear) && element.data.type != "viga")
+            bool loadedElement = UnityData.ActiveCombo == UnityData.ElementLoadComboName && UnityData.ElementLoad != null
+                && UnityData.ElementLoad.cases.element == element.data.id;
+            if ((mode == DiagramMode.Moment || mode == DiagramMode.Shear) && element.data.type != "viga" && !loadedElement)
             {
                 continue;
             }
@@ -365,11 +377,13 @@ public class DiagramController : MonoBehaviour
 
         float my = GetForceGradient(data, t, 4, 10);
         float mz = GetForceGradient(data, t, 5, 11);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName)
+        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName
+            && UnityData.ActiveCombo != UnityData.ElementLoadComboName)
         {
             mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
         }
         mz += UnityData.MovingLoadSpanMoment(data.id, t, length);
+        mz += UnityData.ElementLoadSpanMoment(data.id, t, length);
         float momentSign = Mathf.Abs(my) >= Mathf.Abs(mz) ? Mathf.Sign(my) : Mathf.Sign(mz);
         return momentSign * Mathf.Sqrt(my * my + mz * mz);
     }
@@ -598,10 +612,12 @@ public class DiagramController : MonoBehaviour
         torsion = GetForceGradient(data, t, 3, 9);
         my = GetForceGradient(data, t, 4, 10);
         mz = GetForceGradient(data, t, 5, 11);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName)
+        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName
+            && UnityData.ActiveCombo != UnityData.ElementLoadComboName)
         {
             mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
         }
         mz += UnityData.MovingLoadSpanMoment(data.id, t, length);
+        mz += UnityData.ElementLoadSpanMoment(data.id, t, length);
     }
 }

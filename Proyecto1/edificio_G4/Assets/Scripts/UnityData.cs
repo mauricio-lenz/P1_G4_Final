@@ -400,6 +400,290 @@ public static class UnityData
         return x <= aE ? st.P * (length - aE) * x / length : st.P * aE * (length - x) / length;
     }
 
+    // ---------------------------------------------------------------
+    // CARGA EN ELEMENTO (puntual o distribuida, elegida por id/tag)
+    // Combo sintetico "PUN" = Σ q_k · caso_unitario_k, con q_k las fuerzas
+    // de empotramiento perfecto de la carga en los 12 GDL de los nodos del
+    // elemento (carga_elemento.py precalcula los 12 casos unitarios).
+    // ---------------------------------------------------------------
+    public const string ElementLoadComboName = "PUN";
+
+    public class ElementLoadState
+    {
+        public ElementLoadCases cases;
+        public bool distributed;
+        public Vector3 dir;          // direccion de la carga (unitaria, ejes del modelo)
+        public float P, a;           // puntual
+        public float w, x1, x2;      // distribuida en [x1, x2]
+        public float L;
+        public Vector3 total;        // resultante aplicada [kN]
+        public Vector3 sumR;         // suma de reacciones [kN]
+        public float[] qI = new float[6], qJ = new float[6];   // fuerzas equivalentes en I y J
+        public Vector3 pI, pJ;       // coordenadas del modelo de los nodos
+        public float transversal;    // fraccion transversal de la direccion (|t|)
+    }
+
+    public static ElementLoadState ElementLoad;
+
+    private static Vector3 NodeModel(int id)
+    {
+        if (Structure != null && Structure.nodes != null)
+        {
+            foreach (NodeData n in Structure.nodes)
+            {
+                if (n.id == id) return new Vector3(n.x, n.y, n.z);
+            }
+        }
+        return Vector3.zero;
+    }
+
+    /// Suma a qI/qJ las fuerzas de empotramiento de una carga puntual P (dir) en a.
+    private static void AddPointFixedEnd(float[] qI, float[] qJ, Vector3 d, Vector3 u, float L, float a, float P)
+    {
+        float b = L - a;
+        float pa = P * Vector3.Dot(u, d);
+        Vector3 t = u - Vector3.Dot(u, d) * d;
+        float tn = t.magnitude;
+        float pt = P * tn;
+        t = tn > 1e-6f ? t / tn : Vector3.zero;
+        Vector3 ax = Vector3.Cross(d, t);
+        Vector3 fi = pa * b / L * d + pt * b * b * (3f * a + b) / (L * L * L) * t;
+        Vector3 fj = pa * a / L * d + pt * a * a * (a + 3f * b) / (L * L * L) * t;
+        Vector3 mi = pt * a * b * b / (L * L) * ax;
+        Vector3 mj = -pt * a * a * b / (L * L) * ax;
+        for (int k = 0; k < 3; k++)
+        {
+            qI[k] += fi[k]; qI[k + 3] += mi[k];
+            qJ[k] += fj[k]; qJ[k + 3] += mj[k];
+        }
+    }
+
+    private const int DistSteps = 48;   // Simpson (par) para la carga distribuida
+
+    public static ElementLoadState ApplyElementLoad(ElementLoadCases cases, bool distributed, Vector3 dir,
+        float P, float a, float w, float x1, float x2)
+    {
+        if (cases == null || cases.unitCases == null || cases.unitCases.Length < 12) return null;
+        var st = new ElementLoadState
+        {
+            cases = cases, distributed = distributed, dir = dir.normalized, P = P, a = a, w = w,
+            x1 = Mathf.Min(x1, x2), x2 = Mathf.Max(x1, x2)
+        };
+        st.pI = NodeModel(cases.nodeI);
+        st.pJ = NodeModel(cases.nodeJ);
+        Vector3 d = st.pJ - st.pI;
+        st.L = d.magnitude;
+        d /= st.L;
+        st.transversal = (st.dir - Vector3.Dot(st.dir, d) * d).magnitude;
+
+        if (!distributed)
+        {
+            st.a = Mathf.Clamp(a, 0f, st.L);
+            AddPointFixedEnd(st.qI, st.qJ, d, st.dir, st.L, st.a, P);
+            st.total = P * st.dir;
+        }
+        else
+        {
+            float span = st.x2 - st.x1;
+            if (span > 1e-6f)
+            {
+                float h = span / DistSteps;
+                for (int k = 0; k <= DistSteps; k++)
+                {
+                    float wk = (k == 0 || k == DistSteps) ? 1f : (k % 2 == 1 ? 4f : 2f);
+                    AddPointFixedEnd(st.qI, st.qJ, d, st.dir, st.L, st.x1 + k * h, w * wk * h / 3f);
+                }
+            }
+            st.total = w * span * st.dir;
+        }
+
+        // coeficientes de los 12 casos unitarios
+        float[] coef = new float[cases.unitCases.Length];
+        for (int c = 0; c < cases.unitCases.Length; c++)
+        {
+            ElementLoadUnitCase uc = cases.unitCases[c];
+            coef[c] = uc.node == cases.nodeI ? st.qI[uc.dof] : st.qJ[uc.dof];
+        }
+
+        var disp = new List<DisplacementRecord>(cases.nodeIds.Length);
+        for (int i = 0; i < cases.nodeIds.Length; i++)
+        {
+            float ux = 0f, uy = 0f, uz = 0f;
+            for (int c = 0; c < coef.Length; c++)
+            {
+                if (Mathf.Abs(coef[c]) < 1e-12f) continue;
+                float[] dv = cases.unitCases[c].disp;
+                ux += coef[c] * dv[3 * i];
+                uy += coef[c] * dv[3 * i + 1];
+                uz += coef[c] * dv[3 * i + 2];
+            }
+            disp.Add(new DisplacementRecord { combo = ElementLoadComboName, node = cases.nodeIds[i], ux = ux, uy = uy, uz = uz });
+        }
+
+        var index = new Dictionary<int, int>(cases.elementIds.Length);
+        for (int e = 0; e < cases.elementIds.Length; e++) index[cases.elementIds[e]] = e;
+        var forces = new List<ElementForceRecord>();
+        foreach (ElementData ed in Structure.elements)
+        {
+            if (ed == null) continue;
+            float[] f = new float[12];
+            if (index.TryGetValue(ed.id, out int e))
+            {
+                for (int c = 0; c < coef.Length; c++)
+                {
+                    if (Mathf.Abs(coef[c]) < 1e-12f) continue;
+                    float[] fv = cases.unitCases[c].forces;
+                    for (int k = 0; k < 12; k++) f[k] += coef[c] * fv[12 * e + k];
+                }
+            }
+            if (ed.id == cases.element)
+            {
+                // fuerzas de extremo reales = K·u + reacciones de empotramiento (= -cargas equivalentes)
+                for (int k = 0; k < 6; k++) { f[k] -= st.qI[k]; f[k + 6] -= st.qJ[k]; }
+            }
+            forces.Add(new ElementForceRecord { combo = ElementLoadComboName, id = ed.id, f = f });
+        }
+
+        for (int c = 0; c < coef.Length; c++)
+        {
+            float[] r = cases.unitCases[c].sumR;
+            st.sumR += coef[c] * new Vector3(r[0], r[1], r[2]);
+        }
+
+        if (DisplacementsByCombo == null) DisplacementsByCombo = new Dictionary<string, List<DisplacementRecord>>();
+        if (ElementForcesByCombo == null) ElementForcesByCombo = new Dictionary<string, List<ElementForceRecord>>();
+        DisplacementsByCombo[ElementLoadComboName] = disp;
+        ElementForcesByCombo[ElementLoadComboName] = forces;
+        if (comboLookup == null) comboLookup = new Dictionary<string, ComboInfo>();
+        comboLookup[ElementLoadComboName] = new ComboInfo
+        {
+            name = ElementLoadComboName,
+            label = distributed
+                ? $"Carga distribuida w={w:0.##} kN/m en {cases.tag} [{st.x1:0.00}, {st.x2:0.00}] m"
+                : $"Carga puntual P={P:0.##} kN en {cases.tag} a={st.a:0.00} m"
+        };
+        ElementLoad = st;
+        ActiveCombo = ElementLoadComboName;
+        return st;
+    }
+
+    /// Momento de tramo simplemente apoyado de la componente transversal de la carga.
+    public static float ElementLoadSpanMoment(int elementId, float t, float length)
+    {
+        ElementLoadState st = ElementLoad;
+        if (st == null || ActiveCombo != ElementLoadComboName || elementId != st.cases.element || length <= 0f) return 0f;
+        float x = t * length;
+        if (!st.distributed)
+        {
+            float pt = st.P * st.transversal;
+            return x <= st.a ? pt * (length - st.a) * x / length : pt * st.a * (length - x) / length;
+        }
+        float wt = st.w * st.transversal;
+        float span = st.x2 - st.x1;
+        if (span <= 1e-6f) return 0f;
+        float m = 0f;
+        int n = 32;
+        float h = span / n;
+        for (int k = 0; k <= n; k++)
+        {
+            float xi = st.x1 + k * h;
+            float g = x <= xi ? (length - xi) * x / length : xi * (length - x) / length;
+            float wk = (k == 0 || k == n) ? 1f : (k % 2 == 1 ? 4f : 2f);
+            m += wk * g;
+        }
+        return wt * m * h / 3f;
+    }
+
+    // ---------------------------------------------------------------
+    // QUITAR ELEMENTO: reemplaza en memoria los resultados de los casos
+    // base y combos por los del reanalisis (quitar_elemento.py) y guarda
+    // los originales para restaurar. No toca ningun archivo.
+    // ---------------------------------------------------------------
+    public static readonly string[] AnalysisCombos = { "G", "Q", "EX", "EY", "C1", "C2", "C3" };
+    public static HashSet<int> RemovedElements = new HashSet<int>();
+    public static ElementRemovalResult Removal;
+    private static Dictionary<string, List<DisplacementRecord>> originalDisp;
+    private static Dictionary<string, List<ElementForceRecord>> originalForces;
+
+    public static bool IsModelModified => RemovedElements != null && RemovedElements.Count > 0;
+
+    public static bool IsRemoved(int elementId)
+    {
+        return RemovedElements != null && RemovedElements.Contains(elementId);
+    }
+
+    public static void ApplyRemovalResults(ElementRemovalResult result)
+    {
+        if (result == null) return;
+        if (originalDisp == null)
+        {
+            originalDisp = new Dictionary<string, List<DisplacementRecord>>();
+            originalForces = new Dictionary<string, List<ElementForceRecord>>();
+            foreach (string c in AnalysisCombos)
+            {
+                if (DisplacementsByCombo != null && DisplacementsByCombo.TryGetValue(c, out var d)) originalDisp[c] = d;
+                if (ElementForcesByCombo != null && ElementForcesByCombo.TryGetValue(c, out var f)) originalForces[c] = f;
+            }
+        }
+        var disp = new Dictionary<string, List<DisplacementRecord>>();
+        foreach (DisplacementRecord d in result.displacements)
+        {
+            if (!disp.TryGetValue(d.combo, out var list)) disp[d.combo] = list = new List<DisplacementRecord>();
+            list.Add(d);
+        }
+        var forces = new Dictionary<string, List<ElementForceRecord>>();
+        foreach (ElementForceRecord f in result.elementForces)
+        {
+            if (!forces.TryGetValue(f.combo, out var list)) forces[f.combo] = list = new List<ElementForceRecord>();
+            list.Add(f);
+        }
+        foreach (string c in AnalysisCombos)
+        {
+            if (disp.TryGetValue(c, out var d)) DisplacementsByCombo[c] = d;
+            if (forces.TryGetValue(c, out var f)) ElementForcesByCombo[c] = f;
+        }
+        RemovedElements = new HashSet<int>();
+        foreach (RemovedElementInfo r in result.removed) RemovedElements.Add(r.id);
+        Removal = result;
+    }
+
+    public static void RestoreOriginalModel()
+    {
+        if (originalDisp != null)
+        {
+            foreach (var kv in originalDisp) DisplacementsByCombo[kv.Key] = kv.Value;
+            foreach (var kv in originalForces) ElementForcesByCombo[kv.Key] = kv.Value;
+        }
+        originalDisp = null;
+        originalForces = null;
+        RemovedElements = new HashSet<int>();
+        Removal = null;
+    }
+
+    /// Olvida el estado de reanalisis sin restaurar (al recargar la estructura).
+    public static void ResetRemovalState()
+    {
+        originalDisp = null;
+        originalForces = null;
+        RemovedElements = new HashSet<int>();
+        Removal = null;
+    }
+
+    /// Resultados originales (para comparar antes/despues en el panel).
+    public static float[] GetOriginalElementForces(string combo, int elementId)
+    {
+        if (originalForces == null || !originalForces.TryGetValue(combo, out var list)) return GetElementForces(combo, elementId);
+        foreach (ElementForceRecord f in list) if (f != null && f.id == elementId) return f.f;
+        return null;
+    }
+
+    public static Vector3 GetOriginalNodeDisplacement(string combo, int nodeId)
+    {
+        if (originalDisp == null || !originalDisp.TryGetValue(combo, out var list)) return GetNodeDisplacement(combo, nodeId);
+        foreach (DisplacementRecord d in list) if (d.node == nodeId) return new Vector3(d.ux, d.uz, d.uy);
+        return Vector3.zero;
+    }
+
     public static ComboInfo GetComboInfo(string combo)
     {
         if (string.IsNullOrEmpty(combo) || comboLookup == null) return null;

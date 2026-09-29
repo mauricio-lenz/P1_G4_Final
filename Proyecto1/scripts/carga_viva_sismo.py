@@ -211,10 +211,20 @@ def closest_node_to_xy(nodes, x, y):
     return min(nodes, key=lambda node: (node["x"] - x) ** 2 + (node["y"] - y) ** 2)
 
 
+def structural_elements(data):
+    """Elementos que aportan rigidez (excluye los marcados "removed" desde el viewer).
+
+    Un elemento quitado deja de existir en OpenSees, pero sus cargas
+    tributarias (deadLoad/areaTributaria) se mantienen en sus nodos: la losa
+    sigue ahi y su peso y masa sismica se conservan.
+    """
+    return [e for e in data.get("elements", []) if not e.get("removed")]
+
+
 def node_buildings(data):
     """Edificio de cada nodo estructural segun el sourceBuilding de sus elementos."""
     building = {}
-    for element in data.get("elements", []):
+    for element in structural_elements(data):
         for node_id in (element.get("nodeI"), element.get("nodeJ")):
             building[node_id] = element.get("sourceBuilding") or "edificio_1"
     return building
@@ -496,7 +506,7 @@ def build_model(data):
     connected_nodes = set()
     adjacency = {node_id: set() for node_id in nodes}
 
-    for element in data.get("elements", []):
+    for element in structural_elements(data):
         ni = element.get("nodeI")
         nj = element.get("nodeJ")
         if ni not in nodes or nj not in nodes:
@@ -518,7 +528,7 @@ def build_model(data):
 
     ops.geomTransf("Linear", 1, 0.0, 0.0, 1.0)
     ops.geomTransf("Linear", 2, 1.0, 0.0, 0.0)
-    for element in data.get("elements", []):
+    for element in structural_elements(data):
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
         if element.get("material") == "acero":
@@ -1479,7 +1489,7 @@ def run_and_extract(data, nodal_loads):
         reactions[2] += r[2] if len(r) > 2 else 0.0
 
     element_forces = {}
-    for element in data.get("elements", []):
+    for element in structural_elements(data):
         try:
             force = list(ops.eleForce(element["id"]))
         except Exception:

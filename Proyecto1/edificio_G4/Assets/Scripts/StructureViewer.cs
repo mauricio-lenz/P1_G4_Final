@@ -639,10 +639,39 @@ public class StructureViewer : MonoBehaviour
                 DestroyImmediate(existing);
             }
         }
+        ElementRemovalPanel existingRemoval = GetComponent<ElementRemovalPanel>();
+        if (existingRemoval != null)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(existingRemoval);
+            }
+            else
+            {
+                DestroyImmediate(existingRemoval);
+            }
+        }
+        UnityData.ResetRemovalState();
+        ElementLoadPanel existingElementLoad = GetComponent<ElementLoadPanel>();
+        if (existingElementLoad != null)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(existingElementLoad);
+            }
+            else
+            {
+                DestroyImmediate(existingElementLoad);
+            }
+        }
         if (Application.isPlaying)
         {
             MovingLoadPanel panel = gameObject.AddComponent<MovingLoadPanel>();
             panel.Initialize(this, diagramController);
+            ElementLoadPanel elementLoad = gameObject.AddComponent<ElementLoadPanel>();
+            elementLoad.Initialize(this, diagramController);
+            ElementRemovalPanel removal = gameObject.AddComponent<ElementRemovalPanel>();
+            removal.Initialize(this, diagramController);
         }
     }
 
@@ -1033,13 +1062,20 @@ public class StructureViewer : MonoBehaviour
         SetGroupVisible(loadObjects, showLoads);
     }
 
+    private bool IsRemovedObject(GameObject go)
+    {
+        if (UnityData.RemovedElements == null || UnityData.RemovedElements.Count == 0) return false;
+        ElementSelectable sel = go.GetComponent<ElementSelectable>();
+        return sel != null && sel.data != null && UnityData.IsRemoved(sel.data.id);
+    }
+
     private void SetGroupVisible(List<GameObject> group, bool visible)
     {
         foreach (GameObject go in group)
         {
             if (go != null)
             {
-                go.SetActive(visible && PassesFloorFilter(go));
+                go.SetActive(visible && PassesFloorFilter(go) && !IsRemovedObject(go));
             }
         }
     }
