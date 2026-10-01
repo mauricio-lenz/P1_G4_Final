@@ -100,15 +100,8 @@ public static class UnityData
             return Vector3.zero;
         }
 
-        foreach (DisplacementRecord d in list)
-        {
-            if (d.node == nodeId)
-            {
-                return new Vector3(d.ux, d.uz, d.uy);
-            }
-        }
-
-        return Vector3.zero;
+        DisplacementRecord d = GetDisplacementRecord(combo, nodeId);
+        return d != null ? new Vector3(d.ux, d.uz, d.uy) : Vector3.zero;
     }
 
     public static float[] GetElementForces(string combo, int elementId)
@@ -118,16 +111,22 @@ public static class UnityData
             return null;
         }
 
-        foreach (ElementForceRecord f in list)
+        // indice id -> fuerzas por combo; se rehace si la lista del combo fue reemplazada
+        if (!forceIndex.TryGetValue(combo, out var entry) || !ReferenceEquals(entry.Key, list) || entry.Value.Count != list.Count)
         {
-            if (f != null && f.id == elementId)
+            var map = new Dictionary<int, float[]>(list.Count);
+            foreach (ElementForceRecord f in list)
             {
-                return f.f;
+                if (f != null && !map.ContainsKey(f.id)) map[f.id] = f.f;
             }
+            entry = new KeyValuePair<List<ElementForceRecord>, Dictionary<int, float[]>>(list, map);
+            forceIndex[combo] = entry;
         }
-
-        return null;
+        return entry.Value.TryGetValue(elementId, out float[] found) ? found : null;
     }
+
+    private static readonly Dictionary<string, KeyValuePair<List<ElementForceRecord>, Dictionary<int, float[]>>> forceIndex =
+        new Dictionary<string, KeyValuePair<List<ElementForceRecord>, Dictionary<int, float[]>>>();
 
     public static PMCurveData GetPMCurve(string sectionId)
     {
@@ -413,17 +412,38 @@ public static class UnityData
 
     public static ElementLoadState ElementLoad;
 
+    private static StructureData nodeIndexOwner;
+    private static readonly Dictionary<int, Vector3> nodeIndex = new Dictionary<int, Vector3>();
+
     public static Vector3 NodeModel(int id)
     {
-        if (Structure != null && Structure.nodes != null)
+        if (Structure == null || Structure.nodes == null) return Vector3.zero;
+        if (!ReferenceEquals(nodeIndexOwner, Structure) || nodeIndex.Count != Structure.nodes.Length)
         {
-            foreach (NodeData n in Structure.nodes)
-            {
-                if (n.id == id) return new Vector3(n.x, n.y, n.z);
-            }
+            nodeIndex.Clear();
+            foreach (NodeData n in Structure.nodes) nodeIndex[n.id] = new Vector3(n.x, n.y, n.z);
+            nodeIndexOwner = Structure;
         }
-        return Vector3.zero;
+        return nodeIndex.TryGetValue(id, out Vector3 p) ? p : Vector3.zero;
     }
+
+    /// Registro de desplazamiento (con giros) de un nodo, o null.
+    public static DisplacementRecord GetDisplacementRecord(string combo, int nodeId)
+    {
+        if (string.IsNullOrEmpty(combo) || DisplacementsByCombo == null || !DisplacementsByCombo.TryGetValue(combo, out var list) || list == null)
+            return null;
+        if (!dispIndex.TryGetValue(combo, out var entry) || !ReferenceEquals(entry.Key, list) || entry.Value.Count != list.Count)
+        {
+            var map = new Dictionary<int, DisplacementRecord>(list.Count);
+            foreach (DisplacementRecord d in list) if (d != null && !map.ContainsKey(d.node)) map[d.node] = d;
+            entry = new KeyValuePair<List<DisplacementRecord>, Dictionary<int, DisplacementRecord>>(list, map);
+            dispIndex[combo] = entry;
+        }
+        return entry.Value.TryGetValue(nodeId, out DisplacementRecord r) ? r : null;
+    }
+
+    private static readonly Dictionary<string, KeyValuePair<List<DisplacementRecord>, Dictionary<int, DisplacementRecord>>> dispIndex =
+        new Dictionary<string, KeyValuePair<List<DisplacementRecord>, Dictionary<int, DisplacementRecord>>>();
 
     /// Suma a qI/qJ las fuerzas de empotramiento de una carga puntual P (dir) en a.
     private static void AddPointFixedEnd(float[] qI, float[] qJ, Vector3 d, Vector3 u, float L, float a, float P)
