@@ -97,9 +97,55 @@ public static class BuildAndroid
         Build(false);
     }
 
+    // ------------------------------------------------------------------
+    // Semana 6: APK de AR (ARScene, ARCore). Se instala aparte del viewer.
+    // ------------------------------------------------------------------
+    [MenuItem("MCOC/AR/Build Android AR (APK)")]
+    public static void BuildARFromMenu()
+    {
+        BuildAR();
+    }
+
+    public static void BuildAR()
+    {
+        Configure();
+        PlayerSettings.productName = "P1_G4 AR";
+        PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "cl.uandes.mcoc.p1g4.ar");
+        // ARCore: OpenGLES3 es la API grafica mas compatible
+        PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
+        PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { GraphicsDeviceType.OpenGLES3 });
+        // El renderizado multihilo provoca GL_INVALID_ENUM con el fondo de camara de ARCore
+        PlayerSettings.SetMobileMTRendering(UnityEditor.Build.NamedBuildTarget.Android, false);
+        // Con GameActivity ARCore recibia ~7 muestras/s de IMU (necesita ~200): se usa la Activity clasica
+        PlayerSettings.Android.applicationEntry = AndroidApplicationEntry.Activity;
+        ARSetup.ConfigureXR(true);
+        ARSetup.CreateARScene();   // la escena se genera por codigo: siempre al dia
+
+        Directory.CreateDirectory(OutputDir);
+        var options = new BuildPlayerOptions
+        {
+            scenes = new[] { ARSetup.ScenePath },
+            locationPathName = Path.Combine(OutputDir, "P1G4_AR.apk"),
+            target = BuildTarget.Android,
+            targetGroup = BuildTargetGroup.Android,
+            options = BuildOptions.Development   // consola de errores en pantalla durante las pruebas
+        };
+        EditorUserBuildSettings.buildAppBundle = false;
+        BuildReport report = BuildPipeline.BuildPlayer(options);
+        BuildSummary summary = report.summary;
+        Debug.Log($"[BuildAndroid] AR {summary.result} | {summary.outputPath} | {summary.totalSize / (1024f * 1024f):0.0} MB | " +
+                  $"{summary.totalErrors} errores, {summary.totalWarnings} avisos, {summary.totalTime}");
+        ARSetup.ConfigureXR(false);   // deja el proyecto listo para el viewer normal
+        if (Application.isBatchMode && summary.result != BuildResult.Succeeded)
+        {
+            EditorApplication.Exit(1);
+        }
+    }
+
     private static void Build(bool development)
     {
         Configure();
+        ARSetup.ConfigureXR(false);   // el viewer no inicia la sesion AR
         Directory.CreateDirectory(OutputDir);
         var options = new BuildPlayerOptions
         {

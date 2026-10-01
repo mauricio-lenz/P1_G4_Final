@@ -64,6 +64,7 @@ public class OrbitCamera : MonoBehaviour
         }
 
         float scroll = mouse != null ? mouse.scroll.ReadValue().y / 120f : 0f;
+        HandleTouch();   // toques del celular (API Input legacy, activa en modo "Both")
 #else
         if (Input.GetMouseButton(1))
         {
@@ -116,26 +117,26 @@ public class OrbitCamera : MonoBehaviour
 
         if (Input.touchCount == 1)
         {
-            Touch t = Input.GetTouch(0);
-            if (t.phase == TouchPhase.Began)
+            UnityEngine.Touch t = Input.GetTouch(0);
+            if (t.phase == UnityEngine.TouchPhase.Began)
             {
                 touchOrbitActive = !UiTheme.IsOverUI(t.position, infoVisible);
             }
-            if (touchOrbitActive && !twoFingerActive && t.phase == TouchPhase.Moved)
+            if (touchOrbitActive && !twoFingerActive && t.phase == UnityEngine.TouchPhase.Moved)
             {
                 x += t.deltaPosition.x * touchOrbitSpeed;
                 y = Mathf.Clamp(y - t.deltaPosition.y * touchOrbitSpeed, -10f, 80f);
             }
-            if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+            if (t.phase == UnityEngine.TouchPhase.Ended || t.phase == UnityEngine.TouchPhase.Canceled)
             {
                 twoFingerActive = false;
             }
             return;
         }
 
-        Touch a = Input.GetTouch(0);
-        Touch b = Input.GetTouch(1);
-        if (b.phase == TouchPhase.Began)
+        UnityEngine.Touch a = Input.GetTouch(0);
+        UnityEngine.Touch b = Input.GetTouch(1);
+        if (b.phase == UnityEngine.TouchPhase.Began)
         {
             twoFingerActive = !UiTheme.IsOverUI((a.position + b.position) * 0.5f, infoVisible);
         }

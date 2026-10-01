@@ -264,15 +264,32 @@ public static class UiTheme
         }
     }
 
+    static bool _monoResolved;
+
+    /// Fuente monoespaciada del sistema SOLO si esta instalada. En Android no
+    /// existe Consolas: CreateDynamicFontFromOSFont igual devuelve una fuente
+    /// vacia (texto invisible y un aviso por cuadro), asi que ahi se usa la
+    /// fuente por defecto de Unity (null).
     static Font Monospace
     {
         get
         {
-            if (_mono == null)
+            if (!_monoResolved)
             {
-                Font f = Font.CreateDynamicFontFromOSFont("Consolas", 12);
-                if (f == null) f = Font.CreateDynamicFontFromOSFont(new string[] { "Consolas", "Courier New", "Liberation Mono", "DejaVu Sans Mono" }, 12);
-                _mono = f ?? null;
+                _monoResolved = true;
+                _mono = null;
+                if (!Application.isMobilePlatform)
+                {
+                    var installed = new System.Collections.Generic.HashSet<string>(Font.GetOSInstalledFontNames());
+                    foreach (string name in new[] { "Consolas", "Courier New", "Liberation Mono", "DejaVu Sans Mono" })
+                    {
+                        if (installed.Contains(name))
+                        {
+                            _mono = Font.CreateDynamicFontFromOSFont(name, 12);
+                            break;
+                        }
+                    }
+                }
             }
             return _mono;
         }
