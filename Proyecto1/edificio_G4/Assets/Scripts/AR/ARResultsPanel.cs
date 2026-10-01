@@ -102,7 +102,19 @@ public class ARResultsPanel : MonoBehaviour
 
         // Elemento
         ElementData e = structure.Selected;
-        GUI.Label(new Rect(lx, ly, iw, 18f), "ELEMENTO (toca una barra o usa las flechas)", UiTheme.Header); ly += 18f;
+        GUI.Label(new Rect(lx, ly, iw, 18f), "ELEMENTO (toca una barra, flechas o acceso directo)", UiTheme.Header); ly += 18f;
+        float fw = (iw - 4f * (ARStructure.FeaturedTags.Length - 1)) / ARStructure.FeaturedTags.Length;
+        for (int i = 0; i < ARStructure.FeaturedTags.Length; i++)
+        {
+            string tag = ARStructure.FeaturedTags[i];
+            bool on = e != null && e.elementTag == tag;
+            if (GUI.Toggle(new Rect(lx + i * (fw + 4f), ly, fw, 30f), on, tag, GUI.skin.button) && !on)
+            {
+                Select(structure.FindByTag(tag));
+                e = structure.Selected;
+            }
+        }
+        ly += 34f;
         if (GUI.Button(new Rect(lx, ly, 44f, 32f), "<")) Step(-1);
         if (GUI.Button(new Rect(lx + iw - 44f, ly, 44f, 32f), ">")) Step(1);
         GUI.Label(new Rect(lx + 52f, ly + 2f, iw - 104f, 30f),
@@ -125,7 +137,17 @@ public class ARResultsPanel : MonoBehaviour
             GUI.Label(new Rect(lx, ly, iw, 18f), name + "  " + row, UiTheme.Label);
             ly += 17f;
         }
-        ly += 6f;
+        // Momento resultante maximo a lo largo de la barra (41 puntos)
+        float mMax = 0f, xMax = 0f, len = Vector3.Distance(pi, pj);
+        for (int k = 0; k <= 40; k++)
+        {
+            float[] r = UnityData.InternalForcesAt(e, k / 40f, combo);
+            if (r == null) break;
+            float m = Mathf.Sqrt(r[4] * r[4] + r[5] * r[5]);
+            if (m > mMax) { mMax = m; xMax = len * k / 40f; }
+        }
+        GUI.Label(new Rect(lx, ly, iw, 18f), $"|M| max a lo largo = {mMax:0.0} kN·m en x = {xMax:0.00} m de I", UiTheme.Label);
+        ly += 24f;
 
         // Desplazamiento del nodo superior / J
         Vector3 uu = UnityData.GetNodeDisplacement(combo, e.nodeJ) * 1000f;   // orden Unity (ux, uz, uy)

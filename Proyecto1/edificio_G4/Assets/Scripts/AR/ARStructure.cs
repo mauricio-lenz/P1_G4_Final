@@ -25,6 +25,8 @@ public class ARStructure : MonoBehaviour
     public enum Mode { Columna1a1, Maqueta100, SobrePlano }
 
     public const string AnchorTag = "E1_260";
+    /// Elementos revisados en detalle: siempre se dibujan (tambien fuera del sector en 1:1) y tienen acceso directo.
+    public static readonly string[] FeaturedTags = { "E1_260", "E1_72" };
 
     // Marcador pegado en la cara −Y de la columna E1_260 (x = 10, y = 0, COL70/70),
     // con su centro a 1,20 m del piso terminado (z = 0).
@@ -166,7 +168,8 @@ public class ARStructure : MonoBehaviour
         foreach (ElementData e in UnityData.Structure.elements)
         {
             if (!nodes.ContainsKey(e.nodeI) || !nodes.ContainsKey(e.nodeJ)) continue;
-            if (sectorOnly && !InSector(e)) continue;
+            bool featured = System.Array.IndexOf(FeaturedTags, e.elementTag) >= 0;
+            if (sectorOnly && !InSector(e) && !featured) continue;
             Vector3 a = ModelToAnchor(NodePos(e.nodeI));
             Vector3 b = ModelToAnchor(NodePos(e.nodeJ));
             float w = Mathf.Max(minSection, Scale * Mathf.Max(0.15f, e.width_m));
@@ -176,7 +179,7 @@ public class ARStructure : MonoBehaviour
             renderers[e.id] = r;
 
             bool isAnchor = e.elementTag == AnchorTag;
-            if (sectorOnly || isAnchor)
+            if (sectorOnly || isAnchor || featured)
             {
                 float textH = sectorOnly ? 0.12f : 0.006f;
                 AddLabel(e.elementTag, (a + b) * 0.5f + ModelUpLocal * textH * 0.6f, textH, isAnchor);

@@ -263,6 +263,7 @@ public class ElementData
     public string piso;
     public float areaTributaria;
     public float cargaTributaria;
+    public float selfWeight_kN;   // peso propio (G), repartido en el elemento
 }
 
 [Serializable]

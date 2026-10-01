@@ -143,15 +143,49 @@ Valores de la columna ancla **E1_260** (COL70/70, piso 1), tal como los muestra 
 
 | Caso | N (kN) | Vy (kN) | Vz (kN) | M máx. (kN·m) | u tope (mm) ux / uy / uz |
 |---|---:|---:|---:|---:|---|
-| G | −1 704.6 | 1.7 | 1.6 | 8.7 | −0.06 / −0.02 / −0.50 |
-| Q | −1 373.2 | 1.3 | 1.3 | 7.0 | −0.04 / −0.02 / −0.40 |
-| EX | 14.7 | 8.8 | 381.2 | 914.2 | 5.79 / −0.09 / 0.00 |
-| EY | −251.4 | −525.5 | 5.5 | 1 175.5 | −0.04 / 6.79 / −0.07 |
-| **C1** | **−2 437.1** | −100.0 | 117.7 | **352.9** | 1.65 / 1.30 / −0.71 |
-| C2 | −2 336.6 | 110.1 | 115.5 | 365.8 | 1.67 / −1.42 / −0.68 |
-| C3 | −2 445.9 | −105.4 | −111.0 | 362.4 | −1.82 / 1.35 / −0.71 |
+| G | −3 099.2 | 16.4 | 2.2 | 36.1 | −0.10 / −0.14 / −0.90 |
+| Q | −1 465.6 | 8.9 | −1.8 | 20.9 | −0.04 / −0.04 / −0.43 |
+| EX | 24.7 | 14.4 | 621.4 | 1 488.4 | 9.41 / −0.15 / 0.01 |
+| EY | −402.8 | −862.7 | 8.5 | 1 927.4 | −0.07 / 11.11 / −0.12 |
+| **C1** | **−3 905.1** | −147.4 | 189.4 | **555.7** | 2.69 / 2.02 / −1.14 |
+| C2 | −3 744.0 | 197.7 | 186.0 | 616.1 | 2.72 / −2.42 / −1.09 |
+| C3 | −3 919.9 | −156.0 | −183.4 | 575.1 | −2.96 / 2.11 / −1.14 |
 
-P-M de E1_260 en C1: P = 2 437 kN de compresión. Entre los puntos "flexión pura" (0 kN; 521 kN·m) y "última falla dúctil" (4 058 kN; 1 434 kN·m) de la curva COL70/70 G35, M_cap(2 437 kN) ≈ 1 069 kN·m, con lo que **M/M_cap ≈ 0,33**.
+Valores con el modelo de cargas corregido de la sección 3.1 (G incluye el peso propio).
+
+P-M de E1_260 en C1: P = 3 905 kN de compresión. Entre los puntos "flexión pura" (0 kN; 521 kN·m) y "última falla dúctil" (4 058 kN; 1 434 kN·m) de la curva COL70/70 G35, M_cap(3 905 kN) ≈ 1 400 kN·m, con lo que **M/M_cap ≈ 0,40** (antes de la corrección: 0,33).
+
+### 3.1 Corrección del modelo de cargas (revisión de la viga E1_72)
+
+Al revisar la viga **E1_72** (V60/80, cielo del piso 2, eje y = −11,37, x = 0 → 7,51 m, apoyada en pilares PM300×300×20 con arriostres) aparecieron dos problemas del modelo, que se corrigieron en todo el edificio:
+
+1. **La gravedad se aplicaba como dos fuerzas nodales** (mitad de la carga en cada extremo de la viga). OpenSees no veía los momentos de empotramiento: la viga trabajaba como simplemente apoyada (≈ 0 en los apoyos, wL²/8 al centro). Ahora G y Q se aplican como **carga repartida sobre cada elemento** (`eleLoad -beamUniform`, en ejes locales). Las fuerzas de extremo ya incluyen el empotramiento, y el viewer/AR solo agrega la curvatura del momento dentro del tramo.
+2. **No se incluía el peso propio** de vigas, columnas y arriostres: la carga muerta de cada viga era solo q_G · A_trib (losa de 15 cm + terminaciones = 6,23 kN/m²). Ahora G suma el peso propio: γ = 25 kN/m³ (hormigón) y 78,5 kN/m³ (acero); en las vigas de hormigón solo el alma bajo la losa, b · (h − 0,15), porque la franja dentro de la losa ya está en q_G (V60/80: 9,75 kN/m).
+
+| Indicador | Antes | Ahora |
+|---|---:|---:|
+| G total (= Σ reacciones) | 27 878 kN | **59 901 kN** (losa 27 878 + peso propio 32 023) |
+| Corte basal EX (coef. 0,20 · (D + 0,5Q)) | 7 823 kN | **14 105 kN** (edificio 1: 8 735 · edificio 2: 5 370) |
+| Error de equilibrio G / Q | ≈ 0 | ≈ 1e‑11 kN |
+
+El peso propio de las 2 295 m de vigas V60/80 (22 400 kN) es el aporte principal. Conviene confirmar contra el plano de vigas que todas sean V60/80, porque esa sección domina el peso del edificio y la masa sísmica.
+
+**E1_72 con el modelo corregido** (M en convención de diseño: + = tracción abajo):
+
+| Caso | M en I | ½ L | ¾ L | M en J | V máx. |
+|---|---:|---:|---:|---:|---:|
+| G (w = 19,06 kN/m) | −65,3 | 97,5 | 78,1 | −8,5 | 79,1 |
+| Q (w = 7,33 kN/m) | −24,0 | 38,0 | 30,2 | −3,4 | 30,3 |
+| EX | 269,0 | 8,7 | −121,4 | −251,6 | 69,3 |
+| C1 | 11,9 | 119,1 | 52,5 | −94,1 | 99,4 |
+| **C3** | **−149,5** | 113,9 | **125,4** | 56,8 | **112,8** |
+
+Antes de la corrección, C3 daba −53 / 107 / −69 kN·m y V = 65 kN: la demanda real en los apoyos era casi el triple.
+
+Verificaciones:
+- **Estática:** en G, momento al centro + promedio de los extremos = 97,5 + (65,3 + 8,5)/2 = 134,4 kN·m = wL²/8 = 19,06 · 7,51² / 8. ✓
+- **Independiente:** se volvió a analizar el modelo con E1_72 partida en dos elementos (nodo al centro). El momento y el corte al centro de OpenSees (−97,47 kN·m; −7,57 kN) son **idénticos** a los que calcula el viewer sobre la viga sin partir. ✓
+- Los empotramientos son parciales (−65 y −8,5 kN·m frente a −wL²/12 = −89,6 kN·m) porque los apoyos son pilares metálicos flexibles y el tramo vecino es distinto en cada extremo.
 
 ## 4. Pruebas en el teléfono (Galaxy S24)
 
@@ -209,3 +243,4 @@ Otras correcciones del build AR: OpenGL ES 3 sin render multihilo (evita `GL_INV
 - La precisión del modo 1:1 depende de la impresión (20 cm exactos) y de pegar el marcador plano. Un error de 1° en la rotación desplaza unos 7 cm el extremo de una viga a 4 m.
 - La razón M/M_cap usa la curva P-M de 5 puntos con interpolación lineal (aproximada), igual que el viewer.
 - Factores de las combinaciones (0.3EX / 0.2EY) pendientes de confirmar con el curso (vienen de la semana 3).
+- El peso propio de los muros (91, solo visualización y demanda P-M) no entra al análisis: solo el de las columnas equivalentes de muro del edificio 2. Las secciones V60/80 deben confirmarse con el plano de vigas (sección 3.1).

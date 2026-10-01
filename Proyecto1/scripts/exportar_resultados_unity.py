@@ -363,6 +363,15 @@ def main():
                 "rz": d.get("rz", 0.0),
             })
 
+    # ── Peso propio por elemento (Unity lo suma como carga repartida) ──
+    nodes_by_id = cvm.node_map(data)
+    elements_out = []
+    for el in data.get("elements", []):
+        el_out = dict(el)
+        if el.get("nodeI") in nodes_by_id and el.get("nodeJ") in nodes_by_id:
+            el_out["selfWeight_kN"] = cvm.self_weight_kN(el, nodes_by_id)
+        elements_out.append(el_out)
+
     # ── Empaquetar fuerzas por elemento ──────────────────────────────
     element_meta = {}
     for el in data.get("elements", []):
@@ -617,11 +626,13 @@ def main():
             "JSON enriquecido para Unity P1L4",
             "Desplazamientos y fuerzas internas de analisis estatico lineal OpenSees",
             "Fuerzas internas en coordenadas locales del elemento (12 componentes: N, Vy, Vz, T, My, Mz x2 extremos)",
+            "G y Q se aplican como cargas repartidas sobre cada elemento (eleLoad -beamUniform): las fuerzas de extremo ya incluyen los momentos de empotramiento",
+            "G incluye el peso propio de vigas, columnas y arriostres (selfWeight_kN; 25 kN/m3 hormigon, 78.5 kN/m3 acero)",
             "Curvas P-M: COL70/70_FIBER (5 puntos, semana3) y W_DPRIME_OPENING_TO_3 ({} puntos, P1L3)".format(curva_muro_n),
             "Demandas muro: estimadas por tributaria + sismo (hipotesis documentadas)"
         ],
         "nodes": data.get("nodes", []),
-        "elements": data.get("elements", []),
+        "elements": elements_out,
         "walls": walls_enriched,
         "supports": data.get("supports", []),
         "diaphragmList": data.get("diaphragmList", []),

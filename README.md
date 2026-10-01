@@ -38,7 +38,8 @@ reports/                             # informes semanales (semana02, 03, 05, 06)
 Nodos: 589 · Elementos: 557 (398 vigas, 149 columnas, 10 arriostres) · Muros: 91
 Apoyos: 34 · Paneles de losa: 239 · Niveles: -3.96 / 0 / 3.96 / 7.92 / 11.88 / 15.84 m
 Casos: G, Q, EX, EY · Combinaciones: C1, C2, C3
-Equilibrio G: 27 878.1 kN aplicados = 27 878.1 kN de reaccion
+Equilibrio G: 59 900.9 kN aplicados (losa 27 878.1 + peso propio 32 022.9) = 59 900.9 kN de reaccion
+G y Q como cargas repartidas en cada elemento (eleLoad -beamUniform)
 ```
 
 Combinaciones: `C1 = G+0.5Q+0.3EX+0.2EY`, `C2 = G+0.5Q+0.3EX−0.2EY`,

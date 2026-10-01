@@ -44,11 +44,21 @@ def cargas_perdidas(data, load_sets):
     for e in cvm.structural_elements(data):
         conectados.update((e["nodeI"], e["nodeJ"]))
     soportes = {s["node"] for s in data.get("supports", [])}
+    extremos = {e["id"]: (e["nodeI"], e["nodeJ"]) for e in data.get("elements", [])}
+    activos = {e["id"] for e in cvm.structural_elements(data)}
+    # clave < 0 = carga repartida del elemento -clave; si fue quitado, va mitad a cada nodo
+    por_nodo = {}
+    for nid, vec in load_sets["G"].items():
+        if nid >= 0:
+            por_nodo[nid] = por_nodo.get(nid, 0.0) + vec[2]
+        elif -nid not in activos and -nid in extremos:
+            for n in extremos[-nid]:
+                por_nodo[n] = por_nodo.get(n, 0.0) + 0.5 * vec[2]
     perdida = 0.0
     nodos = []
-    for nid, vec in load_sets["G"].items():
-        if nid not in conectados and nid not in soportes and abs(vec[2]) > 1e-9:
-            perdida += abs(vec[2])
+    for nid, fz in por_nodo.items():
+        if nid not in conectados and nid not in soportes and abs(fz) > 1e-9:
+            perdida += abs(fz)
             nodos.append(nid)
     return perdida, nodos
 

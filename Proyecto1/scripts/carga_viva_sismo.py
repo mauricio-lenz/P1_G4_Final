@@ -96,6 +96,12 @@ _WALL_COVER = 0.030        # recubrimiento al centro de la barra [m]
 _WALL_DBAR = 0.012         # diametro de barra vertical [m]
 _WALL_S = 0.20             # espaciamiento @200 mm por capa
 
+# Peso propio de los elementos del modelo (antes no se incluia: la carga muerta
+# de las vigas era solo la losa tributaria q_G * A_trib).
+GAMMA_CONCRETE = 25.0      # hormigon armado [kN/m3]
+GAMMA_STEEL = 78.5         # acero [kN/m3]
+SLAB_THICKNESS = 0.15      # losa [m]: su peso ya esta en q_G (3.75 kN/m2 de los 6.23)
+
 # Configuracion simple de la armadura de la columna COL70/70.
 # Cambia estas lineas para modificar diametro, barras y fibras de hormigon.
 BAR_DIAMETER_MM = 25.0
@@ -139,6 +145,27 @@ def section_properties(width, height):
     return area, iy, iz, j
 
 
+def element_area(element):
+    """Area de la seccion [m2]: A_m2 explicita (perfiles, muros equivalentes) o b*h."""
+    if "A_m2" in element:
+        return float(element["A_m2"])
+    return float(element.get("width_m") or 0.60) * float(element.get("height_m") or 0.80)
+
+
+def self_weight_kN(element, nodes):
+    """Peso propio total del elemento [kN] = gamma * A * L.
+    Vigas de hormigon: solo el alma bajo la losa, b * (h - e_losa), porque la
+    franja dentro de la losa ya esta en q_G * A_trib."""
+    if element.get("material") == "acero":
+        return GAMMA_STEEL * element_area(element) * element_length(element, nodes)
+    area = element_area(element)
+    if element.get("type") == "viga" and "A_m2" not in element:
+        b = float(element.get("width_m") or 0.60)
+        h = float(element.get("height_m") or 0.80)
+        area = b * max(0.0, h - SLAB_THICKNESS)
+    return GAMMA_CONCRETE * area * element_length(element, nodes)
+
+
 def element_mid_z(element, nodes):
     ni = nodes[element["nodeI"]]
     nj = nodes[element["nodeJ"]]
@@ -180,8 +207,8 @@ def transfer_live_load(data, q_q):
         q_lineal = q_total / length if length > 0.0 else 0.0
         floor = element_mid_z(element, nodes)
 
-        nodal_loads[element["nodeI"]]["Fz"] -= 0.5 * q_total
-        nodal_loads[element["nodeJ"]]["Fz"] -= 0.5 * q_total
+        # carga repartida sobre la viga (clave -id: apply_nodal_loads la aplica con eleLoad)
+        nodal_loads.setdefault(-element["id"], {"Fx": 0.0, "Fy": 0.0, "Fz": 0.0})["Fz"] -= q_total
 
         total_area += area
         total_q += q_total
@@ -201,7 +228,7 @@ def transfer_live_load(data, q_q):
             "Q_lineal_kN_m": q_lineal,
             "nodeI": element["nodeI"],
             "nodeJ": element["nodeJ"],
-            "nodal_Fz_each_kN": -0.5 * q_total,
+            "nodal_Fz_each_kN": -0.5 * q_total,   # reacciones de viga simple (referencia)
         })
 
     expected = q_q * total_area
@@ -289,6 +316,16 @@ def build_seismic_cases(data, live_transfer, seismic_coeff):
             continue
         key = (element.get("sourceBuilding") or "edificio_1", round(element_mid_z(element, nodes), 3))
         dead[key] = dead.get(key, 0.0) + float(element.get("deadLoad") or 0.0)
+    # peso propio: mitad a cada nodo extremo, en el piso (edificio, z) de ese nodo
+    for element in structural_elements(data):
+        if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
+            continue
+        half = 0.5 * self_weight_kN(element, nodes)
+        building = element.get("sourceBuilding") or "edificio_1"
+        for nid in (element["nodeI"], element["nodeJ"]):
+            key = (building, round(nodes[nid]["z"], 3))
+            if key in dead:
+                dead[key] += half
     live = {}
     for beam in live_transfer["vigas"]:
         key = (beam.get("sourceBuilding") or "edificio_1", round(float(beam["floor_z_m"]), 3))
@@ -527,6 +564,10 @@ def build_model(data):
     ops.wipe()
     ops.model("basic", "-ndm", 3, "-ndf", 6)
     nodes = node_map(data)
+    _BUILT_ELEMENTS.clear()
+    _ELEMENT_ENDS.clear()
+    for element in data.get("elements", []):
+        _ELEMENT_ENDS[element["id"]] = (element.get("nodeI"), element.get("nodeJ"))
     connected_nodes = set()
     adjacency = {node_id: set() for node_id in nodes}
 
@@ -571,6 +612,7 @@ def build_model(data):
         dz = abs(nj["z"] - ni["z"])
         transf = 2 if length > 0.0 and dz / length > 0.90 else 1
         ops.element("elasticBeamColumn", element["id"], element["nodeI"], element["nodeJ"], area, e_mod, g_mod, j, iy, iz, transf)
+        _BUILT_ELEMENTS[element["id"]] = ((ni["x"], ni["y"], ni["z"]), (nj["x"], nj["y"], nj["z"]), transf)
 
     for node_id in nodes:
         if node_id not in connected_nodes and node_id not in support_nodes:
@@ -605,16 +647,21 @@ def build_model(data):
 
 
 def dead_nodal_loads(data):
+    """Caso G: carga muerta tributaria de las vigas + peso propio de todos los
+    elementos, como cargas REPARTIDAS sobre cada elemento (clave -id; la aplica
+    apply_nodal_loads con eleLoad -beamUniform). Antes se ponia la mitad en cada
+    nodo, con lo que OpenSees no veia los momentos de empotramiento de la viga.
+    Un elemento quitado no aporta peso propio; su losa sigue cargando sus nodos."""
     nodes = node_map(data)
     nodal = {node_id: [0.0, 0.0, 0.0] for node_id in nodes}
     for element in data.get("elements", []):
-        if element.get("type") != "viga":
-            continue
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
-        total = float(element.get("deadLoad") or 0.0)
-        nodal[element["nodeI"]][2] -= 0.5 * total
-        nodal[element["nodeJ"]][2] -= 0.5 * total
+        total = float(element.get("deadLoad") or 0.0) if element.get("type") == "viga" else 0.0
+        if not element.get("removed"):
+            total += self_weight_kN(element, nodes)
+        if total > 0.0:
+            nodal.setdefault(-element["id"], [0.0, 0.0, 0.0])[2] -= total
     return nodal
 
 
@@ -634,12 +681,58 @@ def combine_nodal_loads(load_sets, lambdas):
     return combined
 
 
+# Geometria de los elementos del ultimo build_model (para eleLoad)
+_BUILT_ELEMENTS = {}
+_ELEMENT_ENDS = {}
+
+
+def _local_axes(pi, pj, transf):
+    """Ejes locales igual que geomTransf: y = vecxz x x, z = x x y."""
+    d = [pj[k] - pi[k] for k in range(3)]
+    length = math.sqrt(sum(v * v for v in d))
+    x = [v / length for v in d]
+    vecxz = (1.0, 0.0, 0.0) if transf == 2 else (0.0, 0.0, 1.0)
+    y = [vecxz[1] * x[2] - vecxz[2] * x[1], vecxz[2] * x[0] - vecxz[0] * x[2], vecxz[0] * x[1] - vecxz[1] * x[0]]
+    ny = math.sqrt(sum(v * v for v in y))
+    y = [v / ny for v in y]
+    z = [x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]]
+    return x, y, z, length
+
+
 def apply_nodal_loads(nodal_loads):
+    """Clave >= 0: carga en el nodo [Fx, Fy, Fz(, Mx, My, Mz)].
+    Clave < 0: carga TOTAL [Fx, Fy, Fz] repartida uniforme sobre el elemento -clave
+    (eleLoad -beamUniform en ejes locales). Si el elemento no existe en el modelo
+    (quitado), la carga se reparte mitad y mitad en sus nodos."""
     ops.timeSeries("Linear", 1)
     ops.pattern("Plain", 1, 1)
-    for node, load in nodal_loads.items():
-        # load = [Fx, Fy, Fz] o [Fx, Fy, Fz, Mx, My, Mz]
-        full = list(load) + [0.0] * (6 - len(load))
+    nodal = {}
+    for key, load in nodal_loads.items():
+        key = int(key)
+        if key >= 0:
+            full = list(load) + [0.0] * (6 - len(load))
+            acc = nodal.setdefault(key, [0.0] * 6)
+            for k in range(6):
+                acc[k] += full[k]
+            continue
+        total = list(load)[:3] + [0.0] * (3 - len(list(load)[:3]))
+        if max(abs(v) for v in total) < 1e-12:
+            continue
+        eid = -key
+        if eid in _BUILT_ELEMENTS:
+            pi, pj, transf = _BUILT_ELEMENTS[eid]
+            x, y, z, length = _local_axes(pi, pj, transf)
+            w = [v / length for v in total]
+            wx = sum(w[k] * x[k] for k in range(3))
+            wy = sum(w[k] * y[k] for k in range(3))
+            wz = sum(w[k] * z[k] for k in range(3))
+            ops.eleLoad("-ele", eid, "-type", "-beamUniform", wy, wz, wx)
+        elif eid in _ELEMENT_ENDS:
+            for node in _ELEMENT_ENDS[eid]:
+                acc = nodal.setdefault(node, [0.0] * 6)
+                for k in range(3):
+                    acc[k] += 0.5 * total[k]
+    for node, full in nodal.items():
         if max(abs(v) for v in full) < 1e-12:
             continue
         ops.load(node, *full[:6])
@@ -1611,6 +1704,17 @@ def gravity_case_report(data):
         nivel = str(element_mid_z(element, nodes))
         by_floor[nivel] = by_floor.get(nivel, 0.0) + total
 
+    # peso propio de los elementos apoyados (G = losa tributaria + peso propio)
+    peso_propio = 0.0
+    for element in structural_elements(data):
+        ni, nj = element.get("nodeI"), element.get("nodeJ")
+        if ni in supported and nj in supported:
+            sw = self_weight_kN(element, nodes)
+            peso_propio += sw
+            if ni in main and nj in main:
+                aplicado_main += sw
+    aplicado_total += peso_propio
+
     g_loads = dead_nodal_loads(data)
     res = run_and_extract(data, g_loads)
 
@@ -2370,15 +2474,18 @@ def component_resultant(a, b):
     return sign * math.sqrt(a * a + b * b)
 
 
-def force_values_at(force, element, t, length):
-    n = (1.0 - t) * force[0] + t * force[6]
-    vy = (1.0 - t) * force[1] + t * force[7]
-    vz = (1.0 - t) * force[2] + t * force[8]
-    torsion = (1.0 - t) * force[3] + t * force[9]
-    my = (1.0 - t) * force[4] + t * force[10]
-    mz = (1.0 - t) * force[5] + t * force[11]
-    if element.get("type") == "viga" and abs(float(element.get("uniformLoad") or 0.0)) > 1e-12:
-        mz += abs(float(element.get("uniformLoad") or 0.0)) * length * length * t * (1.0 - t) / 2.0
+def force_values_at(force, element, t, length, w=0.0):
+    """Esfuerzos internos en x = t*L (ejes locales, igual que el viewer):
+    lerp(-F_I, F_J) + la curvatura del momento de la carga repartida w [kN/m]
+    (hacia -Z) dentro del tramo; las fuerzas de extremo ya la incluyen."""
+    n = -(1.0 - t) * force[0] + t * force[6]
+    vy = -(1.0 - t) * force[1] + t * force[7]
+    vz = -(1.0 - t) * force[2] + t * force[8]
+    torsion = -(1.0 - t) * force[3] + t * force[9]
+    my = -(1.0 - t) * force[4] + t * force[10]
+    mz = -(1.0 - t) * force[5] + t * force[11]
+    if element.get("type") == "viga" and abs(w) > 1e-12:
+        my -= w * length * length * t * (1.0 - t) / 2.0
     return {
         "N": n,
         "Vy": vy,
@@ -2391,11 +2498,21 @@ def force_values_at(force, element, t, length):
     }
 
 
-def max_internal_value(force, element, length, key):
+def gravity_w(element, nodes, lambdas):
+    """Carga repartida [kN/m] del caso/combo: lambda_G (losa + peso propio) + lambda_Q Q."""
+    length = element_length(element, nodes)
+    if length <= 0.0:
+        return 0.0
+    slab = float(element.get("deadLoad") or 0.0) if element.get("type") == "viga" else 0.0
+    live = float(element.get("liveLoad") or 0.0) if element.get("type") == "viga" else 0.0
+    return (lambdas.get("G", 0.0) * (slab + self_weight_kN(element, nodes)) + lambdas.get("Q", 0.0) * live) / length
+
+
+def max_internal_value(force, element, length, key, w=0.0):
     best = None
     for i in range(101):
         t = i / 100.0
-        vals = force_values_at(force, element, t, length)
+        vals = force_values_at(force, element, t, length, w)
         value = vals[key]
         if best is None or abs(value) > abs(best["valor"]):
             best = {"valor": value, "t": t, "x_m": t * length, "x_pct": 100.0 * t}
@@ -2432,10 +2549,11 @@ def internal_forces_report(data, live_transfer, seismic, wanted_id, combo_name, 
 
     nodes = node_map(data)
     length = element_length(element, nodes)
-    vals_i = force_values_at(force, element, 0.0, length)
-    vals_c = force_values_at(force, element, 0.5, length)
-    vals_j = force_values_at(force, element, 1.0, length)
-    maxima = {key: max_internal_value(force, element, length, key) for key in ("N", "V", "M", "T", "Vy", "Vz", "My", "Mz")}
+    w = gravity_w(element, nodes, lambdas)
+    vals_i = force_values_at(force, element, 0.0, length, w)
+    vals_c = force_values_at(force, element, 0.5, length, w)
+    vals_j = force_values_at(force, element, 1.0, length, w)
+    maxima = {key: max_internal_value(force, element, length, key, w) for key in ("N", "V", "M", "T", "Vy", "Vz", "My", "Mz")}
     return {
         "combo": combo_name,
         "lambdas": lambdas,
@@ -2447,6 +2565,7 @@ def internal_forces_report(data, live_transfer, seismic, wanted_id, combo_name, 
         "valores_J": vals_j,
         "maximos": maxima,
         "force_12_componentes": force,
+        "w_kN_m": w,
     }
 
 
@@ -2508,7 +2627,7 @@ def print_internal_forces_at_position(data, live_transfer, seismic, wanted_id, c
         print(f"  x mayor que el largo. Se usa x = {length:.3f}.")
         x = length
     t = x / length if length > 0.0 else 0.0
-    values = force_values_at(report["force_12_componentes"], element, t, length)
+    values = force_values_at(report["force_12_componentes"], element, t, length, report.get("w_kN_m", 0.0))
 
     print(f"\nValores en x = {x:.3f} m desde nodo I ({100.0 * t:.1f}% del largo)")
     print(f"  Combo/caso       = {combo_name}")

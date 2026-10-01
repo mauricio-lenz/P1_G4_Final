@@ -778,13 +778,17 @@ public static class UnityData
             }
             return loads;
         }
-        if (e.type == "viga" && L > 1e-6f)
+        if (L > 1e-6f)
         {
+            // G y Q se analizan como carga repartida (eleLoad): las fuerzas de extremo
+            // ya traen las reacciones y el empotramiento; solo falta la curvatura del
+            // momento dentro del tramo (deviationOnly).
             GravityLambdas(combo, out float lg, out float lq);
-            float total = lg * e.deadLoad + lq * e.liveLoad;   // kN totales del tramo
+            float slab = e.type == "viga" ? lg * e.deadLoad + lq * e.liveLoad : 0f;
+            float total = slab + lg * e.selfWeight_kN;   // kN totales del tramo
             if (Mathf.Abs(total) > 1e-9f)
             {
-                loads.Add(new SpanLoad { dir = new Vector3(0f, 0f, -1f), distributed = true, w = total / L, x1 = 0f, x2 = L });
+                loads.Add(new SpanLoad { dir = new Vector3(0f, 0f, -1f), distributed = true, w = total / L, x1 = 0f, x2 = L, deviationOnly = true });
             }
         }
         return loads;
