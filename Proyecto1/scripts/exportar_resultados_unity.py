@@ -39,21 +39,21 @@ SECTION_MATERIALS = [
     {
         "sectionId": "COL70/70",
         "elementType": "columna",
-        "materialName": "H-30 / Acero A630-420",
-        "fc_MPa": 30.0,
+        "materialName": "G35 / Acero A630-420H",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 30000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.70,
         "h_m": 0.70,
-        "note": "Seccion rectangular 70x70 cm, H-30 (fc=30 MPa), fy=420 MPa"
+        "note": "Seccion rectangular 70x70 cm, G35 (fc=35 MPa), fy=420 MPa"
     },
     {
         "sectionId": "COL70/70_FIBER",
         "elementType": "columna",
-        "materialName": "H-30 / Acero A630-420 (analisis fibra)",
-        "fc_MPa": 30.0,
+        "materialName": "G35 / Acero A630-420H (analisis fibra)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 30000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.70,
         "h_m": 0.70,
         "steelBars": 8,
@@ -61,31 +61,31 @@ SECTION_MATERIALS = [
         "Ast_mm2": 3927.0,
         "rho_percent": 0.80,
         "Po_kN": 14044.2,
-        "note": "Analisis fibra P-M: H-30, fy=420, 8 phi25, rec=52.5mm"
+        "note": "Analisis fibra P-M: G35, fy=420, 8 phi25, rec=52.5mm"
     },
     {
         "sectionId": "W_DPRIME_OPENING_TO_3",
         "elementType": "muro",
-        "materialName": "H-30 / Acero A630-420 (muro con abertura)",
-        "fc_MPa": 30.0,
+        "materialName": "G35 / Acero A630-420H (muro con abertura)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 30000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.25,
         "h_m": 7.60,
         "steelBars": 76,
         "barDiameter_mm": 12.0,
         "As_total_mm2": 8595.4,
         "rho_percent": 0.45,
-        "Pn0_kN": 48450.0,
+        "Pn0_kN": 0.85 * 35000.0 * 0.25 * 7.60,
         "note": "Muro D-PRIME-OPENING-TO-3, t=0.25, L=7.60, 2 capas phi12@200"
     },
     {
         "sectionId": "V60/80",
         "elementType": "viga",
-        "materialName": "H-25 / Acero A630-420 (viga)",
-        "fc_MPa": 25.0,
+        "materialName": "G35 / Acero A630-420H (viga)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.60,
         "h_m": 0.80,
         "note": "Viga 60x80 cm"
@@ -93,10 +93,10 @@ SECTION_MATERIALS = [
     {
         "sectionId": "V40/80",
         "elementType": "viga",
-        "materialName": "H-25 / Acero A630-420 (viga)",
-        "fc_MPa": 25.0,
+        "materialName": "G35 / Acero A630-420H (viga)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.40,
         "h_m": 0.80,
         "note": "Viga 40x80 cm"
@@ -104,10 +104,10 @@ SECTION_MATERIALS = [
     {
         "sectionId": "V30/80",
         "elementType": "viga",
-        "materialName": "H-25 / Acero A630-420 (viga)",
-        "fc_MPa": 25.0,
+        "materialName": "G35 / Acero A630-420H (viga)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.30,
         "h_m": 0.80,
         "note": "Viga 30x80 cm"
@@ -115,10 +115,10 @@ SECTION_MATERIALS = [
     {
         "sectionId": "V30/45",
         "elementType": "viga",
-        "materialName": "H-25 / Acero A630-420 (viga)",
-        "fc_MPa": 25.0,
+        "materialName": "G35 / Acero A630-420H (viga)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.30,
         "h_m": 0.45,
         "note": "Viga 30x45 cm"
@@ -126,10 +126,10 @@ SECTION_MATERIALS = [
     {
         "sectionId": "V40/60",
         "elementType": "viga",
-        "materialName": "H-25 / Acero A630-420 (viga)",
-        "fc_MPa": 25.0,
+        "materialName": "G35 / Acero A630-420H (viga)",
+        "fc_MPa": 35.0,
         "fy_MPa": 420.0,
-        "E_MPa": 25000.0,
+        "E_MPa": 27806.0,
         "b_m": 0.40,
         "h_m": 0.60,
         "note": "Viga 40x60 cm (eje x=37.55, pisos 3 y 4)"
@@ -137,7 +137,8 @@ SECTION_MATERIALS = [
     {
         "sectionId": "PM300x300x20",
         "elementType": "columna",
-        "materialName": "Acero estructural (perfil cajon)",
+        "materialName": "Acero A36 (perfil cajon)",
+        "fy_MPa": 250.0,
         "E_MPa": 200000.0,
         "b_m": 0.30,
         "h_m": 0.30,
@@ -147,7 +148,8 @@ SECTION_MATERIALS = [
     {
         "sectionId": "VM300x300x5",
         "elementType": "arriostre",
-        "materialName": "Acero estructural (perfil cajon)",
+        "materialName": "Acero A36 (perfil cajon)",
+        "fy_MPa": 250.0,
         "E_MPa": 200000.0,
         "b_m": 0.30,
         "h_m": 0.30,
@@ -155,6 +157,49 @@ SECTION_MATERIALS = [
         "note": "Arriostre metalico cajon 300x300x5 mm (V.M. (ARR) planos 2017_67)"
     }
 ]
+
+
+# Acero de las estructuras metalicas segun la nota general de los planos
+# (2017_67-100 / 2024_22-100): A36, fy = 250 MPa.
+STEEL_FY_MPA = 250.0
+PHI_STEEL = 0.90
+
+
+def steel_box_pm_curve(section_id, b, t, fy_mpa=STEEL_FY_MPA, phi=PHI_STEEL):
+    """Curva P-M de un perfil cajon cuadrado b x b x t segun AISC 360 H1-1.
+
+    Pc = phi*A*fy y Mc = phi*Z*fy (Z plastico del cajon); sin reduccion por
+    pandeo (columna corta). Simetrica en compresion (P > 0) y traccion (P < 0).
+    """
+    fy = fy_mpa * 1000.0                     # kN/m2
+    bi = b - 2.0 * t
+    area = b * b - bi * bi
+    z_plastic = (b ** 3 - bi ** 3) / 4.0
+    pc = phi * area * fy
+    mc = phi * z_plastic * fy
+    points = []
+    for frac in (1.0, 0.6, 0.2, 0.0, -0.2, -0.6, -1.0):
+        r = abs(frac)
+        m_frac = 9.0 / 8.0 * (1.0 - r) if r >= 0.2 else 1.0 - r / 2.0
+        label = "compresion pura" if frac == 1.0 else "traccion pura" if frac == -1.0 else f"P/Pc={frac:+.1f}"
+        points.append({"label": label, "P_kN": round(frac * pc, 2), "M_kN_m": round(m_frac * mc, 2)})
+    return {
+        "sectionId": section_id,
+        "elementType": "columna",
+        "b_m": b,
+        "h_m": b,
+        "fc_MPa": 0.0,
+        "fy_MPa": fy_mpa,
+        "steelBars": 0,
+        "barDiameter_mm": 0.0,
+        "Ast_mm2": round(area * 1e6, 1),
+        "rho_percent": 0.0,
+        "Po_kN": round(pc, 2),
+        "interpretation": (f"Interaccion AISC 360 H1-1 para cajon {int(b*1000)}x{int(b*1000)}x{int(t*1000)} mm, "
+                           f"A36 fy={fy_mpa:.0f} MPa (planos), phi={phi}; Pc={pc:.0f} kN, Mc={mc:.0f} kN*m; "
+                           "sin pandeo (columna corta)."),
+        "points": points,
+    }
 
 
 def load_json(path):
@@ -223,11 +268,11 @@ def main():
         print(f"  AVISO: No se encontro {wall_pm_path}, se omite curva P-M muro.")
 
     # ── Curva P-M columna (COL70/70_FIBER) ─────────────────────────
-    # Se recomputa con la seccion de fibra (H-30, fc=30 MPa) usando las
+    # Se recomputa con la seccion de fibra (G35, fc=35 MPa) usando las
     # mismas funciones de P1L3/carga_viva_sismo.py para evitar la
     # inconsistencia historica entre la curva guardada (fc=25 MPa) y el
-    # material del modelo (H-30 en materials.py / structural_model.py).
-    print("Calculando curva P-M columna COL70/70_FIBER (H-30)...")
+    # material del modelo (G35 segun planos).
+    print("Calculando curva P-M columna COL70/70_FIBER (G35)...")
     try:
         col_section = cvm.make_column_fibers()
         col_ag = col_section["b"] * col_section["h"]
@@ -261,18 +306,10 @@ def main():
 
     load_sets = {"G": G, "Q": Q, "EX": EX, "EY": EY}
 
-    # ── Combinaciones NCh433 ─────────────────────────────────────────
-    combos = {
-        "C1": {"G": 1.00, "Q": 0.50, "EX": 0.30, "EY": 0.20},
-        "C2": {"G": 1.00, "Q": 0.50, "EX": 0.30, "EY": -0.20},
-        "C3": {"G": 1.00, "Q": 0.50, "EX": -0.30, "EY": 0.20},
-    }
-
-    combo_labels = {
-        "C1": "C1: G+0.5Q+0.3EX+0.2EY",
-        "C2": "C2: G+0.5Q+0.3EX-0.2EY",
-        "C3": "C3: G+0.5Q-0.3EX+0.2EY",
-    }
+    # ── Combinaciones: data/combinaciones.json (editable en VS Code) ──
+    combos = cvm.load_combinations()
+    combo_labels = {name: cvm.combination_label(name, lam) for name, lam in combos.items()}
+    print("Combinaciones: " + " | ".join(combo_labels.values()))
 
     # ── Correr analisis base y por combinacion ───────────────────────
     base_results = {}
@@ -363,9 +400,12 @@ def main():
             "Ast_mm2": 3927.0,
             "rho_percent": 0.80,
             "Po_kN": col_po,
-            "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales: compresion pura, balance, falla ductil, flexion pura, traccion pura), fc=H-30.",
+            "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales: compresion pura, balance, falla ductil, flexion pura, traccion pura), fc=G35 (35 MPa).",
             "points": [{"label": p["label"], "P_kN": p["P_kN"], "M_kN_m": p["M_kN_m"]} for p in col_pm_data]
         })
+
+    # Pilar metalico P.M. 300x300x20: interaccion AISC 360 H1-1 (sin pandeo)
+    pm_curves.append(steel_box_pm_curve("PM300x300x20", 0.30, 0.020))
 
     if wall_pm_data:
         wall_points = [{"label": f'P/Pn0={p["P_frac"]:.2f}', "P_kN": p["P_kN"], "M_kN_m": p["Mmax_kNm"]} for p in wall_pm_data]
@@ -374,20 +414,20 @@ def main():
             "elementType": "muro",
             "b_m": 0.25,
             "h_m": 7.60,
-            "fc_MPa": 30.0,
+            "fc_MPa": 35.0,
             "fy_MPa": 420.0,
             "steelBars": 76,
             "barDiameter_mm": 12.0,
             "Ast_mm2": 8595.4,
             "rho_percent": 0.45,
-            "Po_kN": 48450.0,
+            "Po_kN": float(wall_pm_full.get("Pn0_kN", 0.0)),
             "interpretation": f"Envolvente P-M W_DPRIME_OPENING_TO_3 (t=0.25m, L=7.60m, 2 capas phi12@200). {len(wall_points)} puntos de la envolvente.",
             "points": wall_points
         })
 
-    # ── Regenerar semana3_resultados_unity.json (H-30) ─────────────
+    # ── Regenerar semana3_resultados_unity.json (G35) ─────────────
     # Deja el archivo de capacidad de P1L2 consistente con el modelo
-    # (concrete H-30) y con lo que Unity carga en la escena P1L2.
+    # (hormigon G35) y con lo que Unity carga en la escena P1L2.
     if col_pm_data:
         try:
             col_bar_area = col_section["bar_area_m2"]
@@ -408,7 +448,7 @@ def main():
                 "Ast_mm2": col_ast_m2 * 1e6,
                 "rho_percent": 100.0 * (col_ast_m2 / (col_section["b"] * col_section["h"])),
                 "Po_kN": col_po,
-                "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales), fc=H-30. Regenerado por P1L4/exportar_resultados_unity.py.",
+                "interpretation": "Diagrama P-M COL70/70 (5 puntos manuales), fc=G35 (35 MPa). Regenerado por P1L4/exportar_resultados_unity.py.",
                 "pmPoints": [
                     {
                         "label": p["estado"],
@@ -422,7 +462,7 @@ def main():
                 ],
             }
             write_json(P1L2_RESOURCES / "semana3_resultados_unity.json", col_capacity_unity)
-            print("  semana3_resultados_unity.json regenerado (H-30).")
+            print("  semana3_resultados_unity.json regenerado (G35).")
         except Exception as e:
             print(f"  AVISO: no se pudo regenerar semana3_resultados_unity.json: {e}")
 
@@ -514,7 +554,7 @@ def main():
 
     # ── Empaquetar combinaciones ─────────────────────────────────────
     combos_list = []
-    for name in ["C1", "C2", "C3"]:
+    for name in combos:
         combos_list.append({
             "name": name,
             "label": combo_labels[name],

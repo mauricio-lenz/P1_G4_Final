@@ -1,6 +1,6 @@
 # Proyecto MCOC — Grupo 4 (entrega final autocontenida)
 
-Modelo estructural de dos edificios de hormigón armado H-30 (edificio 1: planos
+Modelo estructural de dos edificios de hormigón armado G35 con perfiles metálicos A36 (edificio 1: planos
 2017_67; edificio 2: planos 2024_22; separados por junta de dilatación):
 análisis OpenSees/Python + viewer Unity **en una sola carpeta autocontenida
 (`Proyecto1/`)**. Informe vigente de la semana 5: [`reports/semana05.md`](reports/semana05.md).
@@ -23,6 +23,7 @@ Proyecto1/
 ├─ data/
 │  ├─ estructura_completo_unity.json            # modelo vigente
 │  ├─ estructura_completo_unity.pre_planos.json # respaldo base de ajustar_modelo_planos.py
+│  ├─ combinaciones.json                        # combinaciones de carga (editar aqui)
 │  ├─ part_e_wall.json                          # curva P-M del muro
 │  └─ semana3_resultados_unity.json             # curva P-M de la columna
 ├─ edificio_G4/                      # proyecto Unity (escena StructureViewerScene)
@@ -41,8 +42,11 @@ Equilibrio G: 27 878.1 kN aplicados = 27 878.1 kN de reaccion
 ```
 
 Combinaciones: `C1 = G+0.5Q+0.3EX+0.2EY`, `C2 = G+0.5Q+0.3EX−0.2EY`,
-`C3 = G+0.5Q−0.3EX+0.2EY` (Q = 500 kg/m², coeficiente sísmico 0.20). La
-superposición se verifica contra la corrida directa de OpenSees con error ~1e-11.
+`C3 = G+0.5Q−0.3EX+0.2EY` (Q = 500 kg/m², coeficiente sísmico 0.20). Se definen
+en `Proyecto1/data/combinaciones.json`: editar ahí (se pueden agregar o quitar) y
+re-exportar. La superposición se verifica contra la corrida directa de OpenSees
+con error ~1e-11. Materiales según planos: hormigón G35 (E = 27.8 GPa), refuerzo
+A630-420H, perfiles A36.
 
 ## Viewer Unity
 
@@ -77,7 +81,8 @@ python -X utf8 Proyecto1\scripts\exportar_excel_esfuerzos.py  & rem Excel de esf
   se modelan como columnas equivalentes de gravedad.
 - Los factores de las combinaciones (0.3EX / 0.2EY) están pendientes de revisión
   frente a la norma.
-- Pilares metálicos y muros equivalentes no tienen curva P-M propia.
+- Los muros equivalentes de gravedad no tienen curva P-M propia; la curva de los
+  pilares metálicos (AISC 360 H1-1) no considera pandeo.
 
 ## Dependencias
 

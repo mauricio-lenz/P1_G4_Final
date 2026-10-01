@@ -38,7 +38,9 @@ DEFAULT_Q_Q = 4.903325
 DEFAULT_SEISMIC_COEFF = 0.20
 FLOOR_GROUP_TOL_M = 0.25
 G_ACCEL = 9.80665
-E_CONCRETE = 25_000_000.0
+# Hormigon G35 segun planos (f'c = 35 MPa, desde fundaciones): E = 4700*sqrt(f'c) [MPa]
+FC_CONCRETE_MPA = 35.0
+E_CONCRETE = 4700.0 * FC_CONCRETE_MPA ** 0.5 * 1000.0   # 27 806 MPa -> kN/m2
 NU_CONCRETE = 0.20
 G_CONCRETE = E_CONCRETE / (2.0 * (1.0 + NU_CONCRETE))
 E_STEEL = 200_000_000.0     # perfiles metalicos (P.M. / V.M.) [kN/m2]
@@ -48,17 +50,39 @@ DEFAULT_LAMBDAS = {"G": 1.0, "Q": 0.5, "EX": 1.0, "EY": 0.3}
 
 OUT_DIR = BASE_DIR / "resultados"
 
-# Combinaciones sismicas NCh433 (Parte C): C1/C2/C3 con +-0.30 EX y +-0.20 EY.
-COMBINACIONES_NCH433 = {
-    "C1": {"G": 1.00, "Q": 0.50, "EX": 0.30, "EY": 0.20},
-    "C2": {"G": 1.00, "Q": 0.50, "EX": 0.30, "EY": -0.20},
-    "C3": {"G": 1.00, "Q": 0.50, "EX": -0.30, "EY": 0.20},
-}
+# Combinaciones de carga: se definen en UN solo lugar, data/combinaciones.json
+# (editable desde VS Code). Exportador, reanalisis y Unity las leen de ahi.
+COMBINATIONS_PATH = ROOT_DIR / "data" / "combinaciones.json"
+
+
+def load_combinations(path=COMBINATIONS_PATH):
+    """{nombre: {"G", "Q", "EX", "EY"}} en el orden del archivo."""
+    with open(path, encoding="utf-8") as file:
+        raw = json.load(file)
+    combos = {}
+    for c in raw["combinaciones"]:
+        combos[c["name"]] = {k: float(c.get(k, 0.0)) for k in ("G", "Q", "EX", "EY")}
+    return combos
+
+
+def combination_label(name, lambdas):
+    """Etiqueta legible, p. ej. 'C1: G+0.5Q+0.3EX-0.2EY'."""
+    parts = []
+    for case in ("G", "Q", "EX", "EY"):
+        v = lambdas.get(case, 0.0)
+        if abs(v) < 1e-12:
+            continue
+        coef = "" if abs(abs(v) - 1.0) < 1e-12 else f"{abs(v):g}"
+        sign = "-" if v < 0 else ("+" if parts else "")
+        parts.append(f"{sign}{coef}{case}")
+    return f"{name}: " + ("".join(parts) or "0")
+
+
+COMBINACIONES_NCH433 = load_combinations()
 MALLAS_SENSIBILIDAD = [10, 20, 40]
 
-# Parametros del analisis de fibra H-30 (columna 70x70 y muro).
-# Corresponden a part_d_fiber / part_e_wall_pm de P1L2 (mismos numeros del informe).
-_FIB_FC = 30000.0          # f'c concreto [kN/m2] (30 MPa)
+# Parametros del analisis de fibra (columna 70x70 y muro), hormigon G35 de los planos.
+_FIB_FC = FC_CONCRETE_MPA * 1000.0   # f'c concreto [kN/m2] (35 MPa)
 _FIB_EPS_C0 = 0.0020
 _FIB_EPS_CU = 0.0035
 _FIB_FY = 420000.0         # fy acero [kN/m2] (420 MPa)
@@ -644,7 +668,7 @@ def analyze_case(data, nodal_loads, control_node, element_id):
 
     displacement = ops.nodeDisp(control_node)
     try:
-        element_force = ops.eleForce(element_id)
+        element_force = ops.eleResponse(element_id, "localForce")
     except Exception:
         element_force = []
     return {
@@ -872,7 +896,7 @@ def verify_building(data, live_transfer, seismic, lambdas):
     column_rows = []
     for element in supported_columns:
         try:
-            force = ops.eleForce(element["id"])
+            force = ops.eleResponse(element["id"], "localForce")
         except Exception:
             continue
         if not force or len(force) < 12:
@@ -997,7 +1021,7 @@ def rebar_coordinates(b, h, cover):
 def make_column_fibers():
     b = h = 0.70
     cover = 0.05
-    fc = _FIB_FC  # H-30 (30000 kN/m2)
+    fc = _FIB_FC  # G35 (35000 kN/m2)
     fy = 420_000.0
     es = 200_000_000.0
     bar_area = math.pi * (BAR_DIAMETER_MM / 1000.0) ** 2 / 4.0
@@ -1032,7 +1056,7 @@ def define_opensees_fiber_section():
     concrete_tag = 1
     steel_tag = 2
     section_tag = 1
-    fc = -_FIB_FC  # H-30 (30000 kN/m2)
+    fc = -_FIB_FC  # G35 (35000 kN/m2)
     epsc0 = -0.002
     fcu = -0.85 * _FIB_FC
     epscu = -0.003
@@ -1489,10 +1513,12 @@ def run_and_extract(data, nodal_loads):
         reactions[1] += r[1] if len(r) > 1 else 0.0
         reactions[2] += r[2] if len(r) > 2 else 0.0
 
+    # Fuerzas de extremo en EJES LOCALES del elemento: [N, Vy, Vz, T, My, Mz] en I y en J
+    # (lo que espera el viewer; con eleForce serian componentes globales)
     element_forces = {}
     for element in structural_elements(data):
         try:
-            force = list(ops.eleForce(element["id"]))
+            force = list(ops.eleResponse(element["id"], "localForce"))
         except Exception:
             continue
         element_forces[element["id"]] = force
@@ -2005,7 +2031,7 @@ def sensitivity_mphi():
     P_serv = 0.20 * Pn0
 
     print("\n" + "=" * 70)
-    print("PARTE D2 - SENSIBILIDAD DE DISCRETIZACION M-PHI (columna 70x70 H-30)")
+    print("PARTE D2 - SENSIBILIDAD DE DISCRETIZACION M-PHI (columna 70x70 G35)")
     print("=" * 70)
     print(f"P = 0 (flexion pura) y P = {P_serv:.0f} kN (0.2*Pn0)")
 
@@ -2185,7 +2211,7 @@ def _wall_interaccion(Pn0, fracs):
 
 
 def wall_pm_curve():
-    """Curva P-M y M-phi del muro W_DPRIME_OPENING_TO_3 (t=0.25, L=7.60, H-30)."""
+    """Curva P-M y M-phi del muro W_DPRIME_OPENING_TO_3 (t=0.25, L=7.60, G35)."""
     Ag = _WALL_T * _WALL_L
     Pn0 = 0.85 * _FIB_FC * Ag
     n_steel_tot = _wall_n_barras_por_capa() * 2
@@ -2197,7 +2223,7 @@ def wall_pm_curve():
     print("PARTE E2 - CURVA P-M DEL MURO (seccion de fibra)")
     print("=" * 70)
     print(f"Muro: t = {_WALL_T} m, L = {_WALL_L} m | Ag = {Ag:.3f} m2")
-    print(f"Concreto H-30: f'c = {_FIB_FC / 1000.0:.0f} MPa | acero fy = {_FIB_FY / 1000.0:.0f} MPa")
+    print(f"Concreto G35: f'c = {_FIB_FC / 1000.0:.0f} MPa | acero fy = {_FIB_FY / 1000.0:.0f} MPa")
     print(f"Armadura: {n_steel_tot} barras phi 12 mm (2 capas @200mm) | As = {As_tot * 1e4:.2f} cm2 | cuantia = {cuantia * 100:.2f}%")
     print(f"Pn0 = 0.85 f'c Ag = {Pn0:.0f} kN")
 

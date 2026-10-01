@@ -357,13 +357,9 @@ public static class UnityData
                 st.loadedFromNodeI = ed.nodeI == beam.nodeA;
                 int iA = st.loadedFromNodeI ? 0 : 6;
                 int iB = st.loadedFromNodeI ? 6 : 0;
-                f[iA + 2] += st.FA;
-                f[iB + 2] += st.FB;
-                for (int k = 0; k < 3; k++)
-                {
-                    f[iA + 3 + k] += -st.MA * axis[k];
-                    f[iB + 3 + k] += -st.MB * axis[k];
-                }
+                // reacciones de empotramiento (fuerzas sobre el elemento), proyectadas a ejes locales
+                AddLocal(f, iA, ed, new Vector3(0f, 0f, st.FA), -st.MA * axis);
+                AddLocal(f, iB, ed, new Vector3(0f, 0f, st.FB), -st.MB * axis);
             }
             if (ed != null) forces.Add(new ElementForceRecord { combo = MovingLoadComboName, id = ed.id, f = f });
         }
@@ -389,16 +385,6 @@ public static class UnityData
         return st;
     }
 
-    /// Momento de viga simplemente apoyada de la carga puntual (se suma al
-    /// diagrama lineal de extremos, igual que la parabola de la carga uniforme).
-    public static float MovingLoadSpanMoment(int elementId, float t, float length)
-    {
-        MovingLoadState st = MovingLoad;
-        if (st == null || ActiveCombo != MovingLoadComboName || elementId != st.loadedElement || length <= 0f) return 0f;
-        float aE = st.loadedFromNodeI ? st.a : st.L - st.a;
-        float x = t * length;
-        return x <= aE ? st.P * (length - aE) * x / length : st.P * aE * (length - x) / length;
-    }
 
     // ---------------------------------------------------------------
     // CARGA EN ELEMENTO (puntual o distribuida, elegida por id/tag)
@@ -421,11 +407,13 @@ public static class UnityData
         public float[] qI = new float[6], qJ = new float[6];   // fuerzas equivalentes en I y J
         public Vector3 pI, pJ;       // coordenadas del modelo de los nodos
         public float transversal;    // fraccion transversal de la direccion (|t|)
+        public Vector3 dirLocal;     // parte de la carga que flecta el elemento (en vigas de piso: solo la vertical)
+        public float[] qILocal = new float[6], qJLocal = new float[6];   // empotramiento de dirLocal
     }
 
     public static ElementLoadState ElementLoad;
 
-    private static Vector3 NodeModel(int id)
+    public static Vector3 NodeModel(int id)
     {
         if (Structure != null && Structure.nodes != null)
         {
@@ -458,6 +446,19 @@ public static class UnityData
         }
     }
 
+    /// Carga puntual P en a: empotramiento de la parte local + reparto estatico de la parte al diafragma.
+    private static void AddPointLoad(ElementLoadState st, Vector3 d, float a, float P, Vector3 dirDiaphragm)
+    {
+        AddPointFixedEnd(st.qILocal, st.qJLocal, d, st.dirLocal, st.L, a, P);
+        AddPointFixedEnd(st.qI, st.qJ, d, st.dirLocal, st.L, a, P);
+        float b = st.L - a;
+        for (int k = 0; k < 3; k++)
+        {
+            st.qI[k] += P * b / st.L * dirDiaphragm[k];
+            st.qJ[k] += P * a / st.L * dirDiaphragm[k];
+        }
+    }
+
     private const int DistSteps = 48;   // Simpson (par) para la carga distribuida
 
     public static ElementLoadState ApplyElementLoad(ElementLoadCases cases, bool distributed, Vector3 dir,
@@ -476,10 +477,17 @@ public static class UnityData
         d /= st.L;
         st.transversal = (st.dir - Vector3.Dot(st.dir, d) * d).magnitude;
 
+        // Viga de piso (horizontal, en el diafragma rigido): la componente horizontal
+        // de la carga la toma la losa (diafragma) y se reparte estaticamente a los
+        // nodos, sin flexion local en planta; solo la vertical flecta la viga.
+        bool floorBeam = Mathf.Abs(d.z) < 1e-4f;
+        st.dirLocal = floorBeam ? new Vector3(0f, 0f, st.dir.z) : st.dir;
+        Vector3 dirDiaphragm = st.dir - st.dirLocal;
+
         if (!distributed)
         {
             st.a = Mathf.Clamp(a, 0f, st.L);
-            AddPointFixedEnd(st.qI, st.qJ, d, st.dir, st.L, st.a, P);
+            AddPointLoad(st, d, st.a, P, dirDiaphragm);
             st.total = P * st.dir;
         }
         else
@@ -491,7 +499,7 @@ public static class UnityData
                 for (int k = 0; k <= DistSteps; k++)
                 {
                     float wk = (k == 0 || k == DistSteps) ? 1f : (k % 2 == 1 ? 4f : 2f);
-                    AddPointFixedEnd(st.qI, st.qJ, d, st.dir, st.L, st.x1 + k * h, w * wk * h / 3f);
+                    AddPointLoad(st, d, st.x1 + k * h, w * wk * h / 3f, dirDiaphragm);
                 }
             }
             st.total = w * span * st.dir;
@@ -539,7 +547,9 @@ public static class UnityData
             if (ed.id == cases.element)
             {
                 // fuerzas de extremo reales = K·u + reacciones de empotramiento (= -cargas equivalentes)
-                for (int k = 0; k < 6; k++) { f[k] -= st.qI[k]; f[k + 6] -= st.qJ[k]; }
+                // solo la parte que flecta el elemento tiene reacciones de empotramiento
+                AddLocal(f, 0, ed, -new Vector3(st.qILocal[0], st.qILocal[1], st.qILocal[2]), -new Vector3(st.qILocal[3], st.qILocal[4], st.qILocal[5]));
+                AddLocal(f, 6, ed, -new Vector3(st.qJLocal[0], st.qJLocal[1], st.qJLocal[2]), -new Vector3(st.qJLocal[3], st.qJLocal[4], st.qJLocal[5]));
             }
             forces.Add(new ElementForceRecord { combo = ElementLoadComboName, id = ed.id, f = f });
         }
@@ -567,32 +577,6 @@ public static class UnityData
         return st;
     }
 
-    /// Momento de tramo simplemente apoyado de la componente transversal de la carga.
-    public static float ElementLoadSpanMoment(int elementId, float t, float length)
-    {
-        ElementLoadState st = ElementLoad;
-        if (st == null || ActiveCombo != ElementLoadComboName || elementId != st.cases.element || length <= 0f) return 0f;
-        float x = t * length;
-        if (!st.distributed)
-        {
-            float pt = st.P * st.transversal;
-            return x <= st.a ? pt * (length - st.a) * x / length : pt * st.a * (length - x) / length;
-        }
-        float wt = st.w * st.transversal;
-        float span = st.x2 - st.x1;
-        if (span <= 1e-6f) return 0f;
-        float m = 0f;
-        int n = 32;
-        float h = span / n;
-        for (int k = 0; k <= n; k++)
-        {
-            float xi = st.x1 + k * h;
-            float g = x <= xi ? (length - xi) * x / length : xi * (length - x) / length;
-            float wk = (k == 0 || k == n) ? 1f : (k % 2 == 1 ? 4f : 2f);
-            m += wk * g;
-        }
-        return wt * m * h / 3f;
-    }
 
     // ---------------------------------------------------------------
     // QUITAR ELEMENTO: reemplaza en memoria los resultados de los casos
@@ -688,6 +672,180 @@ public static class UnityData
         if (originalDisp == null || !originalDisp.TryGetValue(combo, out var list)) return GetNodeDisplacement(combo, nodeId);
         foreach (DisplacementRecord d in list) if (d.node == nodeId) return new Vector3(d.ux, d.uz, d.uy);
         return Vector3.zero;
+    }
+
+    // ---------------------------------------------------------------
+    // ESFUERZOS INTERNOS EN EJES LOCALES
+    // Las fuerzas del JSON son fuerzas de extremo en ejes locales del
+    // elemento (OpenSees localForce): [N, Vy, Vz, T, My, Mz] en I y en J.
+    // Esfuerzo interno en x = t*L: lerp(-F_I, +F_J, t) + efecto de las
+    // cargas dentro del tramo (gravedad repartida del combo, carga movil o
+    // carga en elemento), que el analisis aplica como cargas nodales.
+    // ---------------------------------------------------------------
+
+    /// Ejes locales del elemento igual que geomTransf de carga_viva_sismo.py
+    /// (vecxz = X si el elemento es casi vertical, Z en otro caso).
+    public static void LocalAxes(ElementData e, out Vector3 x, out Vector3 y, out Vector3 z, out float length)
+    {
+        Vector3 d = NodeModel(e.nodeJ) - NodeModel(e.nodeI);
+        length = d.magnitude;
+        x = length > 1e-9f ? d / length : Vector3.right;
+        Vector3 vecxz = length > 0f && Mathf.Abs(d.z) / length > 0.90f ? Vector3.right : Vector3.forward;
+        // Vector3.forward = (0,0,1): eje Z del modelo (coordenadas del modelo, no de Unity)
+        y = Vector3.Cross(vecxz, x).normalized;
+        z = Vector3.Cross(x, y);
+    }
+
+    /// Suma a f (en el extremo base 0 o 6) una fuerza y un momento globales proyectados a ejes locales.
+    private static void AddLocal(float[] f, int baseIndex, ElementData e, Vector3 force, Vector3 moment)
+    {
+        LocalAxes(e, out Vector3 x, out Vector3 y, out Vector3 z, out _);
+        f[baseIndex + 0] += Vector3.Dot(force, x);
+        f[baseIndex + 1] += Vector3.Dot(force, y);
+        f[baseIndex + 2] += Vector3.Dot(force, z);
+        f[baseIndex + 3] += Vector3.Dot(moment, x);
+        f[baseIndex + 4] += Vector3.Dot(moment, y);
+        f[baseIndex + 5] += Vector3.Dot(moment, z);
+    }
+
+    /// Factores (lambda_G, lambda_Q) del caso o combo para la carga gravitacional repartida.
+    private static void GravityLambdas(string combo, out float lg, out float lq)
+    {
+        lg = lq = 0f;
+        if (combo == "G") { lg = 1f; return; }
+        if (combo == "Q") { lq = 1f; return; }
+        ComboInfo info = GetComboInfo(combo);
+        if (info != null && combo != MovingLoadComboName && combo != ElementLoadComboName)
+        {
+            lg = info.G;
+            lq = info.Q;
+        }
+    }
+
+    // Viga simplemente apoyada (largo L) con carga transversal: corte S(x) y momento M(x).
+    // Puntual P en a, o repartida w en [x1, x2].
+    private static void SimpleSpan(float L, float x, bool distributed, float P, float a, float w, float x1, float x2,
+        out float S, out float M)
+    {
+        if (!distributed)
+        {
+            float b = L - a;
+            float ri = P * b / L;
+            S = x < a ? ri : ri - P;
+            M = x <= a ? ri * x : ri * x - P * (x - a);
+            return;
+        }
+        float s = Mathf.Max(0f, x2 - x1);
+        float W = w * s;
+        float xc = x1 + 0.5f * s;
+        float riD = W * (L - xc) / L;
+        float c = Mathf.Clamp(x, x1, x2) - x1;          // largo cargado a la izquierda de x
+        S = riD - w * c;
+        M = riD * x - w * c * (x - (x1 + 0.5f * c));
+    }
+
+    private struct SpanLoad
+    {
+        public Vector3 dir;        // direccion unitaria de la carga (modelo)
+        public bool distributed;
+        public float P, a, w, x1, x2;
+        public bool deviationOnly; // true: los extremos ya incluyen las reacciones de empotramiento
+    }
+
+    private static List<SpanLoad> SpanLoadsFor(ElementData e, string combo, float L)
+    {
+        var loads = new List<SpanLoad>();
+        if (combo == MovingLoadComboName)
+        {
+            MovingLoadState st = MovingLoad;
+            if (st != null && st.loadedElement == e.id)
+            {
+                float aE = st.loadedFromNodeI ? st.a : st.L - st.a;
+                loads.Add(new SpanLoad { dir = new Vector3(0f, 0f, -1f), P = st.P, a = aE, deviationOnly = true });
+            }
+            return loads;
+        }
+        if (combo == ElementLoadComboName)
+        {
+            ElementLoadState st = ElementLoad;
+            if (st != null && st.cases != null && st.cases.element == e.id)
+            {
+                loads.Add(new SpanLoad
+                {
+                    dir = st.dirLocal, distributed = st.distributed, P = st.P, a = st.a, w = st.w, x1 = st.x1, x2 = st.x2,
+                    deviationOnly = true
+                });
+            }
+            return loads;
+        }
+        if (e.type == "viga" && L > 1e-6f)
+        {
+            GravityLambdas(combo, out float lg, out float lq);
+            float total = lg * e.deadLoad + lq * e.liveLoad;   // kN totales del tramo
+            if (Mathf.Abs(total) > 1e-9f)
+            {
+                loads.Add(new SpanLoad { dir = new Vector3(0f, 0f, -1f), distributed = true, w = total / L, x1 = 0f, x2 = L });
+            }
+        }
+        return loads;
+    }
+
+    /// Esfuerzos internos [N, Vy, Vz, T, My, Mz] (ejes locales) en t = x/L para el combo activo.
+    /// Devuelve null si el combo no tiene fuerzas para el elemento.
+    public static float[] InternalForcesAt(ElementData e, float t, string combo = null)
+    {
+        combo = combo ?? ActiveCombo;
+        float[] f = GetElementForces(combo, e.id);
+        if (f == null || f.Length < 12) return null;
+        t = Mathf.Clamp01(t);
+        float[] r = new float[6];
+        for (int k = 0; k < 6; k++) r[k] = Mathf.Lerp(-f[k], f[k + 6], t);
+
+        LocalAxes(e, out Vector3 lx, out Vector3 ly, out Vector3 lz, out float L);
+        float x = t * L;
+        foreach (SpanLoad load in SpanLoadsFor(e, combo, L))
+        {
+            // componente axial (a lo largo de lx) y transversal (direccion tt)
+            float axialFrac = Vector3.Dot(load.dir, lx);
+            Vector3 tv = load.dir - axialFrac * lx;
+            float transFrac = tv.magnitude;
+            Vector3 tt = transFrac > 1e-6f ? tv / transFrac : Vector3.zero;
+
+            SimpleSpan(L, x, load.distributed, load.P, load.a, load.w, load.x1, load.x2, out float S, out float M);
+            float S0 = 0f, SL = 0f;
+            if (load.deviationOnly)
+            {
+                SimpleSpan(L, 0f, load.distributed, load.P, load.a, load.w, load.x1, load.x2, out S0, out _);
+                SimpleSpan(L, L, load.distributed, load.P, load.a, load.w, load.x1, load.x2, out SL, out _);
+            }
+            float dev = load.deviationOnly ? Mathf.Lerp(S0, SL, t) : 0f;
+            // N interno (traccion +) de la componente axial, misma forma que el corte
+            r[0] += axialFrac * (S - dev);
+            // corte interno = S * tt ; momento interno = -M * (lx x tt)
+            Vector3 v = transFrac * (S - dev) * tt;
+            Vector3 m = -transFrac * M * Vector3.Cross(lx, tt);
+            r[1] += Vector3.Dot(v, ly);
+            r[2] += Vector3.Dot(v, lz);
+            r[4] += Vector3.Dot(m, ly);
+            r[5] += Vector3.Dot(m, lz);
+        }
+        return r;
+    }
+
+    /// Demanda P-M de un elemento: P = compresion (+), M = max |M| resultante en I, centro y J.
+    public static Vector2 PMDemand(ElementData e, string combo = null)
+    {
+        float pComp = 0f, mMax = 0f;
+        bool any = false;
+        foreach (float t in new[] { 0f, 0.5f, 1f })
+        {
+            float[] r = InternalForcesAt(e, t, combo);
+            if (r == null) continue;
+            any = true;
+            if (t == 0.5f) pComp = -r[0];
+            mMax = Mathf.Max(mMax, Mathf.Sqrt(r[4] * r[4] + r[5] * r[5]));
+        }
+        return any ? new Vector2(pComp, mMax) : Vector2.zero;
     }
 
     public static ComboInfo GetComboInfo(string combo)

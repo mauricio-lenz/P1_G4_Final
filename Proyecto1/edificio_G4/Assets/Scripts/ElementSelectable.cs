@@ -184,15 +184,17 @@ public class ElementSelectable : MonoBehaviour
         {
             return "";
         }
-        float[] forces = UnityData.GetElementForces(UnityData.ActiveCombo, data.id);
-        if (forces == null || forces.Length < 12)
+        float[] fi = UnityData.InternalForcesAt(data, 0f);
+        float[] fj = UnityData.InternalForcesAt(data, 1f);
+        if (fi == null || fj == null)
         {
             return "  (sin registros de extremos para este elemento)\n";
         }
         string lbl = UnityData.GetComboLabel(UnityData.ActiveCombo);
-        return $"\n--- Extremos ({lbl}) ---\n" +
-               $"Nodo I ({data.nodeI}): N={forces[0]:0.###} Vy={forces[1]:0.###} Vz={forces[2]:0.###} T={forces[3]:0.###} My={forces[4]:0.###} Mz={forces[5]:0.###}\n" +
-               $"Nodo J ({data.nodeJ}): N={forces[6]:0.###} Vy={forces[7]:0.###} Vz={forces[8]:0.###} T={forces[9]:0.###} My={forces[10]:0.###} Mz={forces[11]:0.###}\n";
+        return $"\n--- Esfuerzos internos en extremos, ejes locales ({lbl}) ---\n" +
+               $"Nodo I ({data.nodeI}): N={fi[0]:0.###} Vy={fi[1]:0.###} Vz={fi[2]:0.###} T={fi[3]:0.###} My={fi[4]:0.###} Mz={fi[5]:0.###}\n" +
+               $"Nodo J ({data.nodeJ}): N={fj[0]:0.###} Vy={fj[1]:0.###} Vz={fj[2]:0.###} T={fj[3]:0.###} My={fj[4]:0.###} Mz={fj[5]:0.###}\n" +
+               "(N positivo = traccion)\n";
     }
 
     private string GetComboBreakdownText()
@@ -270,14 +272,7 @@ public class ElementSelectable : MonoBehaviour
         {
             return Vector2.zero;
         }
-        float[] forces = UnityData.GetElementForces(caseName, data.id);
-        if (forces == null || forces.Length < 6)
-        {
-            return Vector2.zero;
-        }
-        float pComp = -forces[0];
-        float mTotal = Mathf.Sqrt(forces[4] * forces[4] + forces[5] * forces[5]);
-        return new Vector2(pComp, mTotal);
+        return UnityData.PMDemand(data, caseName);
     }
 
     private string GetWallValuesAt(Vector3 hitPoint)
@@ -359,42 +354,15 @@ public class ElementSelectable : MonoBehaviour
 
     private void GetForces(float t, float length, out float n, out float vy, out float vz, out float my, out float mz, out float torsion)
     {
-        n = 0f; vy = 0f; vz = 0f; my = 0f; mz = 0f; torsion = 0f;
-
-        if (!string.IsNullOrEmpty(UnityData.ActiveCombo) && UnityData.ElementForcesByCombo != null)
-        {
-            var forces = UnityData.GetElementForces(UnityData.ActiveCombo, data.id);
-            if (forces != null && forces.Length >= 12)
-            {
-                float nI = forces[0], nJ = forces[6];
-                float vyI = forces[1], vyJ = forces[7];
-                float vzI = forces[2], vzJ = forces[8];
-                float tI = forces[3], tJ = forces[9];
-                float myI = forces[4], myJ = forces[10];
-                float mzI = forces[5], mzJ = forces[11];
-
-                n = Mathf.Lerp(nI, nJ, t);
-                vy = Mathf.Lerp(vyI, vyJ, t);
-                vz = Mathf.Lerp(vzI, vzJ, t);
-                torsion = Mathf.Lerp(tI, tJ, t);
-                my = Mathf.Lerp(myI, myJ, t);
-                mz = Mathf.Lerp(mzI, mzJ, t);
-
-                if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f)
-                {
-                    mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
-                }
-                return;
-            }
-        }
-
-        n = Mathf.Lerp(data.axialI, data.axialJ, t);
-        vz = Mathf.Lerp(data.shearI, data.shearJ, t);
-        my = Mathf.Lerp(data.momentI, data.momentJ, t);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f)
-        {
-            my += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
-        }
+        // esfuerzos internos en ejes locales (incluye la carga repartida del tramo)
+        float[] r = UnityData.InternalForcesAt(data, t);
+        if (r == null) r = new float[6];
+        n = r[0];
+        vy = r[1];
+        vz = r[2];
+        torsion = r[3];
+        my = r[4];
+        mz = r[5];
     }
 
     public Vector3 GetDemandPoint()
@@ -410,15 +378,7 @@ public class ElementSelectable : MonoBehaviour
             return Vector3.zero;
         }
 
-        float[] forces = UnityData.GetElementForces(UnityData.ActiveCombo, data.id);
-        if (forces == null || forces.Length < 6)
-        {
-            return Vector3.zero;
-        }
-
-        float pComp = -forces[0];
-        float mTotal = Mathf.Sqrt(forces[4] * forces[4] + forces[5] * forces[5]);
-        return new Vector2(pComp, mTotal);
+        return UnityData.PMDemand(data);
     }
 
     public DemandRecord GetActiveWallDemand()

@@ -75,9 +75,8 @@ public class PMPanel : MonoBehaviour
                 continue;
             }
 
-            float pComp = -forces[0];
-            float mTotal = Mathf.Sqrt(forces[4] * forces[4] + forces[5] * forces[5]);
-            demands[i] = new DemandRecord { combo = combos[i], P_kN = pComp, M_kN_m = mTotal, note = "fuerzas OpenSees por combinacion" };
+            Vector2 pm = UnityData.PMDemand(element.data, combos[i]);
+            demands[i] = new DemandRecord { combo = combos[i], P_kN = pm.x, M_kN_m = pm.y, note = "esfuerzos internos OpenSees (ejes locales) por combinacion" };
         }
         return demands;
     }

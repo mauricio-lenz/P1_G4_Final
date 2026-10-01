@@ -103,7 +103,8 @@ def main():
     meta = element_meta_map(data)
     forces = forces_by_combo(data)
     combos = [c.get("name") for c in p1.get("combinations", []) if c.get("name")]
-    cases = list(COMBO_ORDER)
+    # casos base + combinaciones definidas en data/combinaciones.json (vienen en el JSON)
+    cases = ["G", "Q", "EX", "EY"] + [c for c in combos if c not in ("G", "Q", "EX", "EY")]
     combos_byname = {c.get("name"): c for c in p1.get("combinations", []) if c.get("name")}
 
     wb = openpyxl.Workbook()

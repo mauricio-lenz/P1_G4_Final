@@ -388,52 +388,26 @@ public class DiagramController : MonoBehaviour
             return 0f;
         }
 
+        // esfuerzos internos en ejes locales [N, Vy, Vz, T, My, Mz] (UnityData.InternalForcesAt)
+        float[] r = UnityData.InternalForcesAt(data, t);
+        if (r == null)
+        {
+            return 0f;
+        }
+
         if (mode == DiagramMode.Axial)
         {
-            return GetForceGradient(data, t, 0, 6);
+            return r[0];
         }
 
         if (mode == DiagramMode.Shear)
         {
-            float vy = GetForceGradient(data, t, 1, 7);
-            float vz = GetForceGradient(data, t, 2, 8);
-            float sign = Mathf.Abs(vy) >= Mathf.Abs(vz) ? Mathf.Sign(vy) : Mathf.Sign(vz);
-            return sign * Mathf.Sqrt(vy * vy + vz * vz);
+            float sign = Mathf.Abs(r[1]) >= Mathf.Abs(r[2]) ? Mathf.Sign(r[1]) : Mathf.Sign(r[2]);
+            return sign * Mathf.Sqrt(r[1] * r[1] + r[2] * r[2]);
         }
 
-        float my = GetForceGradient(data, t, 4, 10);
-        float mz = GetForceGradient(data, t, 5, 11);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName
-            && UnityData.ActiveCombo != UnityData.ElementLoadComboName)
-        {
-            mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
-        }
-        mz += UnityData.MovingLoadSpanMoment(data.id, t, length);
-        mz += UnityData.ElementLoadSpanMoment(data.id, t, length);
-        float momentSign = Mathf.Abs(my) >= Mathf.Abs(mz) ? Mathf.Sign(my) : Mathf.Sign(mz);
-        return momentSign * Mathf.Sqrt(my * my + mz * mz);
-    }
-
-    private float GetForceGradient(ElementData data, float t, int iIndex, int jIndex)
-    {
-        if (!string.IsNullOrEmpty(UnityData.ActiveCombo) && UnityData.ElementForcesByCombo != null)
-        {
-            float[] f = UnityData.GetElementForces(UnityData.ActiveCombo, data.id);
-            if (f != null && f.Length >= 12 && iIndex < 12 && jIndex < 12)
-            {
-                return Mathf.Lerp(f[iIndex], f[jIndex], t);
-            }
-        }
-
-        if (iIndex == 0)
-        {
-            return Mathf.Lerp(data.axialI, data.axialJ, t);
-        }
-        if (iIndex == 1)
-        {
-            return Mathf.Lerp(data.shearI, data.shearJ, t);
-        }
-        return Mathf.Lerp(data.momentI, data.momentJ, t);
+        float momentSign = Mathf.Abs(r[4]) >= Mathf.Abs(r[5]) ? Mathf.Sign(r[4]) : Mathf.Sign(r[5]);
+        return momentSign * Mathf.Sqrt(r[4] * r[4] + r[5] * r[5]);
     }
 
     private float ScaleFor(DiagramMode mode)
@@ -632,19 +606,13 @@ public class DiagramController : MonoBehaviour
     private void GetForcesAt(ElementSelectable element, float t, float length,
         out float n, out float vy, out float vz, out float torsion, out float my, out float mz)
     {
-        ElementData data = element.data;
-        n = GetForceGradient(data, t, 0, 6);
-        vy = GetForceGradient(data, t, 1, 7);
-        vz = GetForceGradient(data, t, 2, 8);
-        torsion = GetForceGradient(data, t, 3, 9);
-        my = GetForceGradient(data, t, 4, 10);
-        mz = GetForceGradient(data, t, 5, 11);
-        if (data.type == "viga" && Mathf.Abs(data.uniformLoad) > 1e-9f && UnityData.ActiveCombo != UnityData.MovingLoadComboName
-            && UnityData.ActiveCombo != UnityData.ElementLoadComboName)
-        {
-            mz += Mathf.Abs(data.uniformLoad) * length * length * t * (1f - t) / 2f;
-        }
-        mz += UnityData.MovingLoadSpanMoment(data.id, t, length);
-        mz += UnityData.ElementLoadSpanMoment(data.id, t, length);
+        float[] r = element.data != null ? UnityData.InternalForcesAt(element.data, t) : null;
+        if (r == null) r = new float[6];
+        n = r[0];
+        vy = r[1];
+        vz = r[2];
+        torsion = r[3];
+        my = r[4];
+        mz = r[5];
     }
 }

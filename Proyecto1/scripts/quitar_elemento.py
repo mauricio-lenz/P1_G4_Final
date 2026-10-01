@@ -22,11 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import carga_viva_sismo as cvm   # noqa: E402
 
-COMBOS = {
-    "C1": {"G": 1.00, "Q": 0.50, "EX": 0.30, "EY": 0.20},
-    "C2": {"G": 1.00, "Q": 0.50, "EX": 0.30, "EY": -0.20},
-    "C3": {"G": 1.00, "Q": 0.50, "EX": -0.30, "EY": 0.20},
-}
+COMBOS = cvm.load_combinations()   # data/combinaciones.json
 Q_KG_M2 = 500.0   # mismos parametros por defecto que exportar_resultados_unity.py
 
 

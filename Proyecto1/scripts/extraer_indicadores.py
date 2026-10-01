@@ -29,7 +29,7 @@ def main():
     print(f"Q_kN_m2: {data.get('Q_kN_m2')} | sc: {data.get('seismic_coefficient')} | q_G: {data.get('q_G')}")
 
     print("\n=== Desplazamiento horizontal maximo por combo ===")
-    for combo_name in ["C1", "C2", "C3"]:
+    for combo_name in [c["name"] for c in p1l4.get("combinations", [])] or ["C1", "C2", "C3"]:
         recs = [r for r in p1l4.get("displacements", []) if r["combo"] == combo_name]
         if not recs:
             print(f"{combo_name}: sin datos")

@@ -1191,6 +1191,36 @@ public class StructureViewer : MonoBehaviour
             UiTheme.DimLabel);
     }
 
+    private string searchText = "";
+
+    /// Busca un elemento por id o tag, lo selecciona y centra la camara en el.
+    private void FindAndSelect(string key)
+    {
+        key = (key ?? "").Trim();
+        if (key.Length == 0) return;
+        foreach (ElementSelectable sel in selectables)
+        {
+            if (sel == null || sel.data == null) continue;
+            if (sel.data.id.ToString() == key || string.Equals(sel.data.elementTag, key, System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (UnityData.IsRemoved(sel.data.id))
+                {
+                    statusMessage = $"{key} esta quitado en el modelo modificado.";
+                    return;
+                }
+                if (!sel.gameObject.activeInHierarchy)
+                {
+                    floorIndex = 0;   // quita el filtro de piso para que se vea
+                }
+                var picker = FindAnyObjectByType<ElementPicker>();
+                if (picker != null) picker.SelectElement(sel, true);
+                statusMessage = "Elemento " + (sel.data.elementTag ?? key) + " seleccionado.";
+                return;
+            }
+        }
+        statusMessage = $"No existe el elemento '{key}'.";
+    }
+
     private void DrawLeftPanel()
     {
         Rect area = UiTheme.LeftArea();
@@ -1204,7 +1234,17 @@ public class StructureViewer : MonoBehaviour
         float innerY = y + 30f;
         float innerW = w - 24f;
         leftScroll = GUI.BeginScrollView(new Rect(x + 4f, innerY, w - 8f, h - 38f), leftScroll,
-            new Rect(x + 4f, innerY, w - 24f, 540f));
+            new Rect(x + 4f, innerY, w - 24f, 596f));
+
+        // Buscar elemento por id/tag: lo selecciona y centra la camara
+        GUI.Label(new Rect(innerX, innerY, innerW, 20f), "BUSCAR ELEMENTO", UiTheme.Header);
+        innerY += 22f;
+        searchText = GUI.TextField(new Rect(innerX, innerY, innerW - 86f, 22f), searchText);
+        if (GUI.Button(new Rect(innerX + innerW - 80f, innerY, 80f, 22f), "Ir"))
+        {
+            FindAndSelect(searchText);
+        }
+        innerY += 34f;
 
         GUI.Label(new Rect(innerX, innerY, innerW, 20f), "VISIBILIDAD", UiTheme.Header);
         innerY += 22f;

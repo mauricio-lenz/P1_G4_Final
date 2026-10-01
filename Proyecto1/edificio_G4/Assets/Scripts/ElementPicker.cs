@@ -44,6 +44,7 @@ public class ElementPicker : MonoBehaviour
                     }
                     selectedElement = selectable;
                     selectable.OnSelected();
+                    if (selectable.data != null) Debug.Log("[ElementPicker] Seleccionado " + selectable.data.elementTag);
 
                     SetInfoSelection(null);
 
@@ -80,8 +81,19 @@ public class ElementPicker : MonoBehaviour
     private Vector2 touchStart;
     private float touchStartTime;
     private bool touchCandidate;
-    private const float TapMaxMove = 25f;
-    private const float TapMaxTime = 0.45f;
+    // Umbral fisico (~6 mm): en pantallas de alta densidad un toque se mueve
+    // facilmente 20-40 px reales y no debe confundirse con un arrastre.
+    private const float TapMaxMoveMm = 6f;
+    private const float TapMaxTime = 0.7f;
+
+    private static float TapMaxMove
+    {
+        get
+        {
+            float dpi = Screen.dpi > 0f ? Screen.dpi : 160f * Mathf.Max(1f, Screen.height / 720f);
+            return Mathf.Max(25f, dpi / 25.4f * TapMaxMoveMm);
+        }
+    }
 
     /// Click izquierdo (PC) o toque corto (celular) fuera de los paneles.
     private bool GetClick(out Vector2 position)
@@ -114,6 +126,7 @@ public class ElementPicker : MonoBehaviour
                     position = t.position;
                     return true;
                 }
+                if (Debug.isDebugBuild) Debug.Log("[ElementPicker] Toque descartado: demasiado largo");
             }
             return false;
         }

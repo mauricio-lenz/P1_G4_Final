@@ -21,7 +21,7 @@ fueron movidos/borrados de la raíz).
 
 | # | Función | Estado |
 |---|---|---|
-| 1 | Mostrar estructura 3D completa (edificio 1 + 2, H-30) | Implementada |
+| 1 | Mostrar estructura 3D completa (edificio 1 + 2, G35 + perfiles A36) | Implementada |
 | 2 | Selección de elemento (columna/viga/muro): ID, nodos, sección, material, eje local, restricciones | Implementada |
 | 3 | Apoyos visibles (34 apoyos, objetos 3D) | Implementada |
 | 4 | Toggle cargas (D, L, combinaciones; flechas por losa) | Implementada |
@@ -43,7 +43,7 @@ python -X utf8 scripts\exportar_resultados_unity.py  & rem solo re-exporta a Uni
 ```
 
 Regenera:
-- `Proyecto1/data/semana3_resultados_unity.json` (curva P-M columna H-30).
+- `Proyecto1/data/semana3_resultados_unity.json` (curva P-M columna G35).
 - `Proyecto1/edificio_G4/Assets/Resources/estructura_p1l4_unity.json`
   (JSON enriquecido para el viewer Unity).
 

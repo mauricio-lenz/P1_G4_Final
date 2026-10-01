@@ -167,11 +167,12 @@ public class ElementRemovalPanel : MonoBehaviour
 
     private static float Metric(ElementData e, float[] f)
     {
+        // f = fuerzas de extremo locales: columnas/arriostres -> |N|, vigas -> max |M| en los extremos
         if (f == null || f.Length < 12) return 0f;
         if (e.type == "columna" || e.type == "arriostre") return Mathf.Max(Mathf.Abs(f[0]), Mathf.Abs(f[6]));
-        float m = 0f;
-        for (int k = 3; k < 6; k++) m = Mathf.Max(m, Mathf.Abs(f[k]), Mathf.Abs(f[k + 6]));
-        return m;
+        float mi = Mathf.Sqrt(f[4] * f[4] + f[5] * f[5]);
+        float mj = Mathf.Sqrt(f[10] * f[10] + f[11] * f[11]);
+        return Mathf.Max(mi, mj);
     }
 
     private void BuildComparison()

@@ -1,0 +1,9 @@
+{
+  "descripcion": "Combinaciones de carga del proyecto. Editar aqui (VS Code) y re-exportar: python -X utf8 Proyecto1/scripts/exportar_resultados_unity.py. Cada combinacion es la suma lambda_G*G + lambda_Q*Q + lambda_EX*EX + lambda_EY*EY de los casos base. Se pueden agregar o quitar combinaciones; Unity muestra todas en la barra superior.",
+  "origen": "Factores usados desde la semana 3 del curso (pendiente de confirmar con el enunciado/profesor).",
+  "combinaciones": [
+    {"name": "C1", "G": 1.0, "Q": 0.5, "EX": 0.3, "EY": 0.2},
+    {"name": "C2", "G": 1.0, "Q": 0.5, "EX": 0.3, "EY": -0.2},
+    {"name": "C3", "G": 1.0, "Q": 0.5, "EX": -0.3, "EY": 0.2}
+  ]
+}
