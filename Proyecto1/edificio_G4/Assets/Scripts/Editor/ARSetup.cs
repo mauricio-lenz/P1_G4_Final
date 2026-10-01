@@ -125,7 +125,7 @@ public static class ARSetup
     }
 
     /// Ancho impreso del marcador (scripts/generar_marcador_ar.py, MARKER_WIDTH_M).
-    public const float MarkerWidth = 0.20f;
+    public const float MarkerWidth = ARSetupConstants.MarkerWidth;
     private const string MarkerTexturePath = "Assets/AR/Marcador_E1_260.png";
     private const string LibraryPath = "Assets/AR/MarcadorLibrary.asset";
 
@@ -192,6 +192,8 @@ public static class ARSetup
         var app = new GameObject("AR App");
         app.AddComponent<ARBootstrap>();
         app.AddComponent<ARImageAnchor>();
+        app.AddComponent<ARStructure>();
+        app.AddComponent<ARResultsPanel>();
 
         Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
         EditorSceneManager.SaveScene(scene, ScenePath);

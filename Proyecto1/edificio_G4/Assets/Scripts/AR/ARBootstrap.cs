@@ -96,7 +96,8 @@ public class ARBootstrap : MonoBehaviour
         if (Input.touchCount == 1 && Input.GetTouch(0).phase == UnityEngine.TouchPhase.Began && raycaster != null)
         {
             Vector2 pos = Input.GetTouch(0).position;
-            bool overPanels = pos.x / UiTheme.Scale < UiTheme.SideM + 480f;
+            bool anchored = ARImageAnchor.Instance != null && ARImageAnchor.Instance.HasAnchor;
+            bool overPanels = anchored || pos.x / UiTheme.Scale < UiTheme.SideM + 480f;
             if (!overPanels && raycaster.Raycast(pos, Hits, TrackableType.PlaneWithinPolygon))
             {
                 PlaceCube(Hits[0]);
