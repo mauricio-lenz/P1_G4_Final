@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 848409ee8ba454f42a5ddff137688a27, type: 3}
   m_Name: MarcadorLibrary
   m_EditorClassIdentifier: Unity.XR.ARSubsystems::UnityEngine.XR.ARSubsystems.XRReferenceImageLibrary
-  m_GuidLow: 5365317995659308439
-  m_GuidHigh: 9547954558428601487
+  m_GuidLow: 4773157873878946781
+  m_GuidHigh: 15201391861299511189
   m_DataStore:
     m_Storage: []
   m_Images:
   - m_SerializedGuid:
-      m_GuidLow: 5347555680958623444
-      m_GuidHigh: 17042667445770005125
+      m_GuidLow: 4825586012065987753
+      m_GuidHigh: 12225588723884144033
     m_SerializedTextureGuid:
       m_GuidLow: 6837832411808876655
       m_GuidHigh: 12500174112520282201
