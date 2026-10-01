@@ -178,7 +178,7 @@ public class ARStructure : MonoBehaviour
             bool isAnchor = e.elementTag == AnchorTag;
             if (sectorOnly || isAnchor)
             {
-                float textH = sectorOnly ? 0.12f : 0.012f;
+                float textH = sectorOnly ? 0.12f : 0.006f;
                 AddLabel(e.elementTag, (a + b) * 0.5f + ModelUpLocal * textH * 0.6f, textH, isAnchor);
             }
         }

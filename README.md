@@ -3,7 +3,7 @@
 Modelo estructural de dos edificios de hormigón armado G35 con perfiles metálicos A36 (edificio 1: planos
 2017_67; edificio 2: planos 2024_22; separados por junta de dilatación):
 análisis OpenSees/Python + viewer Unity **en una sola carpeta autocontenida
-(`Proyecto1/`)**. Informe vigente de la semana 5: [`reports/semana05.md`](reports/semana05.md).
+(`Proyecto1/`)**. Informe vigente de la semana 6 (AR): [`reports/semana06.md`](reports/semana06.md); semana 5: [`reports/semana05.md`](reports/semana05.md).
 
 ## Estructura
 
@@ -29,7 +29,7 @@ Proyecto1/
 ├─ edificio_G4/                      # proyecto Unity (escena StructureViewerScene)
 │  └─ Assets/Resources/estructura_p1l4_unity.json
 └─ resultados/                       # esfuerzos_por_elemento.xlsx
-reports/                             # informes semanales (semana02, 03, 05)
+reports/                             # informes semanales (semana02, 03, 05, 06)
 ```
 
 ## Modelo vigente

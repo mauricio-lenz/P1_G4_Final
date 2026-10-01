@@ -15,7 +15,7 @@ fueron movidos/borrados de la raíz).
 | Resultados Unity | `data/semana3_resultados_unity.json` | Curva P-M de columna (COL70/70_FIBER) + demandas por combo |
 | Proyecto Unity viewer | `edificio_G4/` | Visualizador 3D en Unity; JSON en `Assets/Resources/` |
 | Resultados exportados | `resultados/` | `esfuerzos_por_elemento.xlsx` (esfuerzos por elemento a Excel) |
-| Informes / entregables | `../reports/semana05.md` (vigente), `ENTREGA_SEMANA4_CHECKLIST.md` | Informe de la semana 5 + rúbrica de la semana 4 |
+| Informes / entregables | `../reports/semana06.md` (vigente, AR), `../reports/semana05.md`, `ENTREGA_SEMANA4_CHECKLIST.md` | Informes de las semanas 6 y 5 + rúbrica de la semana 4 |
 
 ## Funcionalidades (tabla de estado)
 
