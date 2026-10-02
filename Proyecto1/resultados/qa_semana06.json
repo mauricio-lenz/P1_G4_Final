@@ -1,0 +1,105 @@
+{
+  "parametros": {
+    "q_G_kN_m2": 6.22722275,
+    "Q_kN_m2": 4.903325,
+    "coeficienteSismico": 0.2
+  },
+  "G": {
+    "aplicada_kN": 59900.94204381522,
+    "reaccion_kN": 59900.94204381524,
+    "error_kN": 1.4551915228366852e-11,
+    "ok": true
+  },
+  "Q": {
+    "aplicada_kN": 22472.56204555022,
+    "reaccion_kN": 22472.562045550232,
+    "error_kN": 1.0913936421275139e-11,
+    "ok": true
+  },
+  "EX": {
+    "aplicada_kN": 14105.16476331806,
+    "reaccion_kN": 14105.164763318102,
+    "error_kN": -4.18367562815547e-11,
+    "ok": true,
+    "esperado_kN": 14105.16476331806
+  },
+  "EY": {
+    "aplicada_kN": 14105.16476331806,
+    "reaccion_kN": 14105.164763317956,
+    "error_kN": 1.0368239600211382e-10,
+    "ok": true,
+    "esperado_kN": 14105.16476331806
+  },
+  "superposicion": {
+    "combinaciones": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "max_err_global": 2.9103830456733704e-11,
+    "valida": true
+  },
+  "M_phi": {
+    "mallas": {
+      "10": {
+        "Mmax_kN_m": 660.2693614507456,
+        "phi_Mmax_1_m": 0.12,
+        "EI0_kN_m2": 106323.68228765453
+      },
+      "20": {
+        "Mmax_kN_m": 655.9713387597569,
+        "phi_Mmax_1_m": 0.12,
+        "EI0_kN_m2": 107357.43892699032
+      },
+      "40": {
+        "Mmax_kN_m": 659.5916312764914,
+        "phi_Mmax_1_m": 0.12,
+        "EI0_kN_m2": 107581.02998892892
+      }
+    },
+    "dif_20_vs_40_pct": 0.5488687765380251,
+    "ok": true
+  },
+  "PM_columna": {
+    "columnas": 119,
+    "peor": {
+      "elementTag": "E1_255",
+      "combo": "C2",
+      "P_kN": 35.5718228716875,
+      "M_kN_m": 766.6424588150087,
+      "Mcap_kN_m": 528.6860394461928,
+      "C": 1.4500902267403903
+    },
+    "ok": false
+  },
+  "PM_muro": {
+    "muros": 91,
+    "peor": {
+      "muro": "MURO-031",
+      "combo": "C1",
+      "P_kN": 344.33,
+      "M_kN_m": 10745.26,
+      "Mcap_kN_m": 15818.306571479132,
+      "C": 0.6792926885975277
+    },
+    "ok": true,
+    "nota": "demanda estimada (los muros no estan en el analisis OpenSees); una sola curva de referencia para todos"
+  },
+  "IDs_Unity": {
+    "elementos": 557,
+    "ids_unicos": true,
+    "tags_unicos": true,
+    "fuerzas_faltantes": 0,
+    "nodos_invalidos": 0,
+    "casos": [
+      "G",
+      "Q",
+      "EX",
+      "EY",
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "ok": true
+  }
+}

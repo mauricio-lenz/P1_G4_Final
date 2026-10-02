@@ -65,6 +65,7 @@ public class ARImageAnchor : MonoBehaviour
 
         if (trackingSince < 0f) trackingSince = Time.unscaledTime;
         markerSize = marker.size;
+        if (HasAnchor) MeasureRegistration();
         if (!HasAnchor && !creating && Time.unscaledTime - trackingSince >= settleTime)
         {
             CreateAnchor();
@@ -104,6 +105,48 @@ public class ARImageAnchor : MonoBehaviour
         Anchored?.Invoke(ContentRoot);
     }
 
+    // ------------------------------------------------------------------
+    // Precision: imagen vista ahora vs anchor (registro). Con la camara quieta
+    // mide el ruido; caminando alrededor mide la deriva del anchor.
+    //   delta  = |posicion de la imagen expresada en el anchor|   (traslacion)
+    //   dTheta = angulo entre la rotacion de la imagen y la del anchor
+    //   error a la distancia r del marcador ~ delta + r * dTheta (rad)
+    // ------------------------------------------------------------------
+    private const int QaSamples = 120;
+    private readonly Vector3[] qaPos = new Vector3[QaSamples];
+    private readonly float[] qaAng = new float[QaSamples];
+    private int qaCount, qaNext;
+    private float qaLogAt;
+    public float RegDeltaMm { get; private set; }
+    public float RegAngleDeg { get; private set; }
+    public float RegNoiseMm { get; private set; }
+
+    private void MeasureRegistration()
+    {
+        Vector3 local = Anchor.transform.InverseTransformPoint(marker.transform.position);
+        float ang = Quaternion.Angle(Anchor.transform.rotation, marker.transform.rotation);
+        qaPos[qaNext] = local;
+        qaAng[qaNext] = ang;
+        qaNext = (qaNext + 1) % QaSamples;
+        qaCount = Mathf.Min(qaCount + 1, QaSamples);
+        Vector3 mean = Vector3.zero;
+        float meanAng = 0f;
+        for (int i = 0; i < qaCount; i++) { mean += qaPos[i]; meanAng += qaAng[i]; }
+        mean /= qaCount;
+        meanAng /= qaCount;
+        float var = 0f;
+        for (int i = 0; i < qaCount; i++) var += (qaPos[i] - mean).sqrMagnitude;
+        RegDeltaMm = mean.magnitude * 1000f;
+        RegAngleDeg = meanAng;
+        RegNoiseMm = Mathf.Sqrt(var / Mathf.Max(1, qaCount - 1)) * 1000f;
+        if (Time.unscaledTime >= qaLogAt)
+        {
+            qaLogAt = Time.unscaledTime + 2f;
+            float dist = Camera.main != null ? Vector3.Distance(Camera.main.transform.position, marker.transform.position) : 0f;
+            Debug.Log($"[ARQA] dist_camara={dist:0.000} m | delta={RegDeltaMm:0.0} mm | dTheta={RegAngleDeg:0.00} deg | ruido={RegNoiseMm:0.0} mm | n={qaCount}");
+        }
+    }
+
     // Marco del marcador + ejes x (rojo), y normal (verde), z (azul).
     private static void BuildMarkerGizmo(Transform parent, Vector2 size)
     {
@@ -138,7 +181,7 @@ public class ARImageAnchor : MonoBehaviour
     {
         UiTheme.ApplyScale();
         float w = 470f, x = UiTheme.SideM, y = UiTheme.SideM + 206f;
-        UiTheme.GUIBox(new Rect(x, y, w, 150f), "AR · FASE 2 (imagen y anchor)");
+        UiTheme.GUIBox(new Rect(x, y, w, 194f), "AR · FASE 2 (imagen y anchor)");
         float ly = y + 28f;
         GUI.Label(new Rect(x + 12f, ly, w - 24f, 20f), "Imagen " + MarkerName + ": " + status, UiTheme.Label); ly += 20f;
         if (marker != null)
@@ -155,6 +198,14 @@ public class ARImageAnchor : MonoBehaviour
         {
             float dist = Camera.main != null ? Vector3.Distance(Camera.main.transform.position, Anchor.transform.position) : 0f;
             GUI.Label(new Rect(x + 12f, ly, w - 150f, 20f), $"Anchor: {Anchor.trackingState} | a {dist:0.00} m", UiTheme.Label);
+        }
+        if (HasAnchor && qaCount > 0)
+        {
+            float e4 = RegDeltaMm + 4000f * RegAngleDeg * Mathf.Deg2Rad;
+            GUI.Label(new Rect(x + 12f, y + 148f, w - 24f, 20f),
+                $"Registro imagen-anchor: Δ = {RegDeltaMm:0.0} mm · Δθ = {RegAngleDeg:0.00}° · ruido {RegNoiseMm:0.0} mm", UiTheme.Label);
+            GUI.Label(new Rect(x + 12f, y + 168f, w - 24f, 20f),
+                $"Error estimado a 1 m: {(RegDeltaMm + 1000f * RegAngleDeg * Mathf.Deg2Rad) / 10f:0.0} cm · a 4 m: {e4 / 10f:0.0} cm", UiTheme.DimLabel);
         }
         bool canAnchor = marker != null && marker.trackingState == TrackingState.Tracking && !creating;
         GUI.enabled = canAnchor;
