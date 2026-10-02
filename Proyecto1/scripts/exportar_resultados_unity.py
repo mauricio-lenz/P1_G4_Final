@@ -24,6 +24,7 @@ El JSON se escribe en:
 import sys
 import os
 import json
+import math
 from pathlib import Path
 
 # ── Configuracion de rutas ──────────────────────────────────────────
@@ -236,11 +237,32 @@ def main():
     # ── Parametros ──────────────────────────────────────────────────
     import argparse
     parser = argparse.ArgumentParser(description="Exportar resultados enriquecidos para Unity P1L4")
-    parser.add_argument("--q-kg-m2", type=float, default=500.0,
-                        help="Carga viva Q en kg/m2 (default: 500)")
-    parser.add_argument("--sc", type=float, default=cvm.DEFAULT_SEISMIC_COEFF,
-                        help="Coeficiente sismico (default: 0.20)")
+    parser.add_argument("--q-kg-m2", type=float, default=None,
+                        help="Carga viva Q en kg/m2 (default: data/parametros_analisis.json o 500)")
+    parser.add_argument("--sc", type=float, default=None,
+                        help="Coeficiente sismico (default: data/parametros_analisis.json o 0.20)")
+    parser.add_argument("--qG", type=float, default=None,
+                        help="Carga muerta de losa q_G en kN/m2 (default: la del modelo). Escala la carga tributaria D de las vigas")
+    parser.add_argument("--combos", type=Path, default=None,
+                        help="Archivo de combinaciones (default: data/combinaciones.json)")
+    parser.add_argument("--mods", type=Path, default=None,
+                        help='JSON de modificaciones: {"sections": {"<id o tag>": {"width_m": b, "height_m": h, "sectionId": "V40/80"}}}')
+    parser.add_argument("--out", type=Path, default=None,
+                        help="JSON de salida (default: Assets/Resources/estructura_p1l4_unity.json). Desde Unity: escenario temporal")
     args = parser.parse_args()
+
+    # Parametros guardados (los escribe Unity con "Guardar como modelo vigente"; editable en VS Code).
+    # Los argumentos de consola tienen prioridad.
+    params = cvm.load_analysis_params()
+    if args.q_kg_m2 is None:
+        args.q_kg_m2 = float(params.get("Q_kg_m2", 500.0))
+    if args.sc is None:
+        args.sc = float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
+    if args.qG is None and params.get("q_G_kN_m2"):
+        args.qG = float(params["q_G_kN_m2"])
+    secciones_param = params.get("sections", {}) or {}
+    if params:
+        print(f"Parametros de data/parametros_analisis.json: Q={args.q_kg_m2} kg/m2, sc={args.sc}, q_G={args.qG}, secciones={len(secciones_param)}")
 
     q_Q = cvm.kg_m2_to_kn_m2(args.q_kg_m2)
     sc = args.sc
@@ -250,11 +272,11 @@ def main():
     print("Cargando estructura base...")
     data = load_json(JSON_BASE)
     q_g = float(data.get("q_G", 6.227))
-    print(f"  Nodos: {len(data.get('nodes', []))}")
-    print(f"  Elementos: {len(data.get('elements', []))}")
-    print(f"  Muros: {len(data.get('walls', []))}")
-    print(f"  Apoyos: {len(data.get('supports', []))}")
-    print(f"  q_G = {q_g:.4f} kN/m2")
+    secciones = dict(secciones_param)
+    if args.mods is not None:
+        secciones = load_json(args.mods).get("sections", {}) or {}
+    modificaciones = cvm.apply_model_params(data, args.qG, secciones)
+    q_g = float(data.get("q_G", q_g))
 
     # ── Cargar curva P-M del muro (part_e_wall.json) ───────────────
     wall_pm_data = None
@@ -307,7 +329,7 @@ def main():
     load_sets = {"G": G, "Q": Q, "EX": EX, "EY": EY}
 
     # ── Combinaciones: data/combinaciones.json (editable en VS Code) ──
-    combos = cvm.load_combinations()
+    combos = cvm.load_combinations(args.combos) if args.combos else cvm.load_combinations()
     combo_labels = {name: cvm.combination_label(name, lam) for name, lam in combos.items()}
     print("Combinaciones: " + " | ".join(combo_labels.values()))
 
@@ -605,6 +627,26 @@ def main():
     import carga_movil
     carga_movil_data = carga_movil.construir(data, cvm)
 
+    # ── Resumen para la interfaz (equilibrio, corte basal, |u| maximo) ──
+    def _u_max_mm(res):
+        best = 0.0
+        for d in (res or {}).get("displacements", {}).values():
+            best = max(best, math.sqrt(d.get("ux", 0.0) ** 2 + d.get("uy", 0.0) ** 2 + d.get("uz", 0.0) ** 2))
+        return 1000.0 * best
+    resumen = {
+        "q_G_kN_m2": q_g,
+        "Q_kN_m2": q_Q,
+        "coeficienteSismico": sc,
+        "G_aplicada_kN": -sum(v[2] for v in G.values()),
+        "G_reaccion_kN": (base_results.get("G") or {}).get("reactions", {}).get("sum_Fz", 0.0),
+        "Q_aplicada_kN": -sum(v[2] for v in Q.values()),
+        "Q_reaccion_kN": (base_results.get("Q") or {}).get("reactions", {}).get("sum_Fz", 0.0),
+        "corteBasal_EX_kN": seismic.get("corte_basal_EX_kN", 0.0),
+        "corteBasal_EY_kN": seismic.get("corte_basal_EY_kN", 0.0),
+        "uMax": [{"caso": k, "u_mm": _u_max_mm(v)} for k, v in {**base_results, **all_results}.items()],
+        "secciones": modificaciones,
+    }
+
     # ── JSON de salida ───────────────────────────────────────────────
     curva_muro_n = len(wall_pm_data) if wall_pm_data else 0
     output = {
@@ -622,6 +664,7 @@ def main():
         "q_G": data.get("q_G", q_g),
         "seismic_coefficient": sc,
         "Q_kN_m2": q_Q,
+        "resumenAnalisis": resumen,
         "notes": [
             "JSON enriquecido para Unity P1L4",
             "Desplazamientos y fuerzas internas de analisis estatico lineal OpenSees",
@@ -643,14 +686,15 @@ def main():
 
     # ── Guardar ──────────────────────────────────────────────────────
     # Compacto: el JSON de Unity es generado y la indentacion lo triplica de tamano
-    write_json(JSON_OUT, output, compact=True)
+    out_path = args.out if args.out else JSON_OUT
+    write_json(out_path, output, compact=True)
     n_nodes = len(data.get("nodes", []))
     n_elements = len(data.get("elements", []))
     n_combos = len(combos_list)
     n_disp = len(displacements_flat)
     n_forces = len(element_forces_flat)
     n_pm = len(pm_curves)
-    print(f"\nJSON enriquecido guardado en: {JSON_OUT}")
+    print(f"\nJSON enriquecido guardado en: {out_path}")
     print(f"  Nodos: {n_nodes}")
     print(f"  Elementos: {n_elements}")
     print(f"  Combinaciones: {n_combos}")

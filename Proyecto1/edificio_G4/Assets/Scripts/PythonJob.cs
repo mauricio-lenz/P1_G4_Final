@@ -4,12 +4,17 @@ using UnityEngine;
 /// <summary>
 /// Ejecuta un script de Proyecto1/scripts en segundo plano (python o py) y
 /// avisa cuando termina. Solo disponible en el editor o en PC.
+/// La salida se lee en forma asincrona (un script que imprime mucho no se
+/// bloquea con el bufer lleno) y la ultima linea queda en <see cref="LastLine"/>.
 /// </summary>
 public class PythonJob
 {
     public string OutputPath { get; private set; }
     public string Error { get; private set; }
     public bool Running => process != null;
+    /// Ultima linea impresa por el script (progreso).
+    public string LastLine => lastLine;
+    public float Elapsed => process != null ? Time.unscaledTime - startTime : lastElapsed;
 
     /// true en el editor y en PC (hay Python/OpenSees); false en celular.
     public static bool Available
@@ -17,7 +22,7 @@ public class PythonJob
         get
         {
 #if UNITY_EDITOR || UNITY_STANDALONE
-            return true;
+            return ScriptsDir != null;
 #else
             return false;
 #endif
@@ -30,16 +35,45 @@ public class PythonJob
     private object process;
 #endif
     private float startTime;
+    private float lastElapsed;
+    private volatile string lastLine = "";
+    private readonly System.Text.StringBuilder errors = new System.Text.StringBuilder();
+
+    private static string scriptsDir;
+    private static bool scriptsSearched;
+
+    /// Carpeta Proyecto1/scripts: se busca hacia arriba desde los datos de la app
+    /// (editor: edificio_G4/Assets; build de Windows: Builds/Windows/..._Data).
+    public static string ScriptsDir
+    {
+        get
+        {
+            if (scriptsSearched) return scriptsDir;
+            scriptsSearched = true;
+            var dir = new DirectoryInfo(Application.dataPath);
+            for (int i = 0; i < 7 && dir != null; i++, dir = dir.Parent)
+            {
+                string candidate = Path.Combine(dir.FullName, "scripts");
+                if (File.Exists(Path.Combine(candidate, "carga_viva_sismo.py"))) { scriptsDir = candidate; break; }
+            }
+            return scriptsDir;
+        }
+    }
+
+    /// Carpeta Proyecto1 (padre de scripts), o null.
+    public static string ProjectRoot => ScriptsDir != null ? Path.GetDirectoryName(ScriptsDir) : null;
 
     public static string ScriptPath(string scriptName)
     {
-        return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "scripts", scriptName));
+        return ScriptsDir != null ? Path.Combine(ScriptsDir, scriptName) : scriptName;
     }
 
     /// Lanza "python -X utf8 script args --out <salida>". Devuelve false si no se pudo.
     public bool Start(string scriptName, string args, string outName)
     {
         Error = null;
+        lastLine = "";
+        errors.Length = 0;
 #if UNITY_EDITOR || UNITY_STANDALONE
         string script = ScriptPath(scriptName);
         if (!File.Exists(script))
@@ -63,7 +97,13 @@ public class PythonJob
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
                 };
-                process = System.Diagnostics.Process.Start(info);
+                var p = new System.Diagnostics.Process { StartInfo = info };
+                p.OutputDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) lastLine = e.Data.Trim(); };
+                p.ErrorDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) lock (errors) errors.AppendLine(e.Data); };
+                p.Start();
+                p.BeginOutputReadLine();
+                p.BeginErrorReadLine();
+                process = p;
                 startTime = Time.unscaledTime;
                 return true;
             }
@@ -96,12 +136,15 @@ public class PythonJob
             }
             return false;
         }
-        process.StandardOutput.ReadToEnd();
-        string err = process.StandardError.ReadToEnd();
+        process.WaitForExit();   // vacia las lecturas asincronas pendientes
+        lastElapsed = Time.unscaledTime - startTime;
         process = null;
         if (!File.Exists(OutputPath))
         {
-            Error = "Error en Python: " + (string.IsNullOrEmpty(err) ? "sin salida" : err.Trim().Split('\n')[0]);
+            string err;
+            lock (errors) err = errors.ToString().Trim();
+            string[] lines = err.Split('\n');
+            Error = "Error en Python: " + (err.Length == 0 ? (lastLine.Length > 0 ? lastLine : "sin salida") : lines[lines.Length - 1].Trim());
         }
         return true;
 #else

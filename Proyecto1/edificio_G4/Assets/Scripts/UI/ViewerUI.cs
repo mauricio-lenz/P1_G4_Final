@@ -28,6 +28,8 @@ public class ViewerUI : MonoBehaviour
     public static bool TextFocused { get; private set; }
 
     private static ViewerUI instance;
+    /// Parametros editables y reanalisis (persisten aunque se reconstruya la interfaz).
+    public static readonly AnalysisSession Session = new AnalysisSession();
     private UIDocument document;
     private VisualElement root;
     private StructureViewer viewer;
@@ -59,6 +61,7 @@ public class ViewerUI : MonoBehaviour
         viewer = GetComponent<StructureViewer>();
         diagrams = viewer.Diagrams;
         picker = FindAnyObjectByType<ElementPicker>();
+        Session.LoadFrom(viewer.Data);   // antes de construir: la pestana ANALISIS muestra estos valores
         if (!Build())
         {
             Debug.LogWarning("[ViewerUI] No se pudo crear la interfaz UI Toolkit; se usa la interfaz IMGUI.");
@@ -66,6 +69,21 @@ public class ViewerUI : MonoBehaviour
         }
         instance = this;
         Active = true;
+        viewer.ModelReloaded += Rebuild;
+        SelectTab(ActiveTab);
+        SyncAll();
+    }
+
+    /// Tras recargar el modelo (reanalisis): se rehace la interfaz con los datos nuevos.
+    private void Rebuild()
+    {
+        diagrams = viewer.Diagrams;
+        root.Clear();
+        tabButtons.Clear(); tabPages.Clear(); hosts.Clear(); caseButtons.Clear(); resultButtons.Clear(); syncers.Clear();
+        propsText = null;
+        BuildTopBar();
+        BuildDock();
+        BuildProps();
         SelectTab(ActiveTab);
         SyncAll();
     }
@@ -73,6 +91,7 @@ public class ViewerUI : MonoBehaviour
     private void OnDestroy()
     {
         if (instance == this) { Active = false; instance = null; HostRect = Rect.zero; }
+        if (viewer != null) viewer.ModelReloaded -= Rebuild;
         if (document != null) Destroy(document.gameObject);
     }
 
@@ -125,7 +144,7 @@ public class ViewerUI : MonoBehaviour
         row1.Add(Text("GRUPO 4 · P1_G4", "brand"));
         row1.Add(Text("Modelo OpenSees · edificios 1 y 2 · G35 / A36", "brand-sub"));
         row1.Add(Spacer());
-        var search = new TextField { value = "" };
+        var search = Input(new TextField { value = "" });
         search.AddToClassList("search");
         search.tooltip = "Id o elementTag (ej. E1_72)";
         search.RegisterCallback<FocusInEvent>(_ => TextFocused = true);
@@ -269,6 +288,7 @@ public class ViewerUI : MonoBehaviour
         {
             head.Add(Text("Requiere Python + OpenSees en el PC (no disponible en este equipo).", "hint"));
         }
+        if (tab == TabModificar) BuildSectionEditor(head);
         page.Add(head);
         var host = new VisualElement();
         host.AddToClassList("host");
@@ -428,7 +448,92 @@ public class ViewerUI : MonoBehaviour
         if (diagrams != null) diagrams.Refresh();
     }
 
-    // ---- ANALISIS ----
+    // ---- MODIFICAR: cambio de seccion ----
+    private void BuildSectionEditor(VisualElement c)
+    {
+        c.Add(Title("CAMBIAR SECCIÓN"));
+        var info = Text("Selecciona una viga o columna de hormigón.", "hint");
+        c.Add(info);
+
+        // secciones rectangulares de hormigon del modelo (las de acero y muros equivalentes no se editan aqui)
+        var presets = new SortedDictionary<string, Vector2>();
+        foreach (ElementData e in viewer.Data.elements)
+        {
+            string sid = e.sectionId ?? "";
+            if ((sid.StartsWith("V") && !sid.StartsWith("VM")) || sid.StartsWith("COL")) presets[sid] = new Vector2(e.width_m, e.height_m);
+        }
+        var choices = new List<string>(presets.Keys);
+        var preset = new DropdownField("Sección", choices, 0);
+        preset.AddToClassList("dropdown");
+        var bField = Input(new FloatField("b [m]") { value = 0.6f, formatString = "0.###" });
+        var hField = Input(new FloatField("h [m]") { value = 0.8f, formatString = "0.###" });
+        bField.AddToClassList("dropdown");
+        hField.AddToClassList("dropdown");
+        preset.RegisterValueChangedCallback(e =>
+        {
+            if (presets.TryGetValue(e.newValue, out Vector2 d)) { bField.SetValueWithoutNotify(d.x); hField.SetValueWithoutNotify(d.y); }
+        });
+        c.Add(preset);
+        var dims = Row();
+        dims.Add(bField);
+        dims.Add(hField);
+        c.Add(dims);
+        var buttons = Row();
+        var add = Btn("Agregar cambio", null, "wide");
+        var undo = Btn("Quitar cambio", null, "wide");
+        buttons.Add(add);
+        buttons.Add(undo);
+        c.Add(buttons);
+        var list = new VisualElement();
+        c.Add(list);
+        c.Add(Text("Los cambios se aplican con Reanalizar (pestaña ANÁLISIS); el peso propio se recalcula con la nueva sección.", "hint"));
+
+        ElementData current = null;
+        System.Action refreshList = () =>
+        {
+            list.Clear();
+            foreach (var sc in Session.sections.Values)
+                list.Add(KeyValue(sc.tag, $"{sc.before} → {sc.sectionId} ({sc.width:0.00} x {sc.height:0.00} m)"));
+        };
+        add.clicked += () =>
+        {
+            if (current == null) return;
+            string sid = $"{(current.type == "columna" ? "COL" : "V")}{Mathf.RoundToInt(bField.value * 100)}/{Mathf.RoundToInt(hField.value * 100)}";
+            string before = Session.sections.TryGetValue(current.id, out var prev) ? prev.before : current.sectionId;
+            Session.SetSection(current, sid, bField.value, hField.value, before);
+            viewer.Status = $"Cambio de sección pendiente: {current.elementTag} {before} → {sid}. Reanaliza en ANÁLISIS.";
+            refreshList();
+        };
+        undo.clicked += () =>
+        {
+            if (current == null) return;
+            Session.sections.Remove(current.id);
+            refreshList();
+        };
+        refreshList();
+        syncers.Add(() =>
+        {
+            ElementData e = picker != null && picker.Selected != null ? picker.Selected.data : null;
+            bool editable = e != null && (e.type == "viga" || e.type == "columna") && presets.ContainsKey(e.sectionId ?? "");
+            if (e != current)
+            {
+                current = editable ? e : null;
+                if (current != null)
+                {
+                    preset.SetValueWithoutNotify(current.sectionId);
+                    bField.SetValueWithoutNotify(current.width_m);
+                    hField.SetValueWithoutNotify(current.height_m);
+                }
+            }
+            info.text = current != null ? $"{current.elementTag} · {current.type} · sección actual {current.sectionId}"
+                : e != null ? $"{e.elementTag}: sección {e.sectionId} (no editable aquí)" : "Selecciona una viga o columna de hormigón.";
+            add.SetEnabled(current != null && !Session.job.Running);
+            undo.SetEnabled(current != null && Session.sections.ContainsKey(current.id));
+            if (list.childCount != Session.sections.Count) refreshList();
+        });
+    }
+
+    // ---- ANALISIS: parametros, combinaciones y reanalisis ----
     private void BuildAnalisis(VisualElement c)
     {
         StructureData d = viewer.Data;
@@ -440,22 +545,128 @@ public class ViewerUI : MonoBehaviour
             {
                 if (e.type == "viga") beams++; else if (e.type == "columna") cols++; else braces++;
             }
-            c.Add(KeyValue("Nodos", d.nodes.Length.ToString()));
-            c.Add(KeyValue("Elementos", $"{d.elements.Length} ({beams} vigas, {cols} columnas, {braces} arriostres)"));
-            c.Add(KeyValue("Muros", (d.walls?.Length ?? 0).ToString()));
-            c.Add(KeyValue("Apoyos", (d.supports?.Length ?? 0).ToString()));
+            c.Add(KeyValue("Nodos · elementos", $"{d.nodes.Length} · {d.elements.Length} ({beams} V, {cols} C, {braces} A)"));
+            c.Add(KeyValue("Muros · apoyos", $"{d.walls?.Length ?? 0} · {d.supports?.Length ?? 0}"));
+            c.Add(KeyValue("Resultados cargados", viewer.LoadedSource));
         }
-        c.Add(Title("CASOS Y COMBINACIONES"));
-        foreach (string name in new[] { "G", "Q", "EX", "EY" })
-        {
-            c.Add(KeyValue(name, name == "G" ? "peso propio + losa + terminaciones" : name == "Q" ? "sobrecarga de uso" : "sismo estático en " + name.Substring(1)));
-        }
-        foreach (string name in viewer.ComboNames) c.Add(KeyValue(name, UnityData.GetComboLabel(name)));
-        c.Add(Text("Las combinaciones se definen en Proyecto1/data/combinaciones.json.", "hint"));
 
-        c.Add(Title("REANÁLISIS"));
-        c.Add(KeyValue("Python + OpenSees", PythonJob.Available ? "disponible" : "no disponible"));
-        c.Add(Text("Próximo: editar cargas (q, Q, coeficiente sísmico, combinaciones) y reanalizar el modelo completo desde aquí.", "hint"));
+        c.Add(Title("PARÁMETROS DE CARGA"));
+        var qG = Input(new FloatField("q_G losa + terminaciones [kN/m²]") { value = Session.qG, formatString = "0.###" });
+        var qQ = Input(new FloatField("Q sobrecarga de uso [kg/m²]") { value = Session.qKgM2, formatString = "0.###" });
+        var sc = Input(new FloatField("Coeficiente sísmico C") { value = Session.seismicCoeff, formatString = "0.###" });
+        foreach (var f in new[] { qG, qQ, sc })
+        {
+            f.AddToClassList("dropdown");
+            c.Add(f);
+        }
+        qG.RegisterValueChangedCallback(e => Session.qG = Mathf.Max(0f, e.newValue));
+        qQ.RegisterValueChangedCallback(e => Session.qKgM2 = Mathf.Max(0f, e.newValue));
+        sc.RegisterValueChangedCallback(e => Session.seismicCoeff = Mathf.Max(0f, e.newValue));
+        c.Add(Text("G = q_G·A_trib + peso propio (25 kN/m³ hormigón, 78,5 kN/m³ acero). Sismo: C·(D + 0,5Q) por piso.", "hint"));
+
+        c.Add(Title("COMBINACIONES  ·  λG  λQ  λEX  λEY"));
+        var comboList = new VisualElement();
+        c.Add(comboList);
+        System.Action buildCombos = null;
+        buildCombos = () =>
+        {
+            comboList.Clear();
+            foreach (AnalysisSession.Combo combo in Session.combos)
+            {
+                AnalysisSession.Combo cb = combo;
+                var row = Row();
+                row.style.marginBottom = 3;
+                var name = Input(new TextField { value = cb.name });
+                name.AddToClassList("search");
+                name.style.width = 48;
+                name.RegisterCallback<FocusInEvent>(_ => TextFocused = true);
+                name.RegisterCallback<FocusOutEvent>(_ => TextFocused = false);
+                name.RegisterValueChangedCallback(e => cb.name = e.newValue.Trim());
+                row.Add(name);
+                row.Add(Factor(cb.G, v => cb.G = v));
+                row.Add(Factor(cb.Q, v => cb.Q = v));
+                row.Add(Factor(cb.EX, v => cb.EX = v));
+                row.Add(Factor(cb.EY, v => cb.EY = v));
+                row.Add(Btn("✕", () => { Session.combos.Remove(cb); buildCombos(); }, "small"));
+                comboList.Add(row);
+            }
+        };
+        buildCombos();
+        c.Add(Btn("+ Agregar combinación", () =>
+        {
+            Session.combos.Add(new AnalysisSession.Combo { name = "C" + (Session.combos.Count + 1), G = 1f, Q = 0.5f });
+            buildCombos();
+        }, "wide"));
+
+        c.Add(Title("CAMBIOS DE SECCIÓN"));
+        var secs = Text("", "hint");
+        c.Add(secs);
+
+        c.Add(Title("REANÁLISIS CON OPENSEES"));
+        var run = Btn("Reanalizar el modelo completo", () =>
+        {
+            if (Session.StartReanalysis()) viewer.Status = "Reanálisis en curso...";
+        }, "wide");
+        run.style.height = 30;
+        c.Add(run);
+        var reset = Btn("Restaurar valores del modelo cargado", () => { Session.LoadFrom(viewer.Data); Rebuild(); }, "wide");
+        c.Add(reset);
+        var progress = Text("", "hint");
+        c.Add(progress);
+        syncers.Add(() =>
+        {
+            bool running = Session.job.Running;
+            run.SetEnabled(PythonJob.Available && !running);
+            reset.SetEnabled(!running);
+            run.text = running ? $"Analizando...  {Session.job.Elapsed:0} s" : "Reanalizar el modelo completo";
+            progress.text = running ? (Session.job.LastLine ?? "") : Session.Message;
+            var lines = new List<string>();
+            foreach (var x in Session.sections.Values) lines.Add($"{x.tag}: {x.before} → {x.sectionId}");
+            secs.text = lines.Count == 0 ? "Sin cambios (se agregan en la pestaña MODIFICAR)." : string.Join("\n", lines);
+        });
+        if (!PythonJob.Available) c.Add(Text("Requiere Python + OpenSees en este equipo (carpeta Proyecto1/scripts).", "hint"));
+
+        // verificacion del analisis cargado
+        AnalysisSummary r = d?.resumenAnalisis;
+        c.Add(Title("VERIFICACIÓN DEL ANÁLISIS CARGADO"));
+        if (r == null || r.G_aplicada_kN == 0f)
+        {
+            c.Add(Text("El JSON cargado no trae resumen (se genera al reanalizar o al exportar de nuevo).", "hint"));
+        }
+        else
+        {
+            c.Add(KeyValue("q_G · Q · C", $"{r.q_G_kN_m2:0.00} kN/m² · {r.Q_kN_m2:0.00} kN/m² · {r.coeficienteSismico:0.###}"));
+            c.Add(KeyValue("G aplicada / ΣRz", $"{r.G_aplicada_kN:0} / {r.G_reaccion_kN:0} kN"));
+            c.Add(KeyValue("Q aplicada / ΣRz", $"{r.Q_aplicada_kN:0} / {r.Q_reaccion_kN:0} kN"));
+            c.Add(KeyValue("Corte basal EX · EY", $"{r.corteBasal_EX_kN:0} · {r.corteBasal_EY_kN:0} kN"));
+            if (r.uMax != null)
+                foreach (CaseMax u in r.uMax) c.Add(KeyValue("|u| máx " + u.caso, $"{u.u_mm:0.00} mm"));
+        }
+
+        if (Session.ScenarioLoaded)
+        {
+            c.Add(Title("ESCENARIO SIN GUARDAR"));
+            c.Add(Text("Se está viendo el resultado del reanálisis. Guardarlo reemplaza el modelo vigente del proyecto " +
+                       "(Assets/Resources/estructura_p1l4_unity.json, data/combinaciones.json y data/parametros_analisis.json).", "hint"));
+            var keep = Row();
+            keep.Add(Btn("Guardar como modelo vigente", () => { if (Session.SaveAsCurrent(viewer)) Rebuild(); }, "wide"));
+            keep.Add(Btn("Descartar", () => Session.DiscardScenario(viewer), "wide"));
+            c.Add(keep);
+        }
+    }
+
+    private FloatField Factor(float value, System.Action<float> set)
+    {
+        var f = Input(new FloatField { value = value, formatString = "0.###" });
+        f.AddToClassList("factor");
+        f.style.width = 54; f.style.minWidth = 54; f.style.flexShrink = 0;
+        f.RegisterCallback<AttachToPanelEvent>(_ =>
+        {
+            var input = f.Q(className: "unity-base-text-field__input");
+            if (input != null) { input.style.width = 52; input.style.minWidth = 0; input.style.flexGrow = 1; }
+        });
+        f.RegisterValueChangedCallback(e => set(e.newValue));
+        return f;
     }
 
     // ------------------------------------------------------------------
@@ -529,6 +740,7 @@ public class ViewerUI : MonoBehaviour
     {
         if (!Active) return;
         UpdateHostRect();
+        if (Session.job.Running) Session.Poll(viewer);   // al terminar recarga el modelo (Rebuild)
         if (Time.unscaledTime < nextSync) return;
         nextSync = Time.unscaledTime + 0.2f;
         SyncAll();
@@ -537,7 +749,7 @@ public class ViewerUI : MonoBehaviour
     private void SyncAll()
     {
         if (picker == null) picker = FindAnyObjectByType<ElementPicker>();
-        if (diagrams == null) diagrams = viewer.Diagrams;
+        diagrams = viewer.Diagrams;
         foreach (var s in syncers) s();
         SyncProps();
     }
@@ -640,6 +852,31 @@ public class ViewerUI : MonoBehaviour
         t.RegisterValueChangedCallback(e => set(e.newValue));
         syncers.Add(() => { if (t.value != get()) t.SetValueWithoutNotify(get()); });
         return t;
+    }
+
+    /// Texto visible en los campos de entrada (color, tamano y alto fijados en linea).
+    private static T Input<T>(T field) where T : VisualElement
+    {
+        field.RegisterCallback<AttachToPanelEvent>(_ =>
+        {
+            var input = field.Q(className: "unity-base-text-field__input");
+            if (input != null)
+            {
+                input.style.backgroundColor = new Color(0.055f, 0.082f, 0.137f);
+                input.style.paddingLeft = 4; input.style.paddingRight = 4;
+                input.style.paddingTop = 0; input.style.paddingBottom = 0;
+                input.style.minHeight = 20;
+            }
+            var text = field.Q<TextElement>(className: "unity-text-element--inner-input-field-component");
+            if (text != null)
+            {
+                text.style.color = new Color(0.9f, 0.93f, 0.97f);
+                text.style.fontSize = 12;
+                text.style.unityTextAlign = TextAnchor.MiddleLeft;
+                text.style.flexGrow = 1;
+            }
+        });
+        return field;
     }
 
     private static VisualElement KeyValue(string key, string value)

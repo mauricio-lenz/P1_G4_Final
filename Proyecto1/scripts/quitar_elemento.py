@@ -80,9 +80,11 @@ def main():
         e["removed"] = True
         quitados.append({"id": e["id"], "tag": e.get("elementTag", str(e["id"])), "type": e.get("type", "")})
 
-    q_q = cvm.kg_m2_to_kn_m2(Q_KG_M2)
+    params = cvm.load_analysis_params()
+    cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"))
+    q_q = cvm.kg_m2_to_kn_m2(float(params.get("Q_kg_m2", Q_KG_M2)))
     live = cvm.transfer_live_load(data, q_q)
-    seismic = cvm.build_seismic_cases(data, live, cvm.DEFAULT_SEISMIC_COEFF)
+    seismic = cvm.build_seismic_cases(data, live, float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF)))
     load_sets = {
         "G": cvm.dead_nodal_loads(data),
         "Q": cvm.vector_loads_from_dict(live["cargas_nodales_Q"]),

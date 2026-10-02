@@ -47,6 +47,28 @@ public class AutoShot : MonoBehaviour
         ViewerUI.ShowTab(ViewerUI.TabResultados);
         yield return new WaitForSeconds(1f);
         yield return Shot("06_deformada");
+
+        if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-reanalyze") >= 0)
+        {
+            // reanalisis de prueba: q_G 7 kN/m2 y E1_72 como V40/80
+            viewer.SetResult("Momento");
+            viewer.Search("E1_72");
+            yield return new WaitForSeconds(0.5f);
+            var picker = FindAnyObjectByType<ElementPicker>();
+            if (picker != null && picker.Selected != null)
+                ViewerUI.Session.SetSection(picker.Selected.data, "V40/80", 0.4f, 0.8f, picker.Selected.data.sectionId);
+            ViewerUI.Session.qG = 7f;
+            ViewerUI.ShowTab(ViewerUI.TabModificar);
+            yield return Shot("07_modificar_seccion");
+            ViewerUI.ShowTab(ViewerUI.TabAnalisis);
+            ViewerUI.Session.StartReanalysis();
+            yield return new WaitForSeconds(2f);
+            yield return Shot("08_reanalizando");
+            float t0 = Time.unscaledTime;
+            while (ViewerUI.Session.job.Running && Time.unscaledTime - t0 < 240f) yield return null;
+            yield return new WaitForSeconds(2f);
+            yield return Shot("09_escenario_cargado");
+        }
         Application.Quit();
     }
 

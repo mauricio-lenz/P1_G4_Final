@@ -55,6 +55,45 @@ OUT_DIR = BASE_DIR / "resultados"
 COMBINATIONS_PATH = ROOT_DIR / "data" / "combinaciones.json"
 
 
+PARAMS_PATH = ROOT_DIR / "data" / "parametros_analisis.json"
+
+
+def load_analysis_params(path=PARAMS_PATH):
+    """Parametros del analisis guardados desde Unity (editable en VS Code):
+    {"Q_kg_m2", "coeficienteSismico", "q_G_kN_m2", "sections": {id/tag: {width_m, height_m, sectionId}}}."""
+    if not Path(path).exists():
+        return {}
+    with open(path, encoding="utf-8") as file:
+        return json.load(file)
+
+
+def apply_model_params(data, q_g_new=None, sections=None):
+    """Aplica al modelo un q_G nuevo (escala la D tributaria de las vigas) y cambios de seccion.
+    Devuelve la lista de cambios de seccion aplicados."""
+    q_g = float(data.get("q_G", 6.227))
+    if q_g_new is not None and q_g_new > 0 and abs(q_g_new - q_g) > 1e-9:
+        factor = q_g_new / q_g
+        for el in data.get("elements", []):
+            if el.get("type") == "viga":
+                for key in ("deadLoad", "cargaTributaria", "gravityLoad", "factoredLoad14D", "factoredLoad12D16L", "uniformLoad"):
+                    if isinstance(el.get(key), (int, float)):
+                        el[key] = float(el[key]) * factor
+        print(f"  q_G modificado: {q_g:.4f} -> {q_g_new:.4f} kN/m2 (factor {factor:.4f})")
+        data["q_G"] = q_g_new
+    cambios = []
+    for el in data.get("elements", []):
+        cambio = (sections or {}).get(str(el.get("id"))) or (sections or {}).get(str(el.get("elementTag")))
+        if not cambio:
+            continue
+        antes = el.get("sectionId")
+        for key in ("width_m", "height_m", "sectionId"):
+            if key in cambio:
+                el[key] = cambio[key]
+        cambios.append({"id": el["id"], "tag": el.get("elementTag", ""), "antes": antes or "", "despues": el.get("sectionId", "")})
+        print(f"  Seccion {el.get('elementTag')}: {antes} -> {el.get('sectionId')}")
+    return cambios
+
+
 def load_combinations(path=COMBINATIONS_PATH):
     """{nombre: {"G", "Q", "EX", "EY"}} en el orden del archivo."""
     with open(path, encoding="utf-8") as file:

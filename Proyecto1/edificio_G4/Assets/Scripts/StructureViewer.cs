@@ -139,6 +139,48 @@ public class StructureViewer : MonoBehaviour
     }
 
     public void Search(string key) => FindAndSelect(key);
+
+    // ---- recarga del modelo con los resultados de un reanalisis ----
+    private string overrideJson;
+    public string LoadedSource { get; private set; } = "Resources/estructura_p1l4_unity.json";
+    public event System.Action ModelReloaded;
+
+    /// Reconstruye toda la escena con un JSON nuevo (escenario de reanalisis o el original).
+    public void ReloadFromJson(string json, string source)
+    {
+        var picker = FindAnyObjectByType<ElementPicker>();
+        if (picker != null) picker.ClearSelection();
+        var pm = FindAnyObjectByType<PMPanel>();
+        if (pm != null) pm.Hide();
+        UnityData.ResetRemovalState();
+        overrideJson = json;
+        LoadedSource = source;
+        string result = CurrentResult;
+        CreateStructure();
+        SetResult(result);
+        statusMessage = "Modelo recargado: " + source;
+        ModelReloaded?.Invoke();
+    }
+
+    /// Ruta en disco del JSON del proyecto (Assets/Resources), o null si no se encuentra.
+    public static string ProjectJsonPath
+    {
+        get
+        {
+            string root = PythonJob.ProjectRoot;
+            if (root == null) return null;
+            string path = System.IO.Path.Combine(root, "edificio_G4", "Assets", "Resources", "estructura_p1l4_unity.json");
+            return System.IO.File.Exists(path) ? path : null;
+        }
+    }
+
+    /// Vuelve al modelo vigente del proyecto (se lee del disco: puede haber sido guardado recien).
+    public void ReloadOriginal()
+    {
+        string path = ProjectJsonPath;
+        structureJson = null;
+        ReloadFromJson(path != null ? System.IO.File.ReadAllText(path) : null, "Resources/estructura_p1l4_unity.json");
+    }
     public void CameraPreset(string preset) => SetCameraPreset(preset);
 
     public void SetSuperposition(bool active, float g, float q, float ex, float ey)
@@ -170,7 +212,7 @@ public class StructureViewer : MonoBehaviour
         }
         CreateDefaultMaterials();
 
-        if (structureJson == null)
+        if (structureJson == null && overrideJson == null)
         {
             structureJson = Resources.Load<TextAsset>("estructura_p1l4_unity");
             if (structureJson == null)
@@ -180,7 +222,7 @@ public class StructureViewer : MonoBehaviour
             }
         }
 
-        loadedData = JsonUtility.FromJson<StructureData>(structureJson.text);
+        loadedData = JsonUtility.FromJson<StructureData>(overrideJson ?? structureJson.text);
         UnityData.LoadData(loadedData);
 
         if (loadedData.tributaryList != null)

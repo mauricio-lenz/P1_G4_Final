@@ -165,3 +165,17 @@
 .fold > .unity-foldout__toggle .unity-label { color: rgb(255, 199, 90); -unity-font-style: bold; font-size: 11px; }
 .fold > .unity-foldout__content { margin-left: 4px; }
 .line { color: rgb(214, 224, 238); font-size: 11px; white-space: normal; padding: 1px 0; }
+
+/* ---------- campos numericos ---------- */
+.unity-base-field { margin: 2px 0; }
+.unity-base-field > .unity-label { color: rgb(142, 163, 191); font-size: 11px; min-width: 0; flex-grow: 1; }
+.unity-base-text-field__input {
+    background-color: rgb(14, 21, 35);
+    border-color: rgb(38, 55, 84);
+    color: rgb(230, 237, 247);
+    border-radius: 4px;
+}
+.unity-float-field > .unity-base-text-field__input { min-width: 72px; width: 72px; flex-grow: 0; height: 22px; }
+.unity-base-text-field__input > .unity-text-element { color: rgb(230, 237, 247); font-size: 11px; }
+.factor { width: 52px; margin: 0 3px 0 0; }
+.factor > .unity-base-text-field__input { min-width: 0; width: 52px; -unity-text-align: middle-right; }

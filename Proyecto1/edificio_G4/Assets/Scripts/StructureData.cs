@@ -6,6 +6,9 @@ public class StructureData
 {
     public string units;
     public float q_G;
+    public float Q_kN_m2;
+    public float seismic_coefficient;
+    public AnalysisSummary resumenAnalisis;
     public string p1l4_version;
     public NodeData[] nodes;
     public ElementData[] elements;
@@ -17,6 +20,39 @@ public class StructureData
     public PointLoadData[] pointLoads;
 
     public P1L4Extras p1l4;
+}
+
+/// Resumen que agrega exportar_resultados_unity.py (equilibrio, corte basal, |u| max).
+[Serializable]
+public class AnalysisSummary
+{
+    public float q_G_kN_m2;
+    public float Q_kN_m2;
+    public float coeficienteSismico;
+    public float G_aplicada_kN;
+    public float G_reaccion_kN;
+    public float Q_aplicada_kN;
+    public float Q_reaccion_kN;
+    public float corteBasal_EX_kN;
+    public float corteBasal_EY_kN;
+    public CaseMax[] uMax;
+    public SectionChange[] secciones;
+}
+
+[Serializable]
+public class CaseMax
+{
+    public string caso;
+    public float u_mm;
+}
+
+[Serializable]
+public class SectionChange
+{
+    public int id;
+    public string tag;
+    public string antes;
+    public string despues;
 }
 
 [Serializable]
