@@ -8,6 +8,26 @@ public class ElementPicker : MonoBehaviour
 
     public ElementSelectable Selected { get; private set; }
     private Vector3 lastHitPoint;
+
+    /// Texto del panel de propiedades (lo dibuja ViewerUI o el panel IMGUI).
+    public string InfoText
+    {
+        get
+        {
+            if (Selected != null) return Selected.GetValuesAt(lastHitPoint);
+            if (selectedInfo != null) return $"==={selectedInfo.name}===\n{selectedInfo.GetInfo()}";
+            return null;
+        }
+    }
+
+    public bool HasSelection => Selected != null || selectedInfo != null;
+
+    /// Quita la seleccion (boton cerrar del panel de propiedades).
+    public void ClearSelection()
+    {
+        SetElementSelection(null);
+        SetInfoSelection(null);
+    }
     private Vector2 scroll;
 
     void Awake()
@@ -203,6 +223,7 @@ public class ElementPicker : MonoBehaviour
 
     void OnGUI()
     {
+        if (ViewerUI.Active) return;   // el panel de propiedades lo dibuja ViewerUI
         UiTheme.ApplyScale();
         if (Selected == null && selectedInfo == null) return;
 

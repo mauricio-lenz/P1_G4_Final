@@ -79,6 +79,83 @@ public class StructureViewer : MonoBehaviour
         CreateStructure();
     }
 
+    // ------------------------------------------------------------------
+    // API para la interfaz (ViewerUI, UI Toolkit). Con ViewerUI activa el
+    // viewer no dibuja su barra superior ni su consola IMGUI.
+    // ------------------------------------------------------------------
+    public DiagramController Diagrams => diagramController;
+    public string[] ComboNames => comboOptions;
+    public string[] ResultNames => resultOptions;
+    public string[] FloorNames => floorOptions;
+    public int FloorIndex { get => floorIndex; set => floorIndex = Mathf.Clamp(value, 0, Mathf.Max(0, floorOptions.Length - 1)); }
+    public string CurrentResult => resultOptions[Mathf.Clamp(resultIndex, 0, resultOptions.Length - 1)];
+    public string Status { get => statusMessage; set => statusMessage = value; }
+    public bool ShowColumnsLayer { get => showColumns; set => showColumns = value; }
+    public bool ShowBeamsLayer { get => showBeams; set => showBeams = value; }
+    public bool ShowWallsLayer { get => showWalls; set => showWalls = value; }
+    public bool ShowSupportsLayer { get => showSupports; set => showSupports = value; }
+    public bool ShowSlabsLayer { get => showDiaphragms; set => showDiaphragms = value; }
+    public bool ShowNodesLayer { get => showNodeMarkers; set => showNodeMarkers = value; }
+    public bool ShowIdsLayer { get => showIds; set => showIds = value; }
+    public bool ShowLocalAxesLayer { get => showLocalAxes; set => showLocalAxes = value; }
+    public bool ShowLoadsLayer { get => showLoads; set => showLoads = value; }
+    public bool UtilizationColors => showUtilization;
+    public IReadOnlyDictionary<string, TributaryFloorData> TributaryFloors => tributaryFloors;
+    public StructureData Data => loadedData;
+    public bool SuperpositionActive => showSuperposition;
+    public float[] SuperpositionValues => new[] { superpositionG, superpositionQ, superpositionEX, superpositionEY };
+
+    /// Activa un caso base (G, Q, EX, EY) o una combinacion (C1...).
+    public void SetCase(string name)
+    {
+        int index = System.Array.IndexOf(comboOptions, name);
+        if (index >= 0) { ApplyCombo(index); }
+        else
+        {
+            UnityData.ActiveCombo = name;
+            if (diagramController != null && Application.isPlaying) diagramController.Refresh();
+            var picker = FindAnyObjectByType<ElementPicker>();
+            if (pmPanel != null && picker != null && picker.Selected != null) pmPanel.ShowPMForElement(picker.Selected);
+            if (showUtilization) ApplyUtilizationColors();
+        }
+        statusMessage = "Caso activo: " + UnityData.GetComboLabel(UnityData.ActiveCombo);
+    }
+
+    public void ShowAllLayers()
+    {
+        showColumns = showBeams = showWalls = showSupports = showDiaphragms = true;
+        showNodeMarkers = showIds = showLocalAxes = showLoads = false;
+        if (showUtilization) { showUtilization = false; RestoreUtilizationColors(); }
+        floorIndex = 0;
+        statusMessage = "Vista restablecida.";
+    }
+
+    public void StructureOnly()
+    {
+        showColumns = showBeams = showWalls = true;
+        showSupports = showDiaphragms = showNodeMarkers = showIds = showLocalAxes = showLoads = false;
+        if (showUtilization) { showUtilization = false; RestoreUtilizationColors(); }
+        statusMessage = "Capas auxiliares ocultas.";
+    }
+
+    public void Search(string key) => FindAndSelect(key);
+    public void CameraPreset(string preset) => SetCameraPreset(preset);
+
+    public void SetSuperposition(bool active, float g, float q, float ex, float ey)
+    {
+        superpositionG = g; superpositionQ = q; superpositionEX = ex; superpositionEY = ey;
+        if (active)
+        {
+            showSuperposition = true;
+            ApplySyntheticCombo();
+        }
+        else if (showSuperposition)
+        {
+            showSuperposition = false;
+            if (UnityData.ActiveCombo == UnityData.SuperpositionComboName) RestoreBaseComboColors();
+        }
+    }
+
     private void OnEnable()
     {
         CreateStructure();
@@ -139,6 +216,7 @@ public class StructureViewer : MonoBehaviour
         CreatePMPanel();
         CreateMovingLoadPanel();
         CreateGroundGrid();
+        if (Application.isPlaying && GetComponent<ViewerUI>() == null) gameObject.AddComponent<ViewerUI>();
 
         BuildComboOptions();
         BuildFloorOptions();
@@ -1134,8 +1212,11 @@ public class StructureViewer : MonoBehaviour
     private void OnGUI()
     {
         UiTheme.ApplyScale();
-        DrawTopBar();
-        DrawLeftPanel();
+        if (!ViewerUI.Active)
+        {
+            DrawTopBar();
+            DrawLeftPanel();
+        }
         RefreshVisibility();
     }
 

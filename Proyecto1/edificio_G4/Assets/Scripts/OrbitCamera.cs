@@ -63,7 +63,9 @@ public class OrbitCamera : MonoBehaviour
             }
         }
 
-        float scroll = mouse != null ? mouse.scroll.ReadValue().y / 120f : 0f;
+        // Input System: segun la version la rueda entrega ±1 o ±120 por "clic"; se normaliza a clics
+        float scroll = mouse != null ? mouse.scroll.ReadValue().y : 0f;
+        if (Mathf.Abs(scroll) > 10f) scroll /= 120f;
         HandleTouch();   // toques del celular (API Input legacy, activa en modo "Both")
 #else
         if (Input.GetMouseButton(1))
@@ -86,10 +88,13 @@ public class OrbitCamera : MonoBehaviour
             Pan(ax * panSpeed * Time.deltaTime, ay * panSpeed * Time.deltaTime);
         }
 
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        float scroll = Input.GetAxis("Mouse ScrollWheel") * 10f;   // 0,1 por clic -> clics
         HandleTouch();
 #endif
-        distance = Mathf.Clamp(distance - scroll * zoomSpeed, 5f, 120f);
+        // sobre un panel la rueda desplaza el panel, no la camara
+        if (scroll != 0f && UiTheme.IsOverUI(Input.mousePosition, FindAnyObjectByType<ElementPicker>()?.HasSelection ?? false)) scroll = 0f;
+        // zoom proporcional a la distancia: ~12 % por clic de rueda
+        distance = Mathf.Clamp(distance * Mathf.Pow(1f - Mathf.Clamp(0.03f * zoomSpeed, 0.02f, 0.3f), scroll), 5f, 120f);
 
         UpdatePosition();
     }

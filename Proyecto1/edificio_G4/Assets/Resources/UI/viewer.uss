@@ -1,0 +1,167 @@
+/* Viewer P1_G4 · estilo "plano tecnico": azul noche, acento cian, ambar para encabezados.
+   Paneles anclados: barra superior, dock izquierdo con pestanas, propiedades a la derecha. */
+
+.root {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    -unity-font-style: normal;
+    font-size: 12px;
+    color: rgb(230, 237, 247);
+}
+
+/* ---------- paneles ---------- */
+.panel {
+    position: absolute;
+    background-color: rgba(9, 13, 24, 0.95);
+    border-width: 1px;
+    border-color: rgb(31, 45, 69);
+    border-radius: 6px;
+}
+
+.topbar {
+    left: 12px; right: 12px; top: 7px; height: 80px;
+    padding: 5px 12px 4px 12px;
+    flex-direction: column;
+}
+.topbar > .row { height: 26px; flex-shrink: 0; }
+.topbar > .status { height: 18px; margin-top: 2px; -unity-text-align: middle-left; }
+
+.row { flex-direction: row; align-items: center; }
+.spacer { flex-grow: 1; }
+
+.brand { -unity-font-style: bold; font-size: 13px; color: rgb(69, 217, 255); letter-spacing: 1px; }
+.brand-sub { color: rgb(142, 163, 191); margin-left: 10px; font-size: 11px; }
+.status { color: rgb(142, 163, 191); font-size: 11px; overflow: hidden; white-space: nowrap; }
+.group-label { color: rgb(142, 163, 191); font-size: 11px; margin-right: 6px; margin-left: 12px; }
+.group-label.first { margin-left: 0; }
+
+/* ---------- botones ---------- */
+.btn {
+    height: 22px;
+    margin: 0 2px 0 0;
+    padding: 0 9px;
+    background-color: rgb(20, 30, 48);
+    border-width: 1px;
+    border-color: rgb(38, 55, 84);
+    border-radius: 4px;
+    color: rgb(214, 224, 238);
+    font-size: 11px;
+    -unity-text-align: middle-center;
+}
+.btn:hover { background-color: rgb(29, 44, 70); border-color: rgb(69, 120, 170); }
+.btn:active { background-color: rgb(16, 24, 38); }
+.btn.on {
+    background-color: rgb(18, 74, 102);
+    border-color: rgb(69, 217, 255);
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+.btn.small { height: 20px; padding: 0 7px; }
+.btn.wide { flex-grow: 1; }
+.btn.danger.on { background-color: rgb(110, 40, 30); border-color: rgb(255, 140, 90); }
+.seg { flex-direction: row; }
+.seg > .btn { margin-right: 0; border-radius: 0; border-right-width: 0; }
+.seg > .btn.seg-first { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+.seg > .btn.seg-last { border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-right-width: 1px; }
+.seg-sep { width: 8px; }
+
+/* ---------- campo de busqueda ---------- */
+.search { width: 150px; height: 22px; margin: 0 4px 0 0; }
+.search > .unity-base-text-field__input {
+    background-color: rgb(14, 21, 35);
+    border-color: rgb(38, 55, 84);
+    color: rgb(230, 237, 247);
+    border-radius: 4px;
+    padding-left: 6px;
+}
+
+/* ---------- dock ---------- */
+.dock { left: 12px; top: 94px; width: 348px; bottom: 12px; background-color: rgba(0, 0, 0, 0); border-width: 0; }
+.tabs {
+    flex-direction: row;
+    background-color: rgba(9, 13, 24, 0.97);
+    border-width: 1px; border-color: rgb(31, 45, 69);
+    border-top-left-radius: 6px; border-top-right-radius: 6px;
+    padding: 4px 4px 0 4px;
+}
+.tab {
+    flex-grow: 1;
+    flex-basis: 0;
+    height: 28px;
+    margin: 0;
+    padding: 0 2px;
+    letter-spacing: 0;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0 0 2px 0;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    color: rgb(142, 163, 191);
+    font-size: 10px;
+    -unity-font-style: bold;
+}
+.tab:hover { color: rgb(230, 237, 247); }
+.tab.on { color: rgb(69, 217, 255); border-color: rgb(69, 217, 255); }
+
+.tab-body {
+    flex-grow: 1;
+    background-color: rgba(9, 13, 24, 0.95);
+    border-width: 0 1px 1px 1px; border-color: rgb(31, 45, 69);
+    border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+}
+/* las pestanas que alojan paneles IMGUI dejan ver el panel dibujado encima */
+.tab-body.host-mode { background-color: rgba(9, 13, 24, 0); border-width: 0; }
+.tab-scroll { flex-grow: 1; }
+.tab-content { padding: 10px 12px 14px 12px; }
+
+.section-title {
+    color: rgb(255, 199, 90);
+    -unity-font-style: bold;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin: 10px 0 6px 0;
+}
+.section-title.first { margin-top: 2px; }
+.hint { color: rgb(142, 163, 191); font-size: 11px; white-space: normal; margin-bottom: 6px; }
+.value { color: rgb(230, 237, 247); }
+.grid3 { flex-direction: row; flex-wrap: wrap; }
+.grid3 > .chk { width: 33%; }
+.chk { margin: 2px 0; }
+.chk > .unity-toggle__input > .unity-toggle__checkmark {
+    background-color: rgb(14, 21, 35);
+    border-color: rgb(52, 74, 110);
+    border-radius: 3px;
+}
+.chk .unity-label { color: rgb(214, 224, 238); font-size: 11px; min-width: 0; }
+
+.slider-row { flex-direction: row; align-items: center; margin: 2px 0; }
+.slider-row > .unity-label { width: 34px; min-width: 34px; color: rgb(142, 163, 191); }
+.slider-row > .slider { flex-grow: 1; margin: 0 6px 0 0; }
+.slider-row > .num { width: 46px; -unity-text-align: middle-right; color: rgb(230, 237, 247); }
+
+.dropdown { margin: 2px 0 4px 0; }
+.dropdown > .unity-base-popup-field__input {
+    background-color: rgb(20, 30, 48);
+    border-color: rgb(38, 55, 84);
+    color: rgb(230, 237, 247);
+    border-radius: 4px;
+}
+
+.legend-row { flex-direction: row; align-items: center; margin: 2px 0; }
+.swatch { width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; }
+.legend-text { color: rgb(142, 163, 191); font-size: 11px; margin-right: 12px; }
+
+.kv { flex-direction: row; justify-content: space-between; padding: 2px 0; border-bottom-width: 1px; border-color: rgb(22, 33, 52); }
+.kv > .k { color: rgb(142, 163, 191); font-size: 11px; }
+.kv > .v { color: rgb(230, 237, 247); font-size: 11px; -unity-text-align: middle-right; white-space: normal; flex-shrink: 1; max-width: 70%; }
+.host { flex-grow: 1; min-height: 400px; }
+
+/* ---------- propiedades ---------- */
+.props { right: 12px; top: 94px; bottom: 12px; flex-direction: column; }
+.props-head { flex-direction: row; align-items: center; padding: 8px 10px; border-bottom-width: 1px; border-color: rgb(31, 45, 69); }
+.props-title { flex-grow: 1; -unity-font-style: bold; color: rgb(69, 217, 255); font-size: 13px; white-space: normal; }
+.props-scroll { flex-grow: 1; }
+.props-body { padding: 4px 12px 14px 12px; }
+.fold { margin-top: 6px; }
+.fold > .unity-foldout__toggle .unity-label { color: rgb(255, 199, 90); -unity-font-style: bold; font-size: 11px; }
+.fold > .unity-foldout__content { margin-left: 4px; }
+.line { color: rgb(214, 224, 238); font-size: 11px; white-space: normal; padding: 1px 0; }

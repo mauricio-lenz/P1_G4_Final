@@ -261,6 +261,7 @@ public class MovingLoadPanel : MonoBehaviour
     // ------------------------------------------------------------------
     private void OnGUI()
     {
+        if (ViewerUI.Active && ViewerUI.ActiveTab != ViewerUI.TabCargas) return;
         UiTheme.ApplyScale();
         MovingLoadData data = UnityData.GetMovingLoadData();
         if (data == null || data.paths == null || data.paths.Length == 0) return;

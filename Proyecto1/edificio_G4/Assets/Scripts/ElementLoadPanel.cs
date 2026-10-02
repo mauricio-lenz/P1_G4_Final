@@ -323,6 +323,7 @@ public class ElementLoadPanel : MonoBehaviour
 
     private void OnGUI()
     {
+        if (ViewerUI.Active && ViewerUI.ActiveTab != ViewerUI.TabCargas) return;
         UiTheme.ApplyScale();
         // requiere Python/OpenSees: no se muestra en el celular
         if (!PythonJob.Available) return;

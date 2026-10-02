@@ -30,6 +30,7 @@ public static class UiTheme
     /// cae sobre la barra superior, la columna de paneles o el panel de resultados.
     public static bool IsOverUI(Vector2 screenPos, bool infoPanelVisible)
     {
+        if (ViewerUI.Active) return ViewerUI.IsPointerOverUI(screenPos);
         float gx = screenPos.x / Scale;
         float gy = (Screen.height - screenPos.y) / Scale;
         if (gy < TopBarH + 8f) return true;
@@ -81,6 +82,9 @@ public static class UiTheme
 
     public static Rect LeftArea()
     {
+        // con ViewerUI, los paneles IMGUI (carga movil, carga en elemento, quitar
+        // elemento) se dibujan dentro de la pestana activa: y = LeftArea().yMax + 14
+        if (ViewerUI.Active) { Rect h = ViewerUI.HostRect; return new Rect(h.x, h.y - 14f, h.width, 0f); }
         return new Rect(SideM, TopBarH + 8f, CtrlW, LeftHeight);
     }
 

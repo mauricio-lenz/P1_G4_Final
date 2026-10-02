@@ -121,6 +121,7 @@ public class DiagramController : MonoBehaviour
     private void Update()
     {
         if (!Application.isPlaying) return;
+        if (ViewerUI.TextFocused) return;   // escribiendo en un campo de texto
 
         if (PressedKey(KeyCode.Alpha0)) ShowDiagram(DiagramMode.None);
         if (PressedKey(KeyCode.Alpha1)) ShowDiagram(DiagramMode.Axial);
@@ -626,7 +627,7 @@ public class DiagramController : MonoBehaviour
         if (currentMode == DiagramMode.None) return;
         UiTheme.ApplyScale();
         DrawLabels();
-        DrawOptionsBar();
+        if (!ViewerUI.Active) DrawOptionsBar();   // con ViewerUI las opciones van en la pestana Resultados
         DrawSelectedValueTable();
     }
 
@@ -804,7 +805,7 @@ public class DiagramController : MonoBehaviour
             body += $"N I/J = {rI[0]:0.0} / {rJ[0]:0.0} kN   T I/J = {rI[3]:0.0} / {rJ[3]:0.0} kN·m";
 
         Rect bar = UiTheme.CenterTop(560f, 58f);
-        Rect r = new Rect(bar.x, bar.yMax + 6f, bar.width, 82f);
+        Rect r = new Rect(bar.x, ViewerUI.Active ? bar.y : bar.yMax + 6f, bar.width, 82f);
         UiTheme.GUIBox(r, $"{ModeTitle()} · {tag} ({selected.data.type} {selected.data.sectionId})");
         GUI.Label(new Rect(r.x + 12f, r.y + 26f, r.width - 24f, r.height - 30f), body, UiTheme.Label);
     }
@@ -818,7 +819,7 @@ public class DiagramController : MonoBehaviour
         else if (currentMode == DiagramMode.Shear) body = $"V en el plano = {demand.V_kN:0.0} kN (fuera del plano ~ 0, muro equivalente)";
         else body = $"M demanda P-M = {demand.M_kN_m:0.0} kN·m";
         Rect bar = UiTheme.CenterTop(560f, 58f);
-        Rect r = new Rect(bar.x, bar.yMax + 6f, bar.width, 62f);
+        Rect r = new Rect(bar.x, ViewerUI.Active ? bar.y : bar.yMax + 6f, bar.width, 62f);
         UiTheme.GUIBox(r, $"{ModeTitle()} · Muro {selected.wallId} · {UnityData.GetComboLabel(demand.combo)}");
         GUI.Label(new Rect(r.x + 12f, r.y + 26f, r.width - 24f, r.height - 30f), body, UiTheme.Label);
     }

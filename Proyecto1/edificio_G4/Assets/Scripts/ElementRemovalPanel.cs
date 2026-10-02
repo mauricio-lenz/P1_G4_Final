@@ -256,6 +256,7 @@ public class ElementRemovalPanel : MonoBehaviour
     // ------------------------------------------------------------------
     private void OnGUI()
     {
+        if (ViewerUI.Active && ViewerUI.ActiveTab != ViewerUI.TabModificar) return;
         UiTheme.ApplyScale();
         // requiere Python/OpenSees: no se muestra en el celular
         if (!PythonJob.Available) return;
@@ -273,8 +274,11 @@ public class ElementRemovalPanel : MonoBehaviour
 
         if (!UnityData.IsModelModified)
         {
-            if (UnityData.GetMovingLoadData() != null) y += MovingCollapsedH + 8f;
-            y += ElementLoadCollapsedH + 8f;
+            if (!ViewerUI.Active)   // en su pestana va solo, sin los recuadros de cargas encima
+            {
+                if (UnityData.GetMovingLoadData() != null) y += MovingCollapsedH + 8f;
+                y += ElementLoadCollapsedH + 8f;
+            }
             UiTheme.GUIBox(new Rect(x, y, w0, 106f), "QUITAR ELEMENTO (REANALISIS)");
             float iy = y + 28f;
             GUI.enabled = !job.Running;
