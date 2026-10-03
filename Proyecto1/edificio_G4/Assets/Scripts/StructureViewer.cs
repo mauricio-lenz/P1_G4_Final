@@ -420,7 +420,8 @@ public class StructureViewer : MonoBehaviour
             if (isColumn)
             {
                 string secName = GetSectionName(element);
-                selectable.pmSectionId = ResolvePMSection(secName);
+                selectable.pmSectionId = !string.IsNullOrEmpty(element.pmCurveId) && UnityData.GetPMCurve(element.pmCurveId) != null
+                    ? element.pmCurveId : ResolvePMSection(secName);
             }
 
             selectables.Add(selectable);
@@ -720,17 +721,12 @@ public class StructureViewer : MonoBehaviour
 
     private void CreateDiagramController()
     {
-        DiagramController existing = GetComponent<DiagramController>();
-        if (existing != null)
+        // todos los controladores previos (el de la escena y los de recargas anteriores)
+        foreach (DiagramController existing in GetComponents<DiagramController>())
         {
-            if (Application.isPlaying)
-            {
-                Destroy(existing);
-            }
-            else
-            {
-                DestroyImmediate(existing);
-            }
+            existing.SetResultMode("None");   // limpia sus mallas y deja de dibujar su tabla
+            existing.enabled = false;
+            if (Application.isPlaying) Destroy(existing); else DestroyImmediate(existing);
         }
         diagramController = gameObject.AddComponent<DiagramController>();
         diagramController.Initialize(selectables);

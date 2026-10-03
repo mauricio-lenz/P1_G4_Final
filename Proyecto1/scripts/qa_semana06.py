@@ -45,7 +45,7 @@ def wall_capacity_at(points, p):
 def main():
     data = cvm.load_json(cvm.JSON_PATH)
     params = cvm.load_analysis_params()
-    cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"))
+    cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"), params.get("rigidezFisurada"))
     q_q = cvm.kg_m2_to_kn_m2(float(params.get("Q_kg_m2", 500.0)))
     sc = float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
     live = cvm.transfer_live_load(data, q_q)

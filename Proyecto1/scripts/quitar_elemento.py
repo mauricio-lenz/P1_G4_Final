@@ -81,7 +81,7 @@ def main():
         quitados.append({"id": e["id"], "tag": e.get("elementTag", str(e["id"])), "type": e.get("type", "")})
 
     params = cvm.load_analysis_params()
-    cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"))
+    cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"), params.get("rigidezFisurada"))
     q_q = cvm.kg_m2_to_kn_m2(float(params.get("Q_kg_m2", Q_KG_M2)))
     live = cvm.transfer_live_load(data, q_q)
     seismic = cvm.build_seismic_cases(data, live, float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF)))

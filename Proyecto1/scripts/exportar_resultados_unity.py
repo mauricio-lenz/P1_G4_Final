@@ -247,6 +247,10 @@ def main():
                         help="Archivo de combinaciones (default: data/combinaciones.json)")
     parser.add_argument("--mods", type=Path, default=None,
                         help='JSON de modificaciones: {"sections": {"<id o tag>": {"width_m": b, "height_m": h, "sectionId": "V40/80"}}}')
+    parser.add_argument("--armaduras", type=Path, default=None,
+                        help="JSON con cambios de armadura (mismo formato que data/armaduras.json) sobre la armadura vigente")
+    parser.add_argument("--fisurada", default=None,
+                        help='Factores de inercia "viga,columna,muro" (ej. 0.35,0.70,0.35) o "bruta". Default: data/parametros_analisis.json')
     parser.add_argument("--out", type=Path, default=None,
                         help="JSON de salida (default: Assets/Resources/estructura_p1l4_unity.json). Desde Unity: escenario temporal")
     args = parser.parse_args()
@@ -261,6 +265,13 @@ def main():
     if args.qG is None and params.get("q_G_kN_m2"):
         args.qG = float(params["q_G_kN_m2"])
     secciones_param = params.get("sections", {}) or {}
+    if args.fisurada is None:
+        fisurada = params.get("rigidezFisurada")
+    elif args.fisurada.strip().lower() == "bruta":
+        fisurada = None
+    else:
+        kv, kc, km = (float(v) for v in args.fisurada.split(","))
+        fisurada = {"viga": kv, "columna": kc, "muro": km}
     if params:
         print(f"Parametros de data/parametros_analisis.json: Q={args.q_kg_m2} kg/m2, sc={args.sc}, q_G={args.qG}, secciones={len(secciones_param)}")
 
@@ -275,7 +286,7 @@ def main():
     secciones = dict(secciones_param)
     if args.mods is not None:
         secciones = load_json(args.mods).get("sections", {}) or {}
-    modificaciones = cvm.apply_model_params(data, args.qG, secciones)
+    modificaciones = cvm.apply_model_params(data, args.qG, secciones, fisurada)
     q_g = float(data.get("q_G", q_g))
 
     # ── Cargar curva P-M del muro (part_e_wall.json) ───────────────
@@ -393,6 +404,45 @@ def main():
         if el.get("nodeI") in nodes_by_id and el.get("nodeJ") in nodes_by_id:
             el_out["selfWeight_kN"] = cvm.self_weight_kN(el, nodes_by_id)
         elements_out.append(el_out)
+
+    # ── Armadura y capacidad ACI 318 (vigas y columnas de hormigon) ──
+    import capacidad_ha as cha
+    overrides = load_json(args.armaduras) if args.armaduras else None
+    arm = cha.load_armaduras(overrides=overrides)
+    col_curves = {}   # una curva P-M de diseno por seccion + armadura (no una por elemento)
+    resumen_arm = {"vigas": 0, "columnas": 0, "vigas_DCR_mayor_1": 0, "columnas_DCR_mayor_1": 0,
+                   "DCR_max_viga": 0.0, "DCR_max_columna": 0.0, "peorViga": "", "peorColumna": ""}
+    for el_out in elements_out:
+        if el_out.get("type") not in ("viga", "columna") or el_out.get("removed"):
+            continue
+        if el_out.get("nodeI") not in nodes_by_id or el_out.get("nodeJ") not in nodes_by_id:
+            continue
+        length = cvm.element_length(el_out, nodes_by_id)
+        fbc, wbc = {}, {}
+        for combo_name, lambdas in combos.items():
+            f = ((all_results.get(combo_name) or {}).get("element_forces") or {}).get(el_out["id"])
+            if f:
+                fbc[combo_name] = f
+                wbc[combo_name] = cvm.gravity_w(el_out, nodes_by_id, lambdas) if el_out.get("type") == "viga" else 0.0
+        cap = cha.evaluar(el_out, fbc, wbc, length, arm)
+        if not cap:
+            continue
+        if "curvaPM" in cap:
+            cid = "{}_{}".format(el_out.get("sectionId"), cap["armadura"].get("barras", "")).replace("φ", "f")
+            col_curves[cid] = {"puntos": cap.pop("curvaPM"), "P0": cap.get("P0_kN", 0.0), "arm": dict(cap["armadura"]),
+                               "b": el_out.get("width_m"), "h": el_out.get("height_m")}
+            el_out["pmCurveId"] = cid
+        el_out["capacidad"] = cap
+        key = "vigas" if el_out["type"] == "viga" else "columnas"
+        resumen_arm[key] += 1
+        dcr = cap.get("DCR", 0.0)
+        if dcr > 1.0:
+            resumen_arm[key + "_DCR_mayor_1"] += 1
+        tag_key, max_key = ("peorViga", "DCR_max_viga") if key == "vigas" else ("peorColumna", "DCR_max_columna")
+        if dcr > resumen_arm[max_key]:
+            resumen_arm[max_key] = dcr
+            resumen_arm[tag_key] = el_out.get("elementTag", "")
+    print(f"Armadura/capacidad: {resumen_arm}")
 
     # ── Empaquetar fuerzas por elemento ──────────────────────────────
     element_meta = {}
@@ -699,7 +749,21 @@ def main():
         "corteBasal_EY_kN": seismic.get("corte_basal_EY_kN", 0.0),
         "uMax": [{"caso": k, "u_mm": _u_max_mm(v)} for k, v in {**base_results, **all_results}.items()],
         "secciones": modificaciones,
+        "armadura": resumen_arm,
+        "rigidezViga": (fisurada or {}).get("viga", 1.0),
+        "rigidezColumna": (fisurada or {}).get("columna", 1.0),
+        "rigidezMuro": (fisurada or {}).get("muro", 1.0),
     }
+
+    # Curvas P-M de diseno de columnas (capacidad_ha): una por seccion + armadura
+    for cid, cc in col_curves.items():
+        pm_curves.append({
+            "sectionId": cid, "elementType": "columna", "b_m": cc["b"], "h_m": cc["h"], "fc_MPa": 35.0, "fy_MPa": 420.0,
+            "Po_kN": cc["P0"], "Ast_mm2": 0.0, "barDiameter_mm": 0.0, "steelBars": 0, "rho_percent": 0.0,
+            "interpretation": f"Curva de DISENO (phiPn, phiMn) ACI 318-19 por compatibilidad de deformaciones: "
+                              f"{cc['arm'].get('barras', '')}, estribos {cc['arm'].get('estribos', '')}; phi 0.65-0.90, phiPmax = 0.80 phi P0.",
+            "points": [{"label": "", "P_kN": q["P_kN"], "M_kN_m": q["M_kN_m"]} for q in cc["puntos"]],
+        })
 
     # ── JSON de salida ───────────────────────────────────────────────
     curva_muro_n = len(wall_pm_data) if wall_pm_data else 0

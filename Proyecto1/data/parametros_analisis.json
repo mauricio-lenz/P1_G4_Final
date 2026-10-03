@@ -1,0 +1,9 @@
+{
+  "descripcion": "Parametros del analisis (editables aqui o desde Unity, pestana ANALISIS). Los leen exportar_resultados_unity.py, quitar_elemento.py y qa_semana06.py; los argumentos de consola tienen prioridad.",
+  "Q_kg_m2": 500,
+  "coeficienteSismico": 0.2,
+  "q_G_kN_m2": 6.22722275,
+  "rigidezFisurada": {"viga": 0.35, "columna": 0.70, "muro": 0.35},
+  "rigidezFisuradaNota": "Factores de inercia ACI 318-19 6.6.3.1.1 (vigas 0.35 Ig, columnas 0.70 Ig, muros fisurados 0.35 Ig). Para seccion bruta: null.",
+  "sections": {}
+}

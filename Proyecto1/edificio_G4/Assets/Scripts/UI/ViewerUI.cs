@@ -288,7 +288,15 @@ public class ViewerUI : MonoBehaviour
         {
             head.Add(Text("Requiere Python + OpenSees en el PC (no disponible en este equipo).", "hint"));
         }
-        if (tab == TabModificar) BuildSectionEditor(head);
+        if (tab == TabModificar)
+        {
+            // editores en un contenedor desplazable: el panel IMGUI de quitar elemento queda debajo
+            var editors = new ScrollView(ScrollViewMode.Vertical);
+            editors.style.maxHeight = 470;
+            BuildArmaduraEditor(editors);
+            BuildSectionEditor(editors);
+            head.Add(editors);
+        }
         page.Add(head);
         var host = new VisualElement();
         host.AddToClassList("host");
@@ -448,6 +456,150 @@ public class ViewerUI : MonoBehaviour
         if (diagrams != null) diagrams.Refresh();
     }
 
+    // ---- MODIFICAR: armadura del elemento seleccionado ----
+    private void BuildArmaduraEditor(VisualElement c)
+    {
+        c.Add(Title("ARMADURA (ACI 318)", true));
+        var info = Text("Selecciona una viga o columna de hormigón.", "hint");
+        c.Add(info);
+        var estado = Text("", "line");
+        c.Add(estado);
+
+        // campos: vigas (5) y columnas (2); se muestran segun el tipo
+        string[] beamKeys = { "Inferior", "Superior", "Suple apoyo", "Estribos apoyo", "Estribos tramo" };
+        string[] colKeys = { "Barras", "Estribos" };
+        var beamFields = new List<TextField>();
+        var colFields = new List<TextField>();
+        var beamBox = new VisualElement();
+        var colBox = new VisualElement();
+        foreach (string k in beamKeys) { var f = ArmField(k); beamFields.Add(f); beamBox.Add(f); }
+        foreach (string k in colKeys) { var f = ArmField(k); colFields.Add(f); colBox.Add(f); }
+        c.Add(beamBox);
+        c.Add(colBox);
+        c.Add(Text("Notación: 4f22 o 4φ22, 2f22+2f25; estribos Ef10a10 (2 ramas), EDf10a10 (doble, 4 ramas).", "hint"));
+
+        var row1 = Row();
+        var toElem = Btn("Aplicar al elemento", null, "wide");
+        var toSec = Btn("Aplicar a la sección", null, "wide");
+        row1.Add(toElem);
+        row1.Add(toSec);
+        c.Add(row1);
+        var row2 = Row();
+        var clear = Btn("Quitar cambios", null, "wide");
+        var run = Btn("Reanalizar ahora", () => { if (Session.StartReanalysis()) viewer.Status = "Reanálisis en curso..."; }, "wide");
+        row2.Add(clear);
+        row2.Add(run);
+        c.Add(row2);
+        var pending = Text("", "hint");
+        c.Add(pending);
+
+        ElementData current = null;
+        System.Func<AnalysisSession.Arm> read = () =>
+        {
+            var a = new AnalysisSession.Arm();
+            if (current == null) return a;
+            ArmaduraData now = current.capacidad != null ? current.capacidad.armadura : null;
+            string Pick(TextField f, string old) => string.IsNullOrWhiteSpace(f.value) || f.value.Trim() == (old ?? "") ? null : f.value.Trim();
+            if (current.type == "viga")
+            {
+                a.inferior = Pick(beamFields[0], now?.inferior);
+                a.superior = Pick(beamFields[1], now?.superior);
+                a.supleApoyo = Pick(beamFields[2], now?.supleApoyo);
+                a.estribosApoyo = Pick(beamFields[3], now?.estribosApoyo);
+                a.estribosTramo = Pick(beamFields[4], now?.estribosTramo);
+            }
+            else
+            {
+                a.barras = Pick(colFields[0], now?.barras);
+                a.estribos = Pick(colFields[1], now?.estribos);
+            }
+            return a;
+        };
+        System.Action fill = () =>
+        {
+            ArmaduraData now = current != null && current.capacidad != null ? current.capacidad.armadura : null;
+            AnalysisSession.Arm pendingElem = current != null && Session.armElem.TryGetValue(current.elementTag, out var pe) ? pe : null;
+            AnalysisSession.Arm pendingSec = current != null && Session.armSec.TryGetValue(current.sectionId ?? "", out var ps) ? ps : null;
+            string V(string elem, string sec, string cur) => elem ?? sec ?? cur ?? "";
+            beamFields[0].SetValueWithoutNotify(V(pendingElem?.inferior, pendingSec?.inferior, now?.inferior));
+            beamFields[1].SetValueWithoutNotify(V(pendingElem?.superior, pendingSec?.superior, now?.superior));
+            beamFields[2].SetValueWithoutNotify(V(pendingElem?.supleApoyo, pendingSec?.supleApoyo, now?.supleApoyo));
+            beamFields[3].SetValueWithoutNotify(V(pendingElem?.estribosApoyo, pendingSec?.estribosApoyo, now?.estribosApoyo));
+            beamFields[4].SetValueWithoutNotify(V(pendingElem?.estribosTramo, pendingSec?.estribosTramo, now?.estribosTramo));
+            colFields[0].SetValueWithoutNotify(V(pendingElem?.barras, pendingSec?.barras, now?.barras));
+            colFields[1].SetValueWithoutNotify(V(pendingElem?.estribos, pendingSec?.estribos, now?.estribos));
+        };
+        toElem.clicked += () =>
+        {
+            if (current == null) return;
+            AnalysisSession.Arm a = read();
+            if (a.Describe().Length == 0) { viewer.Status = "Sin cambios de armadura."; return; }
+            Session.armElem[current.elementTag] = a;
+            viewer.Status = $"Armadura de {current.elementTag}: {a.Describe()}. Reanaliza para ver el factor de uso.";
+        };
+        toSec.clicked += () =>
+        {
+            if (current == null) return;
+            AnalysisSession.Arm a = read();
+            if (a.Describe().Length == 0) { viewer.Status = "Sin cambios de armadura."; return; }
+            Session.armSec[current.sectionId] = a;
+            viewer.Status = $"Armadura tipo de {current.sectionId}: {a.Describe()}. Reanaliza para ver el factor de uso.";
+        };
+        clear.clicked += () =>
+        {
+            if (current == null) return;
+            Session.armElem.Remove(current.elementTag);
+            Session.armSec.Remove(current.sectionId ?? "");
+            fill();
+        };
+
+        syncers.Add(() =>
+        {
+            ElementData e = picker != null && picker.Selected != null ? picker.Selected.data : null;
+            bool editable = e != null && e.capacidad != null && e.capacidad.armadura != null && (e.type == "viga" || e.type == "columna");
+            ElementData next = editable ? e : null;
+            if (next != current)
+            {
+                current = next;
+                fill();
+            }
+            beamBox.style.display = current != null && current.type == "viga" ? DisplayStyle.Flex : DisplayStyle.None;
+            colBox.style.display = current != null && current.type == "columna" ? DisplayStyle.Flex : DisplayStyle.None;
+            info.text = current != null ? $"{current.elementTag} · {current.type} {current.sectionId}"
+                : e != null ? $"{e.elementTag}: sin armadura de hormigón editable" : "Selecciona una viga o columna de hormigón.";
+            if (current != null)
+            {
+                CapacityData cap = current.capacidad;
+                CapacityCombo cc = cap.ForCombo(UnityData.ActiveCombo);
+                float dcr = cc != null ? Mathf.Max(cc.DCR_flexion, Mathf.Max(cc.DCR_corte, cc.DCR_PM)) : cap.DCR;
+                string semaforo = dcr > 1f ? "NO CUMPLE" : dcr > 0.9f ? "al límite" : "cumple";
+                estado.text = current.type == "viga"
+                    ? $"φMn+ {cap.phiMn_pos_kN_m:0} · φMn− {cap.phiMn_neg_kN_m:0} kN·m · φVn {cap.phiVn_apoyo_kN:0} kN · DCR {dcr:0.00} ({semaforo})"
+                    : $"φPmax {cap.phiPmax_kN:0} kN · Ast {cap.Ast_mm2:0} mm² · DCR {dcr:0.00} ({semaforo})";
+                estado.style.color = dcr > 1f ? new Color(1f, 0.45f, 0.35f) : dcr > 0.9f ? new Color(1f, 0.8f, 0.3f) : new Color(0.55f, 0.9f, 0.6f);
+            }
+            else estado.text = "";
+            toElem.SetEnabled(current != null && !Session.job.Running);
+            toSec.SetEnabled(current != null && !Session.job.Running);
+            clear.SetEnabled(current != null);
+            run.SetEnabled(PythonJob.Available && !Session.job.Running);
+            run.text = Session.job.Running ? $"Analizando... {Session.job.Elapsed:0} s" : "Reanalizar ahora";
+            var lines = new List<string>();
+            foreach (var kv in Session.armSec) lines.Add($"Sección {kv.Key}: {kv.Value.Describe()}");
+            foreach (var kv in Session.armElem) lines.Add($"{kv.Key}: {kv.Value.Describe()}");
+            pending.text = lines.Count == 0 ? "Sin cambios de armadura pendientes." : "Pendientes:\n" + string.Join("\n", lines);
+        });
+    }
+
+    private TextField ArmField(string label)
+    {
+        var f = Input(new TextField(label) { value = "" });
+        f.AddToClassList("dropdown");
+        f.RegisterCallback<FocusInEvent>(_ => TextFocused = true);
+        f.RegisterCallback<FocusOutEvent>(_ => TextFocused = false);
+        return f;
+    }
+
     // ---- MODIFICAR: cambio de seccion ----
     private void BuildSectionEditor(VisualElement c)
     {
@@ -566,6 +718,20 @@ public class ViewerUI : MonoBehaviour
         sc.RegisterValueChangedCallback(e => Session.seismicCoeff = Mathf.Max(0f, e.newValue));
         c.Add(Text("G = q_G·A_trib + peso propio (25 kN/m³ hormigón, 78,5 kN/m³ acero). Sismo: C·(D + 0,5Q) por piso.", "hint"));
 
+        c.Add(Title("RIGIDEZ (FACTOR SOBRE LA INERCIA BRUTA)"));
+        var kv = Input(new FloatField("Vigas") { value = Session.kViga, formatString = "0.###" });
+        var kc = Input(new FloatField("Columnas") { value = Session.kColumna, formatString = "0.###" });
+        var km = Input(new FloatField("Muros") { value = Session.kMuro, formatString = "0.###" });
+        foreach (var f in new[] { kv, kc, km }) { f.AddToClassList("dropdown"); c.Add(f); }
+        kv.RegisterValueChangedCallback(e => Session.kViga = Mathf.Clamp(e.newValue, 0.05f, 1f));
+        kc.RegisterValueChangedCallback(e => Session.kColumna = Mathf.Clamp(e.newValue, 0.05f, 1f));
+        km.RegisterValueChangedCallback(e => Session.kMuro = Mathf.Clamp(e.newValue, 0.05f, 1f));
+        var kRow = Row();
+        kRow.Add(Btn("ACI fisurada", () => { kv.value = 0.35f; kc.value = 0.70f; km.value = 0.35f; }, "wide"));
+        kRow.Add(Btn("Sección bruta", () => { kv.value = 1f; kc.value = 1f; km.value = 1f; }, "wide"));
+        c.Add(kRow);
+        c.Add(Text("ACI 318-19 §6.6.3.1.1: vigas 0,35, columnas 0,70, muros fisurados 0,35 (no fisurados 0,70). Acero sin reducción.", "hint"));
+
         c.Add(Title("COMBINACIONES  ·  λG  λQ  λEX  λEY"));
         var comboList = new VisualElement();
         c.Add(comboList);
@@ -600,7 +766,7 @@ public class ViewerUI : MonoBehaviour
             buildCombos();
         }, "wide"));
 
-        c.Add(Title("CAMBIOS DE SECCIÓN"));
+        c.Add(Title("CAMBIOS DE SECCIÓN Y ARMADURA"));
         var secs = Text("", "hint");
         c.Add(secs);
 
@@ -624,6 +790,8 @@ public class ViewerUI : MonoBehaviour
             progress.text = running ? (Session.job.LastLine ?? "") : Session.Message;
             var lines = new List<string>();
             foreach (var x in Session.sections.Values) lines.Add($"{x.tag}: {x.before} → {x.sectionId}");
+            foreach (var kv in Session.armSec) lines.Add($"Armadura {kv.Key}: {kv.Value.Describe()}");
+            foreach (var kv in Session.armElem) lines.Add($"Armadura {kv.Key}: {kv.Value.Describe()}");
             secs.text = lines.Count == 0 ? "Sin cambios (se agregan en la pestaña MODIFICAR)." : string.Join("\n", lines);
         });
         if (!PythonJob.Available) c.Add(Text("Requiere Python + OpenSees en este equipo (carpeta Proyecto1/scripts).", "hint"));
@@ -638,9 +806,15 @@ public class ViewerUI : MonoBehaviour
         else
         {
             c.Add(KeyValue("q_G · Q · C", $"{r.q_G_kN_m2:0.00} kN/m² · {r.Q_kN_m2:0.00} kN/m² · {r.coeficienteSismico:0.###}"));
+            c.Add(KeyValue("Rigidez V · C · M", $"{r.rigidezViga:0.##} · {r.rigidezColumna:0.##} · {r.rigidezMuro:0.##} × Ig"));
             c.Add(KeyValue("G aplicada / ΣRz", $"{r.G_aplicada_kN:0} / {r.G_reaccion_kN:0} kN"));
             c.Add(KeyValue("Q aplicada / ΣRz", $"{r.Q_aplicada_kN:0} / {r.Q_reaccion_kN:0} kN"));
             c.Add(KeyValue("Corte basal EX · EY", $"{r.corteBasal_EX_kN:0} · {r.corteBasal_EY_kN:0} kN"));
+            if (r.armadura != null && r.armadura.vigas > 0)
+            {
+                c.Add(KeyValue("Vigas DCR > 1", $"{r.armadura.vigas_DCR_mayor_1} de {r.armadura.vigas} (máx {r.armadura.DCR_max_viga:0.00} en {r.armadura.peorViga})"));
+                c.Add(KeyValue("Columnas DCR > 1", $"{r.armadura.columnas_DCR_mayor_1} de {r.armadura.columnas} (máx {r.armadura.DCR_max_columna:0.00} en {r.armadura.peorColumna})"));
+            }
             if (r.uMax != null)
                 foreach (CaseMax u in r.uMax) c.Add(KeyValue("|u| máx " + u.caso, $"{u.u_mm:0.00} mm"));
         }

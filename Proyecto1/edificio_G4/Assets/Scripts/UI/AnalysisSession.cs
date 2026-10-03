@@ -19,10 +19,34 @@ public class AnalysisSession
 {
     public class Combo { public string name; public float G, Q, EX, EY; }
     public class Section { public int id; public string tag; public string before; public string sectionId; public float width, height; }
+    /// Cambio de armadura (null = sin cambio en ese campo). Vigas: inferior, superior, supleApoyo,
+    /// estribosApoyo, estribosTramo. Columnas: barras, estribos.
+    public class Arm
+    {
+        public string inferior, superior, supleApoyo, estribosApoyo, estribosTramo, barras, estribos;
+        public string Describe()
+        {
+            var p = new List<string>();
+            if (inferior != null) p.Add("inf " + inferior);
+            if (superior != null) p.Add("sup " + superior);
+            if (supleApoyo != null) p.Add("suple " + supleApoyo);
+            if (estribosApoyo != null) p.Add("E apoyo " + estribosApoyo);
+            if (estribosTramo != null) p.Add("E tramo " + estribosTramo);
+            if (barras != null) p.Add(barras);
+            if (estribos != null) p.Add("E " + estribos);
+            return string.Join(" · ", p);
+        }
+    }
+    /// Cambios de armadura por elemento (elementTag) y por seccion (sectionId).
+    public readonly Dictionary<string, Arm> armElem = new Dictionary<string, Arm>();
+    public readonly Dictionary<string, Arm> armSec = new Dictionary<string, Arm>();
+    public bool HasArmChanges => armElem.Count > 0 || armSec.Count > 0;
 
     public float qG = 6.227f;          // kN/m2
     public float qKgM2 = 500f;         // kg/m2
     public float seismicCoeff = 0.20f;
+    /// Factores de inercia por tipo (rigidez fisurada; 1 = seccion bruta). ACI 318: 0,35 / 0,70 / 0,35.
+    public float kViga = 0.35f, kColumna = 0.70f, kMuro = 0.35f;
     public readonly List<Combo> combos = new List<Combo>();
     public readonly Dictionary<int, Section> sections = new Dictionary<int, Section>();
 
@@ -43,12 +67,20 @@ public class AnalysisSession
         qG = d.q_G > 0f ? d.q_G : 6.227f;
         qKgM2 = d.Q_kN_m2 > 0f ? d.Q_kN_m2 / KnPerKg : 500f;
         seismicCoeff = d.seismic_coefficient > 0f ? d.seismic_coefficient : 0.20f;
+        if (d.resumenAnalisis != null && d.resumenAnalisis.rigidezViga > 0f)
+        {
+            kViga = d.resumenAnalisis.rigidezViga;
+            kColumna = d.resumenAnalisis.rigidezColumna;
+            kMuro = d.resumenAnalisis.rigidezMuro;
+        }
         combos.Clear();
         if (d.p1l4?.combinations != null)
         {
             foreach (ComboInfo c in d.p1l4.combinations)
                 combos.Add(new Combo { name = c.name, G = c.G, Q = c.Q, EX = c.EX, EY = c.EY });
         }
+        armElem.Clear();
+        armSec.Clear();
         sections.Clear();
         if (d.resumenAnalisis?.secciones != null)
         {
@@ -74,8 +106,14 @@ public class AnalysisSession
         string modsPath = Path.Combine(dir, "mods_unity.json");
         File.WriteAllText(combosPath, CombosJson("Combinaciones editadas en Unity (escenario de reanalisis)."), NoBom);
         File.WriteAllText(modsPath, "{\"sections\": " + SectionsJson() + "}", NoBom);
-        string args = string.Format(Inv, "--q-kg-m2 {0} --sc {1} --qG {2} --combos \"{3}\" --mods \"{4}\"",
-            qKgM2, seismicCoeff, qG, combosPath, modsPath);
+        string args = string.Format(Inv, "--q-kg-m2 {0} --sc {1} --qG {2} --combos \"{3}\" --mods \"{4}\" --fisurada {5},{6},{7}",
+            qKgM2, seismicCoeff, qG, combosPath, modsPath, kViga, kColumna, kMuro);
+        if (HasArmChanges)
+        {
+            string armPath = Path.Combine(dir, "armaduras_unity.json");
+            File.WriteAllText(armPath, ArmJson(), NoBom);
+            args += " --armaduras \"" + armPath + "\"";
+        }
         if (!job.Start("exportar_resultados_unity.py", args, "escenario_unity.json"))
         {
             Message = job.Error;
@@ -113,6 +151,10 @@ public class AnalysisSession
             return false;
         }
         File.Copy(scenarioPath, target, true);
+        if (HasArmChanges && !MergeArmaduras(out string mergeError))
+        {
+            Message = "Modelo guardado, pero no se pudieron guardar las armaduras: " + mergeError;
+        }
         File.WriteAllText(Path.Combine(root, "data", "combinaciones.json"),
             CombosJson("Factores editados desde Unity (pestaña ANÁLISIS)."), NoBom);
         File.WriteAllText(Path.Combine(root, "data", "parametros_analisis.json"), ParamsJson(), NoBom);
@@ -131,6 +173,60 @@ public class AnalysisSession
         viewer.ReloadOriginal();
         LoadFrom(viewer.Data);
         Message = "Se volvió al modelo vigente.";
+    }
+
+    /// Fusiona los cambios de armadura en data/armaduras.json (capacidad_ha.py --merge), esperando el proceso.
+    private bool MergeArmaduras(out string error)
+    {
+        error = null;
+#if UNITY_EDITOR || UNITY_STANDALONE
+        string path = Path.Combine(Application.temporaryCachePath, "armaduras_guardar.json");
+        File.WriteAllText(path, ArmJson(), NoBom);
+        foreach (string exe in new[] { "python", "py" })
+        {
+            try
+            {
+                var info = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = exe,
+                    Arguments = $"-X utf8 \"{PythonJob.ScriptPath("capacidad_ha.py")}\" --merge \"{path}\"",
+                    WorkingDirectory = PythonJob.ScriptsDir,
+                    UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true
+                };
+                using (var p = System.Diagnostics.Process.Start(info))
+                {
+                    p.WaitForExit(30000);
+                    if (p.ExitCode == 0) { armElem.Clear(); armSec.Clear(); return true; }
+                    error = p.StandardError.ReadToEnd();
+                    return false;
+                }
+            }
+            catch (System.Exception e) { error = e.Message; }
+        }
+        return false;
+#else
+        error = "solo en PC";
+        return false;
+#endif
+    }
+
+    private static string ArmFields(Arm a)
+    {
+        var parts = new List<string>();
+        void Add(string k, string v) { if (v != null) parts.Add($"\"{k}\": \"{Escape(v)}\""); }
+        Add("inferior", a.inferior); Add("superior", a.superior); Add("supleApoyo", a.supleApoyo);
+        Add("estribosApoyo", a.estribosApoyo); Add("estribosTramo", a.estribosTramo);
+        Add("barras", a.barras); Add("estribos", a.estribos);
+        return "{" + string.Join(", ", parts) + "}";
+    }
+
+    private string ArmJson()
+    {
+        var sec = new List<string>();
+        foreach (var kv in armSec) sec.Add($"\"{Escape(kv.Key)}\": {ArmFields(kv.Value)}");
+        var el = new List<string>();
+        foreach (var kv in armElem) el.Add($"\"{Escape(kv.Key)}\": {ArmFields(kv.Value)}");
+        return "{\n  \"secciones\": {" + string.Join(", ", sec) + "},\n  \"elementos\": {" + string.Join(", ", el) + "}\n}\n";
     }
 
     // ------------------------------------------------------------------
@@ -164,8 +260,9 @@ public class AnalysisSession
     {
         return string.Format(Inv,
             "{{\n  \"descripcion\": \"Parametros del analisis (guardados desde Unity). Los lee exportar_resultados_unity.py y quitar_elemento.py; los argumentos de consola tienen prioridad.\",\n" +
-            "  \"Q_kg_m2\": {0},\n  \"coeficienteSismico\": {1},\n  \"q_G_kN_m2\": {2},\n  \"sections\": {3}\n}}\n",
-            qKgM2, seismicCoeff, qG, SectionsJson());
+            "  \"Q_kg_m2\": {0},\n  \"coeficienteSismico\": {1},\n  \"q_G_kN_m2\": {2},\n" +
+            "  \"rigidezFisurada\": {{\"viga\": {4}, \"columna\": {5}, \"muro\": {6}}},\n  \"sections\": {3}\n}}\n",
+            qKgM2, seismicCoeff, qG, SectionsJson(), kViga, kColumna, kMuro);
     }
 
     private static string Escape(string s) => (s ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");

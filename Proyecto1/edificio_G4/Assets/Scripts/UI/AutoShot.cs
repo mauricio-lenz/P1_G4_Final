@@ -50,16 +50,13 @@ public class AutoShot : MonoBehaviour
 
         if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-reanalyze") >= 0)
         {
-            // reanalisis de prueba: q_G 7 kN/m2 y E1_72 como V40/80
+            // armadura: E1_62 (viga del eje 2 con DCR > 1) pasa de 4f22 a 6f22 abajo
             viewer.SetResult("Momento");
-            viewer.Search("E1_72");
-            yield return new WaitForSeconds(0.5f);
-            var picker = FindAnyObjectByType<ElementPicker>();
-            if (picker != null && picker.Selected != null)
-                ViewerUI.Session.SetSection(picker.Selected.data, "V40/80", 0.4f, 0.8f, picker.Selected.data.sectionId);
-            ViewerUI.Session.qG = 7f;
+            viewer.Search("E1_62");
             ViewerUI.ShowTab(ViewerUI.TabModificar);
-            yield return Shot("07_modificar_seccion");
+            yield return new WaitForSeconds(1f);
+            yield return Shot("07_armadura_antes");
+            ViewerUI.Session.armElem["E1_62"] = new AnalysisSession.Arm { inferior = "6φ22" };
             ViewerUI.ShowTab(ViewerUI.TabAnalisis);
             ViewerUI.Session.StartReanalysis();
             yield return new WaitForSeconds(2f);
@@ -68,6 +65,16 @@ public class AutoShot : MonoBehaviour
             while (ViewerUI.Session.job.Running && Time.unscaledTime - t0 < 240f) yield return null;
             yield return new WaitForSeconds(2f);
             yield return Shot("09_escenario_cargado");
+            viewer.Search("E1_62");
+            ViewerUI.ShowTab(ViewerUI.TabModificar);
+            yield return new WaitForSeconds(1f);
+            yield return Shot("10_armadura_despues");
+            viewer.SetResult("None");
+            viewer.SetUtilizationVisible(true);
+            viewer.CameraPreset("ISO");
+            ViewerUI.ShowTab(ViewerUI.TabResultados);
+            yield return new WaitForSeconds(1f);
+            yield return Shot("11_utilizacion");
         }
         Application.Quit();
     }

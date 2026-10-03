@@ -37,6 +37,50 @@ public class AnalysisSummary
     public float corteBasal_EY_kN;
     public CaseMax[] uMax;
     public SectionChange[] secciones;
+    public ArmaduraSummary armadura;
+    public float rigidezViga = 1f, rigidezColumna = 1f, rigidezMuro = 1f;   // factores de inercia (1 = bruta)
+}
+
+/// Armadura de vigas (inferior, superior, suple de apoyo, estribos) o columnas (barras, estribos).
+[Serializable]
+public class ArmaduraData
+{
+    public string inferior, superior, supleApoyo, estribosApoyo, estribosTramo;
+    public string barras, estribos;
+}
+
+[Serializable]
+public class CapacityCombo
+{
+    public string combo;
+    public float Mu_pos, Mu_neg, Vu, DCR_flexion, DCR_corte;   // viga
+    public float Pu, Mu, phiMn_at_Pu, phiVn, DCR_PM;            // columna
+}
+
+[Serializable]
+public class CapacityData
+{
+    public ArmaduraData armadura;
+    public float phiMn_pos_kN_m, phiMn_neg_kN_m, phiVn_apoyo_kN, phiVn_tramo_kN, As_inf_mm2, As_sup_apoyo_mm2;
+    public float P0_kN, phiPmax_kN, Ast_mm2;
+    public float DCR;
+    public string comboGobernante;
+    public CapacityCombo[] porCombo;
+
+    public CapacityCombo ForCombo(string combo)
+    {
+        if (porCombo == null) return null;
+        foreach (CapacityCombo c in porCombo) if (c.combo == combo) return c;
+        return null;
+    }
+}
+
+[Serializable]
+public class ArmaduraSummary
+{
+    public int vigas, columnas, vigas_DCR_mayor_1, columnas_DCR_mayor_1;
+    public float DCR_max_viga, DCR_max_columna;
+    public string peorViga, peorColumna;
 }
 
 [Serializable]
@@ -300,6 +344,8 @@ public class ElementData
     public float areaTributaria;
     public float cargaTributaria;
     public float selfWeight_kN;   // peso propio (G), repartido en el elemento
+    public CapacityData capacidad; // armadura y capacidad ACI 318 (capacidad_ha.py)
+    public string pmCurveId;       // curva P-M de diseno de la columna (seccion + armadura)
 }
 
 [Serializable]

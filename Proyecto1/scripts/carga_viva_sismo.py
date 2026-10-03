@@ -67,9 +67,25 @@ def load_analysis_params(path=PARAMS_PATH):
         return json.load(file)
 
 
-def apply_model_params(data, q_g_new=None, sections=None):
-    """Aplica al modelo un q_G nuevo (escala la D tributaria de las vigas) y cambios de seccion.
+# Rigidez fisurada (ACI 318-19 6.6.3.1.1): factor sobre la inercia de la seccion bruta.
+# Area y torsion sin reduccion. Acero y brazos rigidos sin reduccion.
+FISURADA_ACI = {"viga": 0.35, "columna": 0.70, "muro": 0.35}
+
+
+def stiffness_factor(element, factors):
+    """Factor de inercia del elemento segun su tipo (1.0 = seccion bruta)."""
+    if not factors or element.get("material") == "acero" or element.get("type") in ("rigido", "arriostre"):
+        return 1.0
+    return float(factors.get(element.get("type"), 1.0))
+
+
+def apply_model_params(data, q_g_new=None, sections=None, cracked=None):
+    """Aplica al modelo un q_G nuevo (escala la D tributaria de las vigas), cambios de seccion y
+    factores de rigidez fisurada (data["rigidezFisurada"], los lee build_model).
     Devuelve la lista de cambios de seccion aplicados."""
+    if cracked:
+        data["rigidezFisurada"] = {k: float(v) for k, v in cracked.items()}
+        print(f"  Rigidez fisurada: {data['rigidezFisurada']}")
     q_g = float(data.get("q_G", 6.227))
     if q_g_new is not None and q_g_new > 0 and abs(q_g_new - q_g) > 1e-9:
         factor = q_g_new / q_g
@@ -647,6 +663,8 @@ def build_model(data):
             height = float(element.get("height_m") or 0.80)
             area, iy, iz, j = section_properties(width, height)
             e_mod, g_mod = E_CONCRETE, G_CONCRETE
+        k_fis = stiffness_factor(element, data.get("rigidezFisurada"))
+        iy, iz = iy * k_fis, iz * k_fis
         ni = nodes[element["nodeI"]]
         nj = nodes[element["nodeJ"]]
         length = element_length(element, nodes)

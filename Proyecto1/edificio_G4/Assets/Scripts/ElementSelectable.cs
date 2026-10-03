@@ -147,6 +147,8 @@ public class ElementSelectable : MonoBehaviour
                       $"U=1.2D+1.6L: {data.factoredLoad12D16L:0.###} kN\n";
         }
 
+        result += CapacityText();
+
         if (UnityData.ActiveCombo != null)
         {
             result += $"\n--- Demanda-capacidad ({UnityData.GetComboLabel(UnityData.ActiveCombo)}) ---\n";
@@ -409,13 +411,49 @@ public class ElementSelectable : MonoBehaviour
         return GetPMDemandForCase(string.IsNullOrEmpty(UnityData.ActiveCombo) ? "C1" : UnityData.ActiveCombo);
     }
 
+    /// Factor de uso del combo activo: ACI 318 (capacidad_ha) si el elemento tiene armadura; si no, P-M.
     public float GetActiveUtilization()
     {
+        CapacityData cap = data != null ? data.capacidad : null;
+        if (cap != null && cap.porCombo != null && cap.porCombo.Length > 0)
+        {
+            CapacityCombo c = cap.ForCombo(UnityData.ActiveCombo);
+            if (c == null) return cap.DCR;
+            return Mathf.Max(c.DCR_flexion, Mathf.Max(c.DCR_corte, c.DCR_PM));
+        }
         if (string.IsNullOrEmpty(pmSectionId))
         {
             return 0f;
         }
         return GetCapacityRatio(GetActiveDemand());
+    }
+
+    /// Bloque "Armadura y capacidad" del panel de propiedades.
+    private string CapacityText()
+    {
+        CapacityData cap = data != null ? data.capacidad : null;
+        if (cap == null || cap.armadura == null) return "";
+        ArmaduraData a = cap.armadura;
+        string s = "\n--- Armadura y capacidad (ACI 318-19) ---\n";
+        CapacityCombo c = cap.ForCombo(UnityData.ActiveCombo);
+        if (data.type == "viga")
+        {
+            s += $"Inferior: {a.inferior}\nSuperior: {a.superior}\nSuple apoyo: {a.supleApoyo}\n" +
+                 $"Estribos apoyo: {a.estribosApoyo}\nEstribos tramo: {a.estribosTramo}\n" +
+                 $"phiMn+ = {cap.phiMn_pos_kN_m:0.0} kN*m\nphiMn- = {cap.phiMn_neg_kN_m:0.0} kN*m\nphiVn apoyo = {cap.phiVn_apoyo_kN:0.0} kN\n";
+            if (c != null)
+                s += $"Mu+ / Mu- = {c.Mu_pos:0.0} / {c.Mu_neg:0.0} kN*m ({c.combo})\nVu = {c.Vu:0.0} kN\n" +
+                     $"DCR flexion = {c.DCR_flexion:0.00}\nDCR corte = {c.DCR_corte:0.00}\n";
+        }
+        else
+        {
+            s += $"Barras: {a.barras}\nEstribos: {a.estribos}\nAst = {cap.Ast_mm2:0} mm2\nphiPmax = {cap.phiPmax_kN:0} kN\n";
+            if (c != null)
+                s += $"Pu = {c.Pu:0.0} kN ({c.combo})\nMu = {c.Mu:0.0} kN*m\nphiMn(Pu) = {c.phiMn_at_Pu:0.0} kN*m\n" +
+                     $"Vu / phiVn = {c.Vu:0.0} / {c.phiVn:0.0} kN\nDCR P-M = {c.DCR_PM:0.00}\nDCR corte = {c.DCR_corte:0.00}\n";
+        }
+        s += $"DCR max = {cap.DCR:0.00} ({cap.comboGobernante})\n";
+        return s;
     }
 
     private string FormatSupport(string label, SupportData support)
