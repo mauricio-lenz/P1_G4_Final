@@ -540,12 +540,14 @@ public class ViewerUI : MonoBehaviour
         c.Add(Title("MODELO", true));
         if (d != null)
         {
-            int beams = 0, cols = 0, braces = 0;
+            int beams = 0, cols = 0, braces = 0, walls = 0, links = 0;
             foreach (ElementData e in d.elements)
             {
-                if (e.type == "viga") beams++; else if (e.type == "columna") cols++; else braces++;
+                if (e.type == "viga") beams++; else if (e.type == "columna") cols++; else if (e.type == "muro") walls++;
+                else if (e.type == "rigido") links++; else braces++;
             }
-            c.Add(KeyValue("Nodos · elementos", $"{d.nodes.Length} · {d.elements.Length} ({beams} V, {cols} C, {braces} A)"));
+            c.Add(KeyValue("Nodos · elementos", $"{d.nodes.Length} · {beams + cols + braces} ({beams} V, {cols} C, {braces} A)"));
+            if (walls > 0) c.Add(KeyValue("Muros en el análisis", $"{walls} paños (columna ancha) · {links} brazos rígidos"));
             c.Add(KeyValue("Muros · apoyos", $"{d.walls?.Length ?? 0} · {d.supports?.Length ?? 0}"));
             c.Add(KeyValue("Resultados cargados", viewer.LoadedSource));
         }

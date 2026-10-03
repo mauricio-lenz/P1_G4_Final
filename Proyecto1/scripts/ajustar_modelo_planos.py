@@ -35,6 +35,12 @@ COL70/70) coincide con los planos; aqui se corrigen detalles:
  13. Losas en voladizo: borde norte (eje 1) de ambos edificios y bordes sur
      y este de la zona I'-J en los pisos 3 y 4; su area tributaria se suma
      a las vigas de borde.
+ 14. Muros en el analisis: cada pano (un piso) como columna ancha equivalente
+     (A = t*L, I en el plano t*L^3/12) unida por brazos rigidos a los nodos del
+     marco sobre la linea del muro y empotrada en la fundacion. Reemplaza a las
+     columnas equivalentes de gravedad del paso 11.
+ 15. E1_255 (eje 3, x=7.51, piso 2) es pilar metalico P.M. 300x300x20 sobre
+     vigas (plano 2017_67-102), no columna COL70/70.
 
 El script siempre parte del respaldo previo a los ajustes, por lo que se
 puede volver a ejecutar sin duplicar cambios.
@@ -136,6 +142,7 @@ PERFILES_ACERO = {
 
 # Paso 9: pilares P.M. 300x300x20 (plantas 2017_67-102/103, elevaciones 800-802)
 PILARES_METALICOS = ["E1_241", "E1_254",                      # voladizo piso 2 (F y x=7.51)
+                     "E1_255",                                # eje 3 x=7.51, piso 2 (plano 102: P.M. 300x300x20 sobre vigas)
                      "E1_304", "E1_305", "E1_306",            # x=37.55, piso 4
                      "E1_307", "E1_308", "E1_309",            # eje J, piso 4
                      "E1_310", "E1_311"]                      # voladizo piso 4 (G y H)
@@ -581,6 +588,125 @@ def losas_en_voladizo(data, log):
         log.append("vigas sin area previa cargadas con q promedio del piso: " + ", ".join(sin_area))
 
 
+# Paso 14: muros en el analisis (modelo de columna ancha equivalente).
+# Cada pano de muro (un piso) es un elemento vertical en el eje del muro con
+# A = t*L e inercia en el plano t*L^3/12, unido arriba y abajo por brazos
+# rigidos a los nodos del marco que caen sobre la linea del muro. Reemplaza a
+# las columnas equivalentes de gravedad del paso 11.
+RIGIDO = {"A_m2": 10.0, "Iy_m4": 50.0, "Iz_m4": 50.0, "J_m4": 50.0}
+TOL_LINEA = 0.20   # m: nodo del marco "sobre" el muro (distancia al eje y a los extremos)
+
+
+def muros_en_el_modelo(data, log):
+    nodes = {n["id"]: n for n in data["nodes"]}
+    soportes = {s["node"] for s in data["supports"]}
+    # nodos del marco por (edificio, z): los que ya usan vigas, columnas o arriostres
+    marco = {}
+    for e in data["elements"]:
+        b = e.get("sourceBuilding") or "edificio_1"
+        for nid in (e["nodeI"], e["nodeJ"]):
+            n = nodes[nid]
+            marco.setdefault((b, round(n["z"], 2)), set()).add(nid)
+    index = {(round(n["x"], 3), round(n["y"], 3), round(n["z"], 3)): n["id"] for n in data["nodes"]}
+    next_node = max(nodes) + 1
+    next_elem = max(e["id"] for e in data["elements"]) + 1
+    z_min = min(n["z"] for n in data["nodes"])
+
+    def nodo(x, y, z):
+        nonlocal next_node
+        key = (round(x, 3), round(y, 3), round(z, 3))
+        if key in index:
+            return index[key]
+        data["nodes"].append({"id": next_node, "x": x, "y": y, "z": z})
+        nodes[next_node] = data["nodes"][-1]
+        index[key] = next_node
+        next_node += 1
+        return next_node - 1
+
+    def sobre_linea(nid, a, b):
+        n = nodes[nid]
+        vx, vy = b["x"] - a["x"], b["y"] - a["y"]
+        largo = math.hypot(vx, vy)
+        if largo < 1e-6:
+            return False
+        t = ((n["x"] - a["x"]) * vx + (n["y"] - a["y"]) * vy) / largo
+        d = abs((n["x"] - a["x"]) * vy - (n["y"] - a["y"]) * vx) / largo
+        return d <= TOL_LINEA and -TOL_LINEA <= t <= largo + TOL_LINEA
+
+    def elemento(ni, nj, tipo, tag, edificio, extra):
+        nonlocal next_elem
+        e = {"id": next_elem, "nodeI": ni, "nodeJ": nj, "type": tipo, "elementTag": tag,
+             "sourceBuilding": edificio, "sourceId": "muro_columna_ancha", "sourceEdges": []}
+        e.update({c: 0.0 for c in CAMPOS_CARGA + ("axialI", "axialJ")})
+        e.update(extra)
+        data["elements"].append(e)
+        next_elem += 1
+        return e
+
+    # quitar las columnas equivalentes de gravedad (paso 11): ahora el muro completo esta en el modelo
+    antes = len(data["elements"])
+    data["elements"] = [e for e in data["elements"] if e.get("sourceId") != "muro_gravedad"]
+    quitadas = antes - len(data["elements"])
+
+    # 1) nodos en los extremos de cada pano, arriba y abajo. Se indexan por
+    #    coordenada: muros que se encuentran en una esquina comparten el nodo, y
+    #    si en ese punto ya hay un nodo del marco, se usa ese.
+    panos = []
+    for i, w in enumerate(data.get("walls", [])):
+        a, b = nodes[w["nodeI"]], nodes[w["nodeJ"]]
+        z0 = round(a["z"], 2)
+        z1 = round(z0 + H_PISO, 2)
+        ext = {zc: [nodo(a["x"], a["y"], zc), nodo(b["x"], b["y"], zc)] for zc in (z0, z1)}
+        panos.append((i, w, a, b, z0, z1, ext))
+    candidatos = {}   # (edificio, z) -> nodos del marco + extremos de muros
+    for (bz, z), ids in marco.items():
+        candidatos.setdefault((bz, z), set()).update(ids)
+    for i, w, a, b, z0, z1, ext in panos:
+        edificio = w.get("sourceBuilding") or "edificio_1"
+        for zc in (z0, z1):
+            candidatos.setdefault((edificio, zc), set()).update(ext[zc])
+
+    # 2) columna ancha en el eje del muro + brazos rigidos a todo nodo sobre su linea
+    n_muros = n_brazos = n_apoyos = 0
+    for i, w, a, b, z0, z1, ext in panos:
+        edificio = w.get("sourceBuilding") or "edificio_1"
+        t = float(w["grosor"])
+        largo = math.hypot(b["x"] - a["x"], b["y"] - a["y"])
+        cx, cy = (a["x"] + b["x"]) / 2.0, (a["y"] + b["y"]) / 2.0
+        nb, nt = nodo(cx, cy, z0), nodo(cx, cy, z1)
+        a_lo_largo_x = abs(b["x"] - a["x"]) >= abs(b["y"] - a["y"])
+        i_plano, i_fuera = t * largo ** 3 / 12.0, largo * t ** 3 / 12.0
+        # columna vertical: eje local y = -Y global, z = +X global (geomTransf vecxz = X)
+        iy, iz = (i_plano, i_fuera) if a_lo_largo_x else (i_fuera, i_plano)
+        tag = "MURO-{:03d}".format(i + 1)
+        sid = f"MURO_{int(round(t * 100))}x{int(round(largo * 100))}"
+        elemento(nb, nt, "muro", "W_" + tag, edificio, {
+            "sectionId": sid, "seccion": sid, "piso": w.get("top", ""), "material": "hormigon",
+            "width_m": t, "height_m": largo, "A_m2": t * largo, "Iy_m4": iy, "Iz_m4": iz,
+            "J_m4": largo * t ** 3 / 3.0, "wallIndex": i + 1, "wallInPlaneAxis": "X" if a_lo_largo_x else "Y",
+            "nota": f"Muro {tag} e={t:.2f} L={largo:.2f} m: columna ancha equivalente (seccion bruta)",
+        })
+        n_muros += 1
+        for zc, centro in ((z0, nb), (z1, nt)):
+            for nid in sorted(candidatos.get((edificio, zc), ())):
+                if nid != centro and sobre_linea(nid, a, b):
+                    elemento(centro, nid, "rigido", f"RIG_{tag}_{nid}", edificio,
+                             {"sectionId": "RIGIDO", "seccion": "RIGIDO", "piso": w.get("top", ""),
+                              "width_m": 0.0, "height_m": 0.0, **RIGIDO})
+                    n_brazos += 1
+        if z0 <= z_min + 1e-6:
+            for nid in [nb] + ext[z0]:
+                if nid not in soportes:
+                    data["supports"].append({"node": nid, "type": "fixed", "ux": 1, "uy": 1, "uz": 1, "rx": 1, "ry": 1, "rz": 1})
+                    soportes.add(nid)
+                    n_apoyos += 1
+    sin_conexion = []
+    data["sections"]["RIGIDO"] = {"id": "RIGIDO", "shape": "BRAZO_RIGIDO", **RIGIDO}
+    log.append(f"muros en el analisis: {n_muros} panos como columna ancha, {n_brazos} brazos rigidos al marco, "
+               f"{n_apoyos} empotramientos en fundacion; {quitadas} columnas equivalentes de gravedad reemplazadas"
+               + (f"; sin nodos del marco sobre la linea (solo diafragma): {', '.join(sin_conexion)}" if sin_conexion else ""))
+
+
 def aplicar(data):
     log = []
     reflejar_edificio_2(data, log)
@@ -594,6 +720,7 @@ def aplicar(data):
     muros_gravedad_e2(data, log)
     losas_zona_ij(data, log)
     losas_en_voladizo(data, log)
+    muros_en_el_modelo(data, log)
     data[MARCA] = log
     return log
 

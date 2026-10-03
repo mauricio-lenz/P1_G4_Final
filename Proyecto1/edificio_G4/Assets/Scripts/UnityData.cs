@@ -104,6 +104,9 @@ public static class UnityData
         return d != null ? new Vector3(d.ux, d.uz, d.uy) : Vector3.zero;
     }
 
+    /// Elementos que solo existen para el analisis: columna ancha de un muro y brazos rigidos.
+    public static bool IsAnalysisOnly(ElementData e) => e != null && (e.type == "muro" || e.type == "rigido");
+
     public static float[] GetElementForces(string combo, int elementId)
     {
         if (string.IsNullOrEmpty(combo) || ElementForcesByCombo == null || !ElementForcesByCombo.TryGetValue(combo, out var list) || list == null)

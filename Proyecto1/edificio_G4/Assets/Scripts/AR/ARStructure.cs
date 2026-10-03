@@ -168,6 +168,7 @@ public class ARStructure : MonoBehaviour
         foreach (ElementData e in UnityData.Structure.elements)
         {
             if (!nodes.ContainsKey(e.nodeI) || !nodes.ContainsKey(e.nodeJ)) continue;
+            if (UnityData.IsAnalysisOnly(e)) continue;
             bool featured = System.Array.IndexOf(FeaturedTags, e.elementTag) >= 0;
             if (sectorOnly && !InSector(e) && !featured) continue;
             Vector3 a = ModelToAnchor(NodePos(e.nodeI));

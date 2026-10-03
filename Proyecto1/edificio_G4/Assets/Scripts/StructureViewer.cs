@@ -375,6 +375,9 @@ public class StructureViewer : MonoBehaviour
             {
                 continue;
             }
+            // muros en el analisis (columna ancha + brazos rigidos): el muro ya se
+            // dibuja como pano (CreateWalls) y sus resultados van en su demanda P-M
+            if (UnityData.IsAnalysisOnly(element)) continue;
 
             Vector3 start = nodes[element.nodeI];
             Vector3 end = nodes[element.nodeJ];

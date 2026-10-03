@@ -195,6 +195,8 @@ def self_weight_kN(element, nodes):
     """Peso propio total del elemento [kN] = gamma * A * L.
     Vigas de hormigon: solo el alma bajo la losa, b * (h - e_losa), porque la
     franja dentro de la losa ya esta en q_G * A_trib."""
+    if element.get("type") == "rigido":
+        return 0.0   # brazo rigido de un muro: no es material real
     if element.get("material") == "acero":
         return GAMMA_STEEL * element_area(element) * element_length(element, nodes)
     area = element_area(element)

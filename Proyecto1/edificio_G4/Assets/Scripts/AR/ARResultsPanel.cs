@@ -26,7 +26,7 @@ public class ARResultsPanel : MonoBehaviour
         sector.Clear();
         foreach (ElementData e in UnityData.Structure.elements)
         {
-            if (structure.InSector(e)) sector.Add(e);
+            if (structure.InSector(e) && !UnityData.IsAnalysisOnly(e)) sector.Add(e);
         }
         sector.Sort((a, b) => string.CompareOrdinal(a.type, b.type) != 0 ? string.CompareOrdinal(a.type, b.type) : a.id.CompareTo(b.id));
         if (structure.Selected == null) Select(structure.FindByTag(ARStructure.AnchorTag));

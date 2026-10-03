@@ -456,6 +456,27 @@ def main():
             "points": wall_points
         })
 
+    # Curva por geometria de muro: escalada de la de referencia (t=0.25, L=7.60) con la misma
+    # cuantia y disposicion (2 capas phi12@200): P ~ t*L, M ~ t*L^2. Aproximacion de primer orden.
+    wall_curve_id = {}
+    if wall_pm_data:
+        for wall in data.get("walls", []):
+            t = float(wall.get("grosor", 0.0)); L = float(wall.get("longitud", 0.0))
+            sid = "W_ESC_{:d}x{:d}".format(int(round(t * 100)), int(round(L * 100)))
+            wall_curve_id[id(wall)] = sid
+            if any(c["sectionId"] == sid for c in pm_curves):
+                continue
+            fp = t * L / (0.25 * 7.60)
+            fm = t * L * L / (0.25 * 7.60 * 7.60)
+            pm_curves.append({
+                "sectionId": sid, "elementType": "muro", "b_m": t, "h_m": L, "fc_MPa": 35.0, "fy_MPa": 420.0,
+                "steelBars": 0, "barDiameter_mm": 12.0, "Ast_mm2": round(8595.4 * fp, 1), "rho_percent": 0.45,
+                "Po_kN": float(wall_pm_full.get("Pn0_kN", 0.0)) * fp,
+                "interpretation": f"Muro t={t:.2f} m, L={L:.2f} m: envolvente W_DPRIME escalada (P x{fp:.3f}, M x{fm:.3f}), "
+                                  f"misma cuantia 0.45 % (2 capas phi12@200). Aproximacion: falta el detalle de armadura real.",
+                "points": [{"label": p["label"], "P_kN": p["P_kN"] * fp, "M_kN_m": p["M_kN_m"] * fm} for p in wall_points],
+            })
+
     # ── Regenerar semana3_resultados_unity.json (G35) ─────────────
     # Deja el archivo de capacidad de P1L2 consistente con el modelo
     # (hormigon G35) y con lo que Unity carga en la escena P1L2.
@@ -549,7 +570,40 @@ def main():
                 count += 1
         return max(count, 1)
 
+    # Muros en el analisis (columna ancha, paso 14 de ajustar_modelo_planos):
+    # la demanda sale de las fuerzas del elemento del muro en cada combinacion.
+    wall_elements = {int(e["wallIndex"]): e for e in data.get("elements", []) if e.get("type") == "muro" and e.get("wallIndex")}
+
+    def analysis_demands(wall):
+        e = wall_elements.get(int(wall.get("id", 0)))
+        if e is None:
+            return None
+        out = []
+        for combo_name in combos:
+            res = all_results.get(combo_name) or {}
+            f = (res.get("element_forces") or {}).get(e["id"])
+            if not f or len(f) < 12:
+                continue
+            # columna vertical: local y = -Y, z = +X. Muro a lo largo de X: plano (Vz, My); a lo largo de Y: (Vy, Mz)
+            in_x = e.get("wallInPlaneAxis", "X") == "X"
+            k_v, k_m = (2, 4) if in_x else (1, 5)
+            p_comp = 0.5 * (f[0] - f[6])                     # compresion +, N al centro del pano
+            m_base = max(abs(f[k_m]), abs(f[6 + k_m]))     # momento en el plano, el mayor de base y tope
+            v_plano = -f[k_v]                               # corte en el plano en la base (signo del caso)
+            out.append({
+                "combo": combo_name,
+                "P_kN": round(p_comp, 2),
+                "M_kN_m": round(m_base, 2),
+                "V_kN": round(v_plano, 2),
+                "note": f"Muro {e['elementTag'][2:]} ({e.get('sourceBuilding')}): fuerzas del analisis OpenSees "
+                        f"(columna ancha {e.get('sectionId')}, elemento {e['id']}), M en el plano del muro ({'X' if in_x else 'Y'})."
+            })
+        return out
+
     def demands_for_wall(wall):
+        analysed = analysis_demands(wall)
+        if analysed is not None:
+            return analysed
         if not wall_pm_data:
             return []
         x, y, z = wall_mid_and_z(wall)
@@ -617,7 +671,7 @@ def main():
             "longitud": longitud,
             "bottom": wall.get("bottom", ""),
             "top": wall.get("top", ""),
-            "pmSectionId": "W_DPRIME_OPENING_TO_3" if has_curve else "",
+            "pmSectionId": wall_curve_id.get(id(wall), "W_DPRIME_OPENING_TO_3") if has_curve else "",
             "hasCurve": has_curve,
             "demands": entry["demands"]
         })

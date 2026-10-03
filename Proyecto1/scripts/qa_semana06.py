@@ -117,19 +117,25 @@ def main():
     print(f"P-M columna: {n_cols} COL70/70 | peor {worst['elementTag']} {worst['combo']}: P={worst['P_kN']:.0f} kN, "
           f"M={worst['M_kN_m']:.0f} kN-m, Mcap={worst['Mcap_kN_m']:.0f} -> C={worst['C']:.2f}")
 
-    wall_pts = curves["W_DPRIME_OPENING_TO_3"]["points"]
+    registry = {r["index"]: r.get("pmSectionId") for r in u["p1l4"].get("wallRegistry", [])}
     wworst = None
     n_walls = 0
+    n_over = 0
     for w in u.get("walls", []):
         n_walls += 1
+        sid = registry.get(w.get("id")) or "W_DPRIME_OPENING_TO_3"
+        wall_pts = curves.get(sid, curves["W_DPRIME_OPENING_TO_3"])["points"]
+        over = False
         for d in w.get("demands", []):
             cap = wall_capacity_at(wall_pts, d["P_kN"])
-            ratio = d["M_kN_m"] / cap if cap > 0 else float("inf")
+            ratio = d["M_kN_m"] / cap if cap > 0 else 99.0   # 99: P fuera de la curva (traccion o compresion excedida)
+            over = over or ratio > 1.0
             if wworst is None or ratio > wworst["C"]:
-                wworst = {"muro": w.get("elementTag"), "combo": d["combo"], "P_kN": d["P_kN"], "M_kN_m": d["M_kN_m"], "Mcap_kN_m": cap, "C": ratio}
-    qa["PM_muro"] = {"muros": n_walls, "peor": wworst, "ok": wworst is not None and wworst["C"] <= 1.0,
-                     "nota": "demanda estimada (los muros no estan en el analisis OpenSees); una sola curva de referencia para todos"}
-    print(f"P-M muro: {n_walls} muros | peor {wworst['muro']} {wworst['combo']}: P={wworst['P_kN']:.0f}, "
+                wworst = {"muro": w.get("elementTag"), "curva": sid, "combo": d["combo"], "P_kN": d["P_kN"], "M_kN_m": d["M_kN_m"], "Mcap_kN_m": cap, "C": ratio}
+        n_over += over
+    qa["PM_muro"] = {"muros": n_walls, "muros_C_mayor_1": n_over, "peor": wworst, "ok": n_over == 0,
+                     "nota": "demanda del analisis OpenSees (columna ancha); curva escalada por geometria de cada muro (misma cuantia)"}
+    print(f"P-M muro: {n_walls} muros, {n_over} con C>1 | peor {wworst['muro']} {wworst['combo']}: P={wworst['P_kN']:.0f}, "
           f"M={wworst['M_kN_m']:.0f}, Mcap={wworst['Mcap_kN_m']:.0f} -> C={wworst['C']:.2f}")
 
     # ---- IDs Unity ----
