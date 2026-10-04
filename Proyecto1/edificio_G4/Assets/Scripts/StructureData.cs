@@ -39,6 +39,28 @@ public class AnalysisSummary
     public SectionChange[] secciones;
     public ArmaduraSummary armadura;
     public float rigidezViga = 1f, rigidezColumna = 1f, rigidezMuro = 1f;   // factores de inercia (1 = bruta)
+    public SismoSummary sismo;
+}
+
+/// Sismo usado en el analisis: NCh433 estatico (C por edificio y direccion) o C fijo.
+[Serializable]
+public class SismoSummary
+{
+    public string metodo;          // "NCh433" o "fijo"
+    public float C_fijo;
+    public int zona;
+    public string suelo;
+    public float R, I, fraccionQ;
+    public string hipotesis;
+    public float C_equivalente_X, C_equivalente_Y;
+    public SismoEdificio[] edificios;
+}
+
+[Serializable]
+public class SismoEdificio
+{
+    public string edificio;
+    public float P_kN, T_X_s, T_Y_s, C_X, C_Y, Q0_X_kN, Q0_Y_kN;
 }
 
 /// Armadura de vigas (inferior, superior, suple de apoyo, estribos) o columnas (barras, estribos).

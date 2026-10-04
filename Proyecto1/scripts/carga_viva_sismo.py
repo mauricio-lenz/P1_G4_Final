@@ -36,6 +36,21 @@ UNITY_RESULTS_PATH = ROOT_DIR / "data" / "semana3_resultados_unity.json"
 
 DEFAULT_Q_Q = 4.903325
 DEFAULT_SEISMIC_COEFF = 0.20
+
+# Sismo estatico NCh433 (Of.96 Mod.2009 + DS61): C = 2.75 S A0 / (g R) (T'/T*)^n,
+# Cmin = A0 S / (6g) <= C <= Cmax (tabla 6.4), Q0 = C I P, P = D + fraccionQ * Q,
+# fuerzas por piso F_k = A_k P_k / sum(A_j P_j) * Q0 con A_k = sqrt(1-Z_{k-1}/H) - sqrt(1-Z_k/H).
+# T* = periodo del modo con mayor masa traslacional en cada direccion (modal de cada edificio).
+ZONAS_A0_G = {1: 0.20, 2: 0.30, 3: 0.40}
+SUELOS_DS61 = {   # S, T0 [s], T' [s], n, p
+    "A": (0.90, 0.15, 0.20, 1.00, 2.0),
+    "B": (1.00, 0.30, 0.35, 1.33, 1.5),
+    "C": (1.05, 0.40, 0.45, 1.40, 1.6),
+    "D": (1.20, 0.75, 0.85, 1.80, 1.0),
+    "E": (1.30, 1.20, 1.35, 1.80, 1.0),
+}
+CMAX_TABLA_6_4 = [(2.0, 0.90), (3.0, 0.60), (4.0, 0.55), (5.5, 0.40), (6.0, 0.35), (7.0, 0.35)]   # (R, Cmax / (S A0/g))
+DEFAULT_SISMO = {"metodo": "NCh433", "zona": 3, "suelo": "C", "R": 7.0, "I": 1.0, "fraccionQ": 0.25}
 FLOOR_GROUP_TOL_M = 0.25
 G_ACCEL = 9.80665
 # Hormigon G35 segun planos (f'c = 35 MPa, desde fundaciones): E = 4700*sqrt(f'c) [MPa]
@@ -65,6 +80,112 @@ def load_analysis_params(path=PARAMS_PATH):
         return {}
     with open(path, encoding="utf-8") as file:
         return json.load(file)
+
+
+def seismic_setting(params, sc=None, overrides=None):
+    """Configuracion del sismo: {"metodo": "NCh433", zona, suelo, R, I, fraccionQ}
+    o {"metodo": "fijo", "C": c} (C*(D + 0.5Q), el criterio anterior).
+    Un --sc de consola fuerza el metodo fijo; overrides cambia campos sueltos."""
+    if sc is not None:
+        return {"metodo": "fijo", "C": float(sc)}
+    config = dict(DEFAULT_SISMO)
+    config.update((params or {}).get("sismo") or {})
+    config.update({k: v for k, v in (overrides or {}).items() if v is not None})
+    if str(config.get("metodo", "")).lower() != "nch433":
+        return {"metodo": "fijo", "C": float(config.get("C", (params or {}).get("coeficienteSismico", DEFAULT_SEISMIC_COEFF)))}
+    config["metodo"] = "NCh433"
+    config["zona"] = int(config["zona"])
+    config["suelo"] = str(config["suelo"]).upper()
+    for key in ("R", "I", "fraccionQ"):
+        config[key] = float(config[key])
+    if config["zona"] not in ZONAS_A0_G or config["suelo"] not in SUELOS_DS61:
+        raise ValueError(f"Sismo NCh433: zona {config['zona']} o suelo {config['suelo']} no validos")
+    return config
+
+
+def cmax_factor(r):
+    """Cmax / (S A0 / g) de la tabla 6.4 de NCh433 (interpolada entre los R tabulados)."""
+    table = CMAX_TABLA_6_4
+    if r <= table[0][0]:
+        return table[0][1]
+    for (r0, c0), (r1, c1) in zip(table, table[1:]):
+        if r <= r1:
+            return c0 + (c1 - c0) * (r - r0) / (r1 - r0)
+    return table[-1][1]
+
+
+def nch433_coefficient(t_star, config):
+    """C de NCh433 6.2.3 para el periodo T* [s]; devuelve (C, C_sin_limites, Cmin, Cmax)."""
+    s, _t0, t_p, n, _p = SUELOS_DS61[config["suelo"]]
+    a0 = ZONAS_A0_G[config["zona"]]
+    raw = 2.75 * s * a0 / config["R"] * (t_p / t_star) ** n
+    c_min = a0 * s / 6.0
+    c_max = cmax_factor(config["R"]) * s * a0
+    return max(c_min, min(c_max, raw)), raw, c_min, c_max
+
+
+def building_subset(data, building):
+    """Copia del modelo con solo los elementos (y sus nodos y apoyos) de un edificio."""
+    elements = [e for e in data.get("elements", []) if (e.get("sourceBuilding") or "edificio_1") == building]
+    used = {n for e in elements for n in (e.get("nodeI"), e.get("nodeJ"))}
+    sub = dict(data)
+    sub["elements"] = elements
+    sub["nodes"] = [n for n in data.get("nodes", []) if n["id"] in used]
+    sub["supports"] = [s for s in data.get("supports", []) if s.get("node") in used]
+    return sub
+
+
+def nodal_vertical_kN(data, loads):
+    """Carga vertical por nodo [kN, hacia abajo > 0]; las repartidas (clave -id) van mitad a cada extremo."""
+    ends = {e["id"]: (e["nodeI"], e["nodeJ"]) for e in data.get("elements", [])}
+    out = {}
+    for key, vec in loads.items():
+        targets = [(key, 1.0)] if key >= 0 else [(n, 0.5) for n in ends.get(-key, ())]
+        for node_id, share in targets:
+            out[node_id] = out.get(node_id, 0.0) - share * vec[2]
+    return out
+
+
+def modal_periods(data, live_transfer, fraction_q, n_modes=12):
+    """Analisis modal de un edificio con masa (D + fraccionQ*Q)/g en los nodos.
+    Devuelve los modos [(k, T, UX, UY)] (masa efectiva / masa total) y T* en X e Y."""
+    dead = nodal_vertical_kN(data, dead_nodal_loads(data))
+    live = {}
+    for beam in live_transfer["vigas"]:
+        for node_id in (beam["nodeI"], beam["nodeJ"]):
+            live[node_id] = live.get(node_id, 0.0) + beam["nodal_Fz_each_kN"]
+    nodes = build_model(data)
+    supports = {s["node"] for s in data.get("supports", [])}
+    masses = {}
+    for node_id in nodes:
+        weight = dead.get(node_id, 0.0) + fraction_q * abs(live.get(node_id, 0.0))
+        if weight > 0.0 and node_id not in supports:
+            masses[node_id] = weight / G_ACCEL
+            ops.mass(node_id, masses[node_id], masses[node_id], masses[node_id], 0.0, 0.0, 0.0)
+    ops.constraints("Transformation")
+    ops.numberer("RCM")
+    try:
+        ops.system("BandGeneral")
+        eigenvalues = ops.eigen("-genBandArpack", n_modes)
+    except Exception:
+        ops.system("FullGeneral")
+        eigenvalues = ops.eigen("-fullGenLapack", n_modes)
+    total = sum(masses.values())
+    modes = []
+    for k, lam in enumerate(eigenvalues, start=1):
+        num_x = num_y = den = 0.0
+        for node_id, m in masses.items():
+            v = ops.nodeEigenvector(node_id, k)
+            num_x += m * v[0]
+            num_y += m * v[1]
+            den += m * (v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
+        modes.append((k, 2.0 * math.pi / math.sqrt(lam), num_x ** 2 / den / total, num_y ** 2 / den / total))
+    ops.wipeAnalysis()
+    ops.wipe()
+    mode_x = max(modes, key=lambda m: m[2])
+    mode_y = max(modes, key=lambda m: m[3])
+    return {"modos": modes, "Tx": mode_x[1], "modo_x": mode_x[0], "UX": mode_x[2],
+            "Ty": mode_y[1], "modo_y": mode_y[0], "UY": mode_y[3], "masa_t": total}
 
 
 # Rigidez fisurada (ACI 318-19 6.6.3.1.1): factor sobre la inercia de la seccion bruta.
@@ -363,9 +484,18 @@ def diaphragm_groups(data):
     return result
 
 
-def build_seismic_cases(data, live_transfer, seismic_coeff):
-    """Fuerza lateral C*(D+0.5Q) por edificio y por piso, aplicada en el
-    nodo maestro del diafragma rigido de ese edificio y piso."""
+def build_seismic_cases(data, live_transfer, seismic):
+    """Casos EX y EY por edificio y por piso, aplicados en el nodo maestro del
+    diafragma rigido de ese edificio y piso.
+
+    seismic: configuracion de seismic_setting() o un numero (C fijo).
+      - NCh433: C por edificio y direccion con T* del modal, P = D + fraccionQ*Q,
+        Q0 = C I P repartido en altura con los factores A_k.
+      - fijo: F = C (D + 0.5Q) en cada piso (criterio de las semanas 3 a 6)."""
+    if not isinstance(seismic, dict):
+        seismic = {"metodo": "fijo", "C": float(seismic)}
+    nch = seismic.get("metodo") == "NCh433"
+    fraction_q = seismic["fraccionQ"] if nch else 0.5
     nodes = node_map(data)
     dead = {}
     for element in data.get("elements", []):
@@ -389,48 +519,89 @@ def build_seismic_cases(data, live_transfer, seismic_coeff):
         live[key] = live.get(key, 0.0) + beam["Q_total_kN"]
     diaphragms = diaphragm_groups(data)
     floor_names = floor_name_by_z(data)
+    keys = [k for k in sorted(set(dead) | set(live), key=lambda k: (k[1], k[0])) if k in diaphragms]
+    weight = {k: dead.get(k, 0.0) + fraction_q * live.get(k, 0.0) for k in keys}
+
+    # fuerza por piso en cada direccion
+    by_building = []
+    force = {}
+    if nch:
+        owner = node_buildings(data)
+        for building in sorted({k[0] for k in keys}):
+            floors = sorted(k for k in keys if k[0] == building)
+            base_z = min((nodes[s["node"]]["z"] for s in data.get("supports", [])
+                          if s.get("node") in nodes and owner.get(s["node"]) == building), default=floors[0][1])
+            modal = modal_periods(building_subset(data, building), live_transfer, fraction_q)
+            p_total = sum(weight[k] for k in floors)
+            height = max(k[1] for k in floors) - base_z
+            a_k, z_prev = {}, 0.0
+            for k in floors:
+                z_k = k[1] - base_z
+                a_k[k] = math.sqrt(max(0.0, 1.0 - z_prev / height)) - math.sqrt(max(0.0, 1.0 - z_k / height))
+                z_prev = z_k
+            sum_ap = sum(a_k[k] * weight[k] for k in floors)
+            row = {"edificio": building, "P_kN": p_total, "H_m": height, "z_base_m": base_z,
+                   "modos": [{"modo": m[0], "T_s": m[1], "UX": m[2], "UY": m[3]} for m in modal["modos"]]}
+            for direction in ("X", "Y"):
+                t_star = modal["T" + direction.lower()]
+                c, raw, c_min, c_max = nch433_coefficient(t_star, seismic)
+                q0 = c * seismic["I"] * p_total
+                row.update({f"T_{direction}_s": t_star, f"modo_{direction}": modal["modo_" + direction.lower()],
+                            f"U{direction}": modal["U" + direction], f"C_{direction}": c,
+                            f"C_{direction}_sin_limites": raw, f"Q0_{direction}_kN": q0,
+                            "Cmin": c_min, "Cmax": c_max})
+                for k in floors:
+                    force[(k, direction)] = q0 * a_k[k] * weight[k] / sum_ap
+            for k in floors:
+                force[(k, "A")] = a_k[k]
+            by_building.append(row)
+    else:
+        for k in keys:
+            force[(k, "X")] = force[(k, "Y")] = seismic["C"] * weight[k]
+
     ex_nodal = {}
     ey_nodal = {}
     floor_rows = []
-
-    for key in sorted(set(dead) | set(live), key=lambda k: (k[1], k[0])):
+    for key in keys:
         building, floor = key
-        diaphragm = diaphragms.get(key)
-        if diaphragm is None:
-            continue
+        diaphragm = diaphragms[key]
         cm_x, cm_y = diaphragm["cm"]
         application_node = nodes[diaphragm["master"]]
-        d = dead.get(key, 0.0)
-        q = live.get(key, 0.0)
-        seismic_weight = d + 0.5 * q
-        lateral = seismic_coeff * seismic_weight
-
-        ex_nodal[str(application_node["id"])] = {"Fx": lateral, "Fy": 0.0, "Fz": 0.0}
-        ey_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": lateral, "Fz": 0.0}
+        f_x, f_y = force[(key, "X")], force[(key, "Y")]
+        w = weight[key]
+        ex_nodal[str(application_node["id"])] = {"Fx": f_x, "Fy": 0.0, "Fz": 0.0}
+        ey_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": f_y, "Fz": 0.0}
         floor_group = [str(floor)]
         floor_rows.append({
             "piso": f"{floor_label(floor_group, floor, floor_names)} [{building}]",
             "edificio": building,
             "floor_z_m": float(floor),
             "niveles_agrupados_z_m": [float(level) for level in floor_group],
-            "D_kN": d,
-            "Q_kN": q,
-            "W_sismico_D_plus_0_5Q_kN": seismic_weight,
-            "masa_equivalente_kN_s2_m": seismic_weight / G_ACCEL,
-            "coeficiente_sismico": seismic_coeff,
-            "F_EX_kN": lateral,
-            "F_EY_kN": lateral,
+            "D_kN": dead.get(key, 0.0),
+            "Q_kN": live.get(key, 0.0),
+            "W_sismico_kN": w,
+            "masa_equivalente_kN_s2_m": w / G_ACCEL,
+            "A_k": force.get((key, "A")),
+            "coeficiente_sismico": f_x / w if w else 0.0,
+            "coeficiente_sismico_Y": f_y / w if w else 0.0,
+            "F_EX_kN": f_x,
+            "F_EY_kN": f_y,
             "centro_masa_estimado": {"x": cm_x, "y": cm_y, "z": float(floor)},
             "nodo_aplicacion": application_node["id"],
-            "torsion_EX_respecto_CM_kN_m": lateral * (application_node["y"] - cm_y),
-            "torsion_EY_respecto_CM_kN_m": -lateral * (application_node["x"] - cm_x),
+            "torsion_EX_respecto_CM_kN_m": f_x * (application_node["y"] - cm_y),
+            "torsion_EY_respecto_CM_kN_m": -f_y * (application_node["x"] - cm_x),
         })
 
     total_ex = sum(row["F_EX_kN"] for row in floor_rows)
     total_ey = sum(row["F_EY_kN"] for row in floor_rows)
+    total_w = sum(weight.values())
     return {
-        "coeficiente_sismico": seismic_coeff,
-        "hipotesis_masa": "W_sismico = D + 0.5Q",
+        "metodo": "NCh433 estatico" if nch else "C fijo",
+        "config": seismic,
+        "coeficiente_sismico": total_ex / total_w if total_w else 0.0,
+        "coeficiente_sismico_Y": total_ey / total_w if total_w else 0.0,
+        "edificios": by_building,
+        "hipotesis_masa": f"W_sismico = D + {fraction_q:g}Q",
         "pisos": floor_rows,
         "carga_lateral_total_EX_kN": total_ex,
         "carga_lateral_total_EY_kN": total_ey,
@@ -443,7 +614,7 @@ def build_seismic_cases(data, live_transfer, seismic_coeff):
             "carga_lateral_total_igual_corte_basal_EY": abs(total_ey - sum(v["Fy"] for v in ey_nodal.values())) < 1e-9,
             "sentido_deformada_esperado_EX": "+X para coeficiente positivo",
             "sentido_deformada_esperado_EY": "+Y para coeficiente positivo",
-            "torsion": "Se reporta como F por excentricidad del nodo de aplicacion respecto del CM estimado.",
+            "torsion": "Se reporta como F por excentricidad del nodo de aplicacion respecto del CM estimado (sin torsion accidental).",
             "diafragma": "Diafragma rigido por edificio y piso (rigidDiaphragm); la fuerza de cada edificio se aplica en su nodo maestro.",
         },
     }
@@ -586,9 +757,9 @@ def print_seismic_by_floor(seismic):
         print(f"\nPiso {index}: {row['piso']}")
         print(f"  D_piso                         = {row['D_kN']:.3f} kN")
         print(f"  Q_piso                         = {row['Q_kN']:.3f} kN")
-        print(f"  W_sismico = D + 0.5Q           = {row['W_sismico_D_plus_0_5Q_kN']:.3f} kN")
+        print(f"  W_sismico ({seismic['hipotesis_masa']}) = {row['W_sismico_kN']:.3f} kN")
         print(f"  Masa equivalente               = {row['masa_equivalente_kN_s2_m']:.3f} kN*s2/m")
-        print(f"  Coeficiente sismico            = {row['coeficiente_sismico']:.3f}")
+        print(f"  F/W en X / en Y                = {row['coeficiente_sismico']:.3f} / {row['coeficiente_sismico_Y']:.3f}")
         print(f"  Fuerza EX                      = {row['F_EX_kN']:.3f} kN")
         print(f"  Fuerza EY                      = {row['F_EY_kN']:.3f} kN")
         print(f"  Centro de masa estimado        = x {cm['x']:.3f} m, y {cm['y']:.3f} m")
@@ -1972,7 +2143,7 @@ def seismic_floor_tables(data, live_transfer, seismic):
             "convergio": res[case]["ok"],
             "pisos": rows,
         }
-    report = {"hipotesis_masa": "W_sismico = D + 0.5Q", "EX": tables["EX"], "EY": tables["EY"]}
+    report = {"hipotesis_masa": seismic.get("hipotesis_masa", ""), "EX": tables["EX"], "EY": tables["EY"]}
     write_json(OUT_DIR / "part_b_sismo_tablas.json", report)
     return report
 

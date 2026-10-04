@@ -2,7 +2,46 @@
   "parametros": {
     "q_G_kN_m2": 6.22722275,
     "Q_kN_m2": 4.903325,
-    "coeficienteSismico": 0.2
+    "sismo": {
+      "metodo": "NCh433",
+      "zona": 3,
+      "suelo": "C",
+      "R": 7.0,
+      "I": 1.0,
+      "fraccionQ": 0.25
+    }
+  },
+  "sismo_NCh433": {
+    "hipotesis": "W_sismico = D + 0.25Q",
+    "edificios": [
+      {
+        "edificio": "edificio_1",
+        "P_kN": 43359.14830270041,
+        "T_X_s": 0.4205560062033333,
+        "T_Y_s": 0.6910803880180945,
+        "C_X": 0.147,
+        "C_Y": 0.09049851809120102,
+        "Q0_X_kN": 6373.794800496959,
+        "Q0_Y_kN": 3923.9386670910008,
+        "C_en_limites": true,
+        "sumF_igual_Q0": true,
+        "sumA_k": 1.0
+      },
+      {
+        "edificio": "edificio_2",
+        "P_kN": 26867.900141502312,
+        "T_X_s": 0.6837113515486666,
+        "T_Y_s": 0.7647482552519277,
+        "C_X": 0.09186700475920127,
+        "C_Y": 0.0785336116927458,
+        "Q0_X_kN": 2468.2735101691374,
+        "Q0_Y_kN": 2110.0332367122123,
+        "C_en_limites": true,
+        "sumF_igual_Q0": true,
+        "sumA_k": 1.0
+      }
+    ],
+    "ok": true
   },
   "G": {
     "aplicada_kN": 66205.02305781523,
@@ -17,18 +56,18 @@
     "ok": true
   },
   "EX": {
-    "aplicada_kN": 15169.037791118057,
-    "reaccion_kN": 15169.037790392871,
-    "error_kN": 7.251856004586443e-07,
+    "aplicada_kN": 8842.068310666096,
+    "reaccion_kN": 8842.068310222607,
+    "error_kN": 4.434896254679188e-07,
     "ok": true,
-    "esperado_kN": 15169.037791118057
+    "esperado_kN": 8842.068310666096
   },
   "EY": {
-    "aplicada_kN": 15169.037791118057,
-    "reaccion_kN": 15169.037790928302,
-    "error_kN": 1.897551555885002e-07,
+    "aplicada_kN": 6033.971903803213,
+    "reaccion_kN": 6033.97190370301,
+    "error_kN": 1.002026692731306e-07,
     "ok": true,
-    "esperado_kN": 15169.037791118057
+    "esperado_kN": 6033.971903803213
   },
   "superposicion": {
     "combinaciones": [
@@ -36,7 +75,7 @@
       "C2",
       "C3"
     ],
-    "max_err_global": 9.022187441587448e-10,
+    "max_err_global": 5.384208634495735e-10,
     "valida": true
   },
   "M_phi": {
@@ -65,10 +104,10 @@
     "peor": {
       "elementTag": "E1_291",
       "combo": "C1",
-      "P_kN": 457.8113254062006,
-      "M_kN_m": 527.350627445799,
-      "Mcap_kN_m": 623.7478142608587,
-      "C": 0.8454548703640903
+      "P_kN": 456.50166655889734,
+      "M_kN_m": 520.6065356019832,
+      "Mcap_kN_m": 623.4529614730947,
+      "C": 0.8350373929925589
     },
     "ok": true
   },
@@ -76,11 +115,11 @@
     "muros": 91,
     "muros_C_mayor_1": 6,
     "peor": {
-      "muro": "MURO-012",
+      "muro": "MURO-013",
       "curva": "W_ESC_25x158",
       "combo": "C2",
-      "P_kN": -794.72,
-      "M_kN_m": 185.24,
+      "P_kN": -889.61,
+      "M_kN_m": 118.74,
       "Mcap_kN_m": 0.0,
       "C": 99.0
     },

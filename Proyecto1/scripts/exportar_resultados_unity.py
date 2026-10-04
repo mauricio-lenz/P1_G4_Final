@@ -15,7 +15,8 @@ Requiere: openseespy, matplotlib (opcional).
 
 Uso:
   python P1L4/exportar_resultados_unity.py
-  python P1L4/exportar_resultados_unity.py --q-kg-m2 500 --sc 0.20
+  python P1L4/exportar_resultados_unity.py --q-kg-m2 500 --sc 0.20      (C fijo)
+  python P1L4/exportar_resultados_unity.py --sismo nch433 --suelo D --R 7  (NCh433)
 
 El JSON se escribe en:
   P1L4/edificio_G4/Assets/Resources/estructura_p1l4_unity.json
@@ -240,7 +241,14 @@ def main():
     parser.add_argument("--q-kg-m2", type=float, default=None,
                         help="Carga viva Q en kg/m2 (default: data/parametros_analisis.json o 500)")
     parser.add_argument("--sc", type=float, default=None,
-                        help="Coeficiente sismico (default: data/parametros_analisis.json o 0.20)")
+                        help="Coeficiente sismico FIJO: F = C (D + 0.5Q). Si se da, reemplaza el metodo NCh433")
+    parser.add_argument("--sismo", choices=("nch433", "fijo"), default=None,
+                        help='Metodo sismico (default: "sismo" de data/parametros_analisis.json, NCh433)')
+    parser.add_argument("--zona", type=int, default=None, help="NCh433: zona sismica 1, 2 o 3")
+    parser.add_argument("--suelo", default=None, help="NCh433: tipo de suelo DS61 A, B, C, D o E")
+    parser.add_argument("--R", type=float, default=None, help="NCh433: factor de modificacion de la respuesta R")
+    parser.add_argument("--I", type=float, default=None, help="NCh433: coeficiente de importancia I")
+    parser.add_argument("--fraccionQ", type=float, default=None, help="NCh433: fraccion de Q en el peso sismico (0.25 o 0.50)")
     parser.add_argument("--qG", type=float, default=None,
                         help="Carga muerta de losa q_G en kN/m2 (default: la del modelo). Escala la carga tributaria D de las vigas")
     parser.add_argument("--combos", type=Path, default=None,
@@ -260,8 +268,10 @@ def main():
     params = cvm.load_analysis_params()
     if args.q_kg_m2 is None:
         args.q_kg_m2 = float(params.get("Q_kg_m2", 500.0))
-    if args.sc is None:
-        args.sc = float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
+    c_fijo = float(args.sc if args.sc is not None else params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
+    sismo_cfg = cvm.seismic_setting(params, sc=args.sc, overrides={
+        "metodo": {"nch433": "NCh433", "fijo": "fijo"}.get(args.sismo), "C": c_fijo, "zona": args.zona,
+        "suelo": args.suelo, "R": args.R, "I": args.I, "fraccionQ": args.fraccionQ})
     if args.qG is None and params.get("q_G_kN_m2"):
         args.qG = float(params["q_G_kN_m2"])
     secciones_param = params.get("sections", {}) or {}
@@ -273,11 +283,10 @@ def main():
         kv, kc, km = (float(v) for v in args.fisurada.split(","))
         fisurada = {"viga": kv, "columna": kc, "muro": km}
     if params:
-        print(f"Parametros de data/parametros_analisis.json: Q={args.q_kg_m2} kg/m2, sc={args.sc}, q_G={args.qG}, secciones={len(secciones_param)}")
+        print(f"Parametros de data/parametros_analisis.json: Q={args.q_kg_m2} kg/m2, q_G={args.qG}, secciones={len(secciones_param)}")
 
     q_Q = cvm.kg_m2_to_kn_m2(args.q_kg_m2)
-    sc = args.sc
-    print(f"Parametros: Q={q_Q:.3f} kN/m2 ({args.q_kg_m2:.0f} kg/m2), Coef. sismico={sc}")
+    print(f"Parametros: Q={q_Q:.3f} kN/m2 ({args.q_kg_m2:.0f} kg/m2), sismo={sismo_cfg}")
 
     # ── Cargar datos base ───────────────────────────────────────────
     print("Cargando estructura base...")
@@ -330,7 +339,12 @@ def main():
     # ── Construir casos de carga ─────────────────────────────────────
     print("Construyendo casos de carga G, Q, EX, EY...")
     live_transfer = cvm.transfer_live_load(data, q_Q)
-    seismic = cvm.build_seismic_cases(data, live_transfer, sc)
+    seismic = cvm.build_seismic_cases(data, live_transfer, sismo_cfg)
+    sc = seismic["coeficiente_sismico"]   # Q0x / P total (equivalente)
+    for b in seismic.get("edificios", []):
+        print(f"  NCh433 {b['edificio']}: T*x={b['T_X_s']:.3f} s Cx={b['C_X']:.3f} Q0x={b['Q0_X_kN']:.0f} kN | "
+              f"T*y={b['T_Y_s']:.3f} s Cy={b['C_Y']:.3f} Q0y={b['Q0_Y_kN']:.0f} kN | P={b['P_kN']:.0f} kN")
+    print(f"  Corte basal EX={seismic['corte_basal_EX_kN']:.0f} kN, EY={seismic['corte_basal_EY_kN']:.0f} kN ({seismic['hipotesis_masa']})")
 
     G = cvm.dead_nodal_loads(data)
     Q = cvm.vector_loads_from_dict(live_transfer["cargas_nodales_Q"])
@@ -741,6 +755,15 @@ def main():
         "q_G_kN_m2": q_g,
         "Q_kN_m2": q_Q,
         "coeficienteSismico": sc,
+        "sismo": {
+            "metodo": sismo_cfg["metodo"], "C_fijo": c_fijo,
+            "zona": sismo_cfg.get("zona", 0), "suelo": sismo_cfg.get("suelo", ""), "R": sismo_cfg.get("R", 0.0),
+            "I": sismo_cfg.get("I", 0.0), "fraccionQ": sismo_cfg.get("fraccionQ", 0.5),
+            "hipotesis": seismic["hipotesis_masa"],
+            "C_equivalente_X": seismic["coeficiente_sismico"], "C_equivalente_Y": seismic["coeficiente_sismico_Y"],
+            "edificios": [{k: b[k] for k in ("edificio", "P_kN", "T_X_s", "T_Y_s", "C_X", "C_Y", "Q0_X_kN", "Q0_Y_kN")}
+                          for b in seismic.get("edificios", [])],
+        },
         "G_aplicada_kN": -sum(v[2] for v in G.values()),
         "G_reaccion_kN": (base_results.get("G") or {}).get("reactions", {}).get("sum_Fz", 0.0),
         "Q_aplicada_kN": -sum(v[2] for v in Q.values()),
@@ -780,7 +803,7 @@ def main():
         },
         "units": data.get("units", "m, kN, kN*m"),
         "q_G": data.get("q_G", q_g),
-        "seismic_coefficient": sc,
+        "seismic_coefficient": c_fijo,   # C del metodo fijo (el NCh433 queda en resumenAnalisis.sismo)
         "Q_kN_m2": q_Q,
         "resumenAnalisis": resumen,
         "notes": [

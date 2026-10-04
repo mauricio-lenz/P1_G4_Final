@@ -65,7 +65,7 @@ def main():
         params = cvm.load_analysis_params()
         cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"), factors)
         q_q = cvm.kg_m2_to_kn_m2(float(params.get("Q_kg_m2", 500.0)))
-        sc = float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
+        sc = cvm.seismic_setting(params)   # NCh433: T* y C cambian con la rigidez de cada escenario
         live = cvm.transfer_live_load(data, q_q)
         seis = cvm.build_seismic_cases(data, live, sc)
         loads = {"G": cvm.dead_nodal_loads(data), "Q": cvm.vector_loads_from_dict(live["cargas_nodales_Q"]),

@@ -44,7 +44,12 @@ public class AnalysisSession
 
     public float qG = 6.227f;          // kN/m2
     public float qKgM2 = 500f;         // kg/m2
-    public float seismicCoeff = 0.20f;
+    public float seismicCoeff = 0.20f;   // C del metodo fijo
+    /// Sismo NCh433 estatico (DS61): zona, suelo, R, I y fraccion de Q en el peso sismico.
+    public bool sismoNCh = true;
+    public int zona = 3;
+    public string suelo = "C";
+    public float R = 7f, I = 1f, fraccionQ = 0.25f;
     /// Factores de inercia por tipo (rigidez fisurada; 1 = seccion bruta). ACI 318: 0,35 / 0,70 / 0,35.
     public float kViga = 0.35f, kColumna = 0.70f, kMuro = 0.35f;
     public readonly List<Combo> combos = new List<Combo>();
@@ -67,6 +72,20 @@ public class AnalysisSession
         qG = d.q_G > 0f ? d.q_G : 6.227f;
         qKgM2 = d.Q_kN_m2 > 0f ? d.Q_kN_m2 / KnPerKg : 500f;
         seismicCoeff = d.seismic_coefficient > 0f ? d.seismic_coefficient : 0.20f;
+        SismoSummary sis = d.resumenAnalisis?.sismo;
+        if (sis != null && !string.IsNullOrEmpty(sis.metodo))
+        {
+            sismoNCh = sis.metodo == "NCh433";
+            if (sis.C_fijo > 0f) seismicCoeff = sis.C_fijo;
+            if (sismoNCh)
+            {
+                zona = sis.zona;
+                suelo = sis.suelo;
+                R = sis.R;
+                I = sis.I;
+                fraccionQ = sis.fraccionQ;
+            }
+        }
         if (d.resumenAnalisis != null && d.resumenAnalisis.rigidezViga > 0f)
         {
             kViga = d.resumenAnalisis.rigidezViga;
@@ -106,8 +125,8 @@ public class AnalysisSession
         string modsPath = Path.Combine(dir, "mods_unity.json");
         File.WriteAllText(combosPath, CombosJson("Combinaciones editadas en Unity (escenario de reanalisis)."), NoBom);
         File.WriteAllText(modsPath, "{\"sections\": " + SectionsJson() + "}", NoBom);
-        string args = string.Format(Inv, "--q-kg-m2 {0} --sc {1} --qG {2} --combos \"{3}\" --mods \"{4}\" --fisurada {5},{6},{7}",
-            qKgM2, seismicCoeff, qG, combosPath, modsPath, kViga, kColumna, kMuro);
+        string args = string.Format(Inv, "--q-kg-m2 {0} {1} --qG {2} --combos \"{3}\" --mods \"{4}\" --fisurada {5},{6},{7}",
+            qKgM2, SismoArgs(), qG, combosPath, modsPath, kViga, kColumna, kMuro);
         if (HasArmChanges)
         {
             string armPath = Path.Combine(dir, "armaduras_unity.json");
@@ -260,9 +279,22 @@ public class AnalysisSession
     {
         return string.Format(Inv,
             "{{\n  \"descripcion\": \"Parametros del analisis (guardados desde Unity). Los lee exportar_resultados_unity.py y quitar_elemento.py; los argumentos de consola tienen prioridad.\",\n" +
-            "  \"Q_kg_m2\": {0},\n  \"coeficienteSismico\": {1},\n  \"q_G_kN_m2\": {2},\n" +
+            "  \"Q_kg_m2\": {0},\n  \"sismo\": {7},\n  \"coeficienteSismico\": {1},\n  \"q_G_kN_m2\": {2},\n" +
             "  \"rigidezFisurada\": {{\"viga\": {4}, \"columna\": {5}, \"muro\": {6}}},\n  \"sections\": {3}\n}}\n",
-            qKgM2, seismicCoeff, qG, SectionsJson(), kViga, kColumna, kMuro);
+            qKgM2, seismicCoeff, qG, SectionsJson(), kViga, kColumna, kMuro, SismoJson());
+    }
+
+    /// Argumentos del sismo para exportar_resultados_unity.py.
+    private string SismoArgs()
+    {
+        if (!sismoNCh) return string.Format(Inv, "--sc {0}", seismicCoeff);
+        return string.Format(Inv, "--sismo nch433 --zona {0} --suelo {1} --R {2} --I {3} --fraccionQ {4}", zona, suelo, R, I, fraccionQ);
+    }
+
+    private string SismoJson()
+    {
+        return string.Format(Inv, "{{\"metodo\": \"{0}\", \"zona\": {1}, \"suelo\": \"{2}\", \"R\": {3}, \"I\": {4}, \"fraccionQ\": {5}}}",
+            sismoNCh ? "NCh433" : "fijo", zona, Escape(suelo), R, I, fraccionQ);
     }
 
     private static string Escape(string s) => (s ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");

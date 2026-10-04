@@ -1,9 +1,22 @@
 {
   "descripcion": "Parametros del analisis (editables aqui o desde Unity, pestana ANALISIS). Los leen exportar_resultados_unity.py, quitar_elemento.py y qa_semana06.py; los argumentos de consola tienen prioridad.",
   "Q_kg_m2": 500,
+  "sismo": {
+    "metodo": "NCh433",
+    "zona": 3,
+    "suelo": "C",
+    "R": 7,
+    "I": 1.0,
+    "fraccionQ": 0.25
+  },
+  "sismoNota": "NCh433 estatico (DS61): C = 2.75 S A0/(g R) (T'/T*)^n entre Cmin y Cmax, T* del modal de cada edificio, P = D + fraccionQ*Q, Q0 = C I P repartido con A_k. metodo 'fijo' usa coeficienteSismico: F = C (D + 0.5Q).",
   "coeficienteSismico": 0.2,
   "q_G_kN_m2": 6.22722275,
-  "rigidezFisurada": {"viga": 0.35, "columna": 0.70, "muro": 0.35},
+  "rigidezFisurada": {
+    "viga": 0.35,
+    "columna": 0.7,
+    "muro": 0.35
+  },
   "rigidezFisuradaNota": "Factores de inercia ACI 318-19 6.6.3.1.1 (vigas 0.35 Ig, columnas 0.70 Ig, muros fisurados 0.35 Ig). Para seccion bruta: null.",
   "sections": {}
 }

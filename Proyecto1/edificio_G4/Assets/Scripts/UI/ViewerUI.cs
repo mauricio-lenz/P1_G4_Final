@@ -707,16 +707,51 @@ public class ViewerUI : MonoBehaviour
         c.Add(Title("PARÁMETROS DE CARGA"));
         var qG = Input(new FloatField("q_G losa + terminaciones [kN/m²]") { value = Session.qG, formatString = "0.###" });
         var qQ = Input(new FloatField("Q sobrecarga de uso [kg/m²]") { value = Session.qKgM2, formatString = "0.###" });
-        var sc = Input(new FloatField("Coeficiente sísmico C") { value = Session.seismicCoeff, formatString = "0.###" });
-        foreach (var f in new[] { qG, qQ, sc })
+        foreach (var f in new[] { qG, qQ })
         {
             f.AddToClassList("dropdown");
             c.Add(f);
         }
         qG.RegisterValueChangedCallback(e => Session.qG = Mathf.Max(0f, e.newValue));
         qQ.RegisterValueChangedCallback(e => Session.qKgM2 = Mathf.Max(0f, e.newValue));
+        c.Add(Text("G = q_G·A_trib + peso propio (25 kN/m³ hormigón, 78,5 kN/m³ acero).", "hint"));
+
+        // sismo: NCh433 estatico (C por edificio y direccion con T* del modal) o C fijo
+        c.Add(Title("SISMO"));
+        var metodo = new DropdownField("Método", new List<string> { "NCh433", "C fijo" }, Session.sismoNCh ? 0 : 1);
+        var zonas = new List<string> { "1", "2", "3" };
+        var zona = new DropdownField("Zona sísmica", zonas, Mathf.Clamp(Session.zona - 1, 0, 2));
+        var suelos = new List<string> { "A", "B", "C", "D", "E" };
+        var suelo = new DropdownField("Suelo", suelos, Mathf.Max(0, suelos.IndexOf(Session.suelo)));
+        var rField = Input(new FloatField("R") { value = Session.R, formatString = "0.##" });
+        var iField = Input(new FloatField("I (importancia)") { value = Session.I, formatString = "0.##" });
+        var fqField = Input(new FloatField("Fracción de Q en P") { value = Session.fraccionQ, formatString = "0.##" });
+        var sc = Input(new FloatField("Coeficiente sísmico C") { value = Session.seismicCoeff, formatString = "0.###" });
+        var nchBox = new VisualElement();
+        foreach (VisualElement f in new VisualElement[] { zona, suelo, rField, iField, fqField }) { f.AddToClassList("dropdown"); nchBox.Add(f); }
+        nchBox.Add(Text("C = 2,75·S·A0/(g·R)·(T'/T*)ⁿ con Cmin ≤ C ≤ Cmax; T* del modal de cada edificio y dirección. " +
+                        "P = D + fracción·Q (0,25 habitual, 0,50 con aglomeración de público). Q0 = C·I·P repartido en altura con Ak.", "hint"));
+        var fijoBox = new VisualElement();
+        sc.AddToClassList("dropdown");
+        fijoBox.Add(sc);
+        fijoBox.Add(Text("Criterio de las semanas 3 a 6: F = C·(D + 0,5Q) en cada piso, igual en X e Y.", "hint"));
+        metodo.AddToClassList("dropdown");
+        c.Add(metodo);
+        c.Add(nchBox);
+        c.Add(fijoBox);
+        System.Action showSismo = () =>
+        {
+            nchBox.style.display = Session.sismoNCh ? DisplayStyle.Flex : DisplayStyle.None;
+            fijoBox.style.display = Session.sismoNCh ? DisplayStyle.None : DisplayStyle.Flex;
+        };
+        showSismo();
+        metodo.RegisterValueChangedCallback(_ => { Session.sismoNCh = metodo.index == 0; showSismo(); });
+        zona.RegisterValueChangedCallback(_ => Session.zona = zona.index + 1);
+        suelo.RegisterValueChangedCallback(_ => Session.suelo = suelos[suelo.index]);
+        rField.RegisterValueChangedCallback(e => Session.R = Mathf.Max(1f, e.newValue));
+        iField.RegisterValueChangedCallback(e => Session.I = Mathf.Max(0.1f, e.newValue));
+        fqField.RegisterValueChangedCallback(e => Session.fraccionQ = Mathf.Clamp01(e.newValue));
         sc.RegisterValueChangedCallback(e => Session.seismicCoeff = Mathf.Max(0f, e.newValue));
-        c.Add(Text("G = q_G·A_trib + peso propio (25 kN/m³ hormigón, 78,5 kN/m³ acero). Sismo: C·(D + 0,5Q) por piso.", "hint"));
 
         c.Add(Title("RIGIDEZ (FACTOR SOBRE LA INERCIA BRUTA)"));
         var kv = Input(new FloatField("Vigas") { value = Session.kViga, formatString = "0.###" });
@@ -805,11 +840,21 @@ public class ViewerUI : MonoBehaviour
         }
         else
         {
-            c.Add(KeyValue("q_G · Q · C", $"{r.q_G_kN_m2:0.00} kN/m² · {r.Q_kN_m2:0.00} kN/m² · {r.coeficienteSismico:0.###}"));
+            c.Add(KeyValue("q_G · Q · C eq. X/Y", $"{r.q_G_kN_m2:0.00} kN/m² · {r.Q_kN_m2:0.00} kN/m² · {r.coeficienteSismico:0.###} / {(r.sismo != null ? r.sismo.C_equivalente_Y : r.coeficienteSismico):0.###}"));
             c.Add(KeyValue("Rigidez V · C · M", $"{r.rigidezViga:0.##} · {r.rigidezColumna:0.##} · {r.rigidezMuro:0.##} × Ig"));
             c.Add(KeyValue("G aplicada / ΣRz", $"{r.G_aplicada_kN:0} / {r.G_reaccion_kN:0} kN"));
             c.Add(KeyValue("Q aplicada / ΣRz", $"{r.Q_aplicada_kN:0} / {r.Q_reaccion_kN:0} kN"));
             c.Add(KeyValue("Corte basal EX · EY", $"{r.corteBasal_EX_kN:0} · {r.corteBasal_EY_kN:0} kN"));
+            SismoSummary s = r.sismo;
+            if (s != null && s.metodo == "NCh433")
+            {
+                c.Add(KeyValue("Sismo", $"NCh433 · zona {s.zona} · suelo {s.suelo} · R {s.R:0.#} · I {s.I:0.##} · {s.hipotesis}"));
+                if (s.edificios != null)
+                    foreach (SismoEdificio b in s.edificios)
+                        c.Add(KeyValue(b.edificio.Replace("edificio_", "Edificio "),
+                            $"T* {b.T_X_s:0.000} / {b.T_Y_s:0.000} s · C {b.C_X:0.000} / {b.C_Y:0.000} · Q0 {b.Q0_X_kN:0} / {b.Q0_Y_kN:0} kN (X / Y)"));
+            }
+            else if (s != null) c.Add(KeyValue("Sismo", $"C fijo {s.C_fijo:0.###} · {s.hipotesis}"));
             if (r.armadura != null && r.armadura.vigas > 0)
             {
                 c.Add(KeyValue("Vigas DCR > 1", $"{r.armadura.vigas_DCR_mayor_1} de {r.armadura.vigas} (máx {r.armadura.DCR_max_viga:0.00} en {r.armadura.peorViga})"));

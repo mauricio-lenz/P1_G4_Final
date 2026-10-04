@@ -47,7 +47,7 @@ def main():
     params = cvm.load_analysis_params()
     cvm.apply_model_params(data, params.get("q_G_kN_m2"), params.get("sections"), params.get("rigidezFisurada"))
     q_q = cvm.kg_m2_to_kn_m2(float(params.get("Q_kg_m2", 500.0)))
-    sc = float(params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
+    sc = cvm.seismic_setting(params)
     live = cvm.transfer_live_load(data, q_q)
     seis = cvm.build_seismic_cases(data, live, sc)
     loads = {
@@ -56,7 +56,23 @@ def main():
         "EX": cvm.vector_loads_from_dict(seis["cargas_nodales_EX"]),
         "EY": cvm.vector_loads_from_dict(seis["cargas_nodales_EY"]),
     }
-    qa = {"parametros": {"q_G_kN_m2": data.get("q_G"), "Q_kN_m2": q_q, "coeficienteSismico": sc}}
+    qa = {"parametros": {"q_G_kN_m2": data.get("q_G"), "Q_kN_m2": q_q, "sismo": sc}}
+
+    # ---- sismo NCh433: C dentro de [Cmin, Cmax], sum F = Q0 por edificio, sum A_k = 1 ----
+    if seis.get("edificios"):
+        filas = []
+        for b in seis["edificios"]:
+            pisos = [r for r in seis["pisos"] if r["edificio"] == b["edificio"]]
+            fx, fy = sum(r["F_EX_kN"] for r in pisos), sum(r["F_EY_kN"] for r in pisos)
+            filas.append({
+                "edificio": b["edificio"], "P_kN": b["P_kN"], "T_X_s": b["T_X_s"], "T_Y_s": b["T_Y_s"],
+                "C_X": b["C_X"], "C_Y": b["C_Y"], "Q0_X_kN": b["Q0_X_kN"], "Q0_Y_kN": b["Q0_Y_kN"],
+                "C_en_limites": all(b["Cmin"] - 1e-12 <= b[c] <= b["Cmax"] + 1e-12 for c in ("C_X", "C_Y")),
+                "sumF_igual_Q0": abs(fx - b["Q0_X_kN"]) < 1e-6 and abs(fy - b["Q0_Y_kN"]) < 1e-6,
+                "sumA_k": sum(r["A_k"] for r in pisos),
+            })
+        qa["sismo_NCh433"] = {"hipotesis": seis["hipotesis_masa"], "edificios": filas,
+                              "ok": all(f["C_en_limites"] and f["sumF_igual_Q0"] and abs(f["sumA_k"] - 1.0) < 1e-9 for f in filas)}
 
     # ---- equilibrio y corte basal ----
     for case, comp, key in (("G", 2, "sum_Fz"), ("Q", 2, "sum_Fz"), ("EX", 0, "sum_Fx"), ("EY", 1, "sum_Fy")):
