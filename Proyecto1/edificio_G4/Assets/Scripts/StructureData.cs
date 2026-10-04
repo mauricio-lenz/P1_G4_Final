@@ -7,6 +7,7 @@ public class StructureData
     public string units;
     public float q_G;
     public float Q_kN_m2;
+    public float Q_cubierta_kN_m2;   // sobrecarga del nivel superior (cubierta)
     public float seismic_coefficient;
     public AnalysisSummary resumenAnalisis;
     public string p1l4_version;

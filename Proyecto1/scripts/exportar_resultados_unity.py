@@ -240,6 +240,8 @@ def main():
     parser = argparse.ArgumentParser(description="Exportar resultados enriquecidos para Unity P1L4")
     parser.add_argument("--q-kg-m2", type=float, default=None,
                         help="Carga viva Q en kg/m2 (default: data/parametros_analisis.json o 500)")
+    parser.add_argument("--q-cubierta-kg-m2", type=float, default=None,
+                        help="Sobrecarga de la cubierta (nivel superior) en kg/m2 (default: data/parametros_analisis.json o Q)")
     parser.add_argument("--sc", type=float, default=None,
                         help="Coeficiente sismico FIJO: F = C (D + 0.5Q). Si se da, reemplaza el metodo NCh433")
     parser.add_argument("--sismo", choices=("nch433", "fijo"), default=None,
@@ -268,6 +270,8 @@ def main():
     params = cvm.load_analysis_params()
     if args.q_kg_m2 is None:
         args.q_kg_m2 = float(params.get("Q_kg_m2", 500.0))
+    if args.q_cubierta_kg_m2 is None:
+        args.q_cubierta_kg_m2 = float(params.get("Q_cubierta_kg_m2", args.q_kg_m2))
     c_fijo = float(args.sc if args.sc is not None else params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
     sismo_cfg = cvm.seismic_setting(params, sc=args.sc, overrides={
         "metodo": {"nch433": "NCh433", "fijo": "fijo"}.get(args.sismo), "C": c_fijo, "zona": args.zona,
@@ -286,7 +290,7 @@ def main():
         print(f"Parametros de data/parametros_analisis.json: Q={args.q_kg_m2} kg/m2, q_G={args.qG}, secciones={len(secciones_param)}")
 
     q_Q = cvm.kg_m2_to_kn_m2(args.q_kg_m2)
-    print(f"Parametros: Q={q_Q:.3f} kN/m2 ({args.q_kg_m2:.0f} kg/m2), sismo={sismo_cfg}")
+    print(f"Parametros: Q={q_Q:.3f} kN/m2 ({args.q_kg_m2:.0f} kg/m2), Q cubierta={args.q_cubierta_kg_m2:.0f} kg/m2, sismo={sismo_cfg}")
 
     # ── Cargar datos base ───────────────────────────────────────────
     print("Cargando estructura base...")
@@ -295,7 +299,7 @@ def main():
     secciones = dict(secciones_param)
     if args.mods is not None:
         secciones = load_json(args.mods).get("sections", {}) or {}
-    modificaciones = cvm.apply_model_params(data, args.qG, secciones, fisurada)
+    modificaciones = cvm.apply_model_params(data, args.qG, secciones, fisurada, args.q_cubierta_kg_m2)
     q_g = float(data.get("q_G", q_g))
 
     # ── Cargar curva P-M del muro (part_e_wall.json) ───────────────
@@ -805,6 +809,7 @@ def main():
         "q_G": data.get("q_G", q_g),
         "seismic_coefficient": c_fijo,   # C del metodo fijo (el NCh433 queda en resumenAnalisis.sismo)
         "Q_kN_m2": q_Q,
+        "Q_cubierta_kN_m2": data.get("Q_cubierta_kN_m2", q_Q),
         "resumenAnalisis": resumen,
         "notes": [
             "JSON enriquecido para Unity P1L4",

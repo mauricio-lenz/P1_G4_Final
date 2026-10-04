@@ -16,26 +16,26 @@
     "edificios": [
       {
         "edificio": "edificio_1",
-        "P_kN": 43359.14830270041,
-        "T_X_s": 0.4205560062033333,
-        "T_Y_s": 0.6910803880180945,
+        "P_kN": 45897.95972530152,
+        "T_X_s": 0.42194447854843475,
+        "T_Y_s": 0.6842017577980315,
         "C_X": 0.147,
-        "C_Y": 0.09049851809120102,
-        "Q0_X_kN": 6373.794800496959,
-        "Q0_Y_kN": 3923.9386670910008,
+        "C_Y": 0.09177483315787949,
+        "Q0_X_kN": 6747.0000796193235,
+        "Q0_Y_kN": 4212.277596076619,
         "C_en_limites": true,
         "sumF_igual_Q0": true,
         "sumA_k": 1.0
       },
       {
         "edificio": "edificio_2",
-        "P_kN": 26867.900141502312,
-        "T_X_s": 0.6837113515486666,
-        "T_Y_s": 0.7647482552519277,
-        "C_X": 0.09186700475920127,
-        "C_Y": 0.0785336116927458,
-        "Q0_X_kN": 2468.2735101691374,
-        "Q0_Y_kN": 2110.0332367122123,
+        "P_kN": 34678.32733471599,
+        "T_X_s": 0.8556086555780306,
+        "T_Y_s": 0.8556086555780306,
+        "C_X": 0.07,
+        "C_Y": 0.07,
+        "Q0_X_kN": 2427.48291343012,
+        "Q0_Y_kN": 2427.48291343012,
         "C_en_limites": true,
         "sumF_igual_Q0": true,
         "sumA_k": 1.0
@@ -44,30 +44,30 @@
     "ok": true
   },
   "G": {
-    "aplicada_kN": 66205.02305781523,
-    "reaccion_kN": 66205.0230587847,
-    "error_kN": 9.694776963442564e-07,
+    "aplicada_kN": 75700.9374789417,
+    "reaccion_kN": 75700.93747894405,
+    "error_kN": 2.342858351767063e-09,
     "ok": true
   },
   "Q": {
-    "aplicada_kN": 22472.56204555022,
-    "reaccion_kN": 22472.56204575496,
-    "error_kN": 2.0473817130550742e-07,
+    "aplicada_kN": 25885.85882430345,
+    "reaccion_kN": 25885.85882429937,
+    "error_kN": -4.081812221556902e-09,
     "ok": true
   },
   "EX": {
-    "aplicada_kN": 8842.068310666096,
-    "reaccion_kN": 8842.068310222607,
-    "error_kN": 4.434896254679188e-07,
+    "aplicada_kN": 9174.482993049443,
+    "reaccion_kN": 9174.482991185732,
+    "error_kN": 1.863711077021435e-06,
     "ok": true,
-    "esperado_kN": 8842.068310666096
+    "esperado_kN": 9174.482993049443
   },
   "EY": {
-    "aplicada_kN": 6033.971903803213,
-    "reaccion_kN": 6033.97190370301,
-    "error_kN": 1.002026692731306e-07,
+    "aplicada_kN": 6639.760509506739,
+    "reaccion_kN": 6639.760509231415,
+    "error_kN": 2.753240551101044e-07,
     "ok": true,
-    "esperado_kN": 6033.971903803213
+    "esperado_kN": 6639.760509506739
   },
   "superposicion": {
     "combinaciones": [
@@ -75,7 +75,7 @@
       "C2",
       "C3"
     ],
-    "max_err_global": 5.384208634495735e-10,
+    "max_err_global": 1.065018295776099e-09,
     "valida": true
   },
   "M_phi": {
@@ -104,22 +104,22 @@
     "peor": {
       "elementTag": "E1_291",
       "combo": "C1",
-      "P_kN": 456.50166655889734,
-      "M_kN_m": 520.6065356019832,
-      "Mcap_kN_m": 623.4529614730947,
-      "C": 0.8350373929925589
+      "P_kN": 397.5539020939898,
+      "M_kN_m": 476.1213312202781,
+      "Mcap_kN_m": 610.1816330498784,
+      "C": 0.7802944327256705
     },
     "ok": true
   },
   "PM_muro": {
     "muros": 91,
-    "muros_C_mayor_1": 6,
+    "muros_C_mayor_1": 5,
     "peor": {
       "muro": "MURO-013",
       "curva": "W_ESC_25x158",
       "combo": "C2",
-      "P_kN": -889.61,
-      "M_kN_m": 118.74,
+      "P_kN": -796.9,
+      "M_kN_m": 142.13,
       "Mcap_kN_m": 0.0,
       "C": 99.0
     },
@@ -127,7 +127,7 @@
     "nota": "demanda del analisis OpenSees (columna ancha); curva escalada por geometria de cada muro (misma cuantia)"
   },
   "IDs_Unity": {
-    "elementos": 1106,
+    "elementos": 1023,
     "ids_unicos": true,
     "tags_unicos": true,
     "fuerzas_faltantes": 0,

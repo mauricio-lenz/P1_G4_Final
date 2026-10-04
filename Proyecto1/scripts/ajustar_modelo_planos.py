@@ -41,6 +41,12 @@ COL70/70) coincide con los planos; aqui se corrigen detalles:
      columnas equivalentes de gravedad del paso 11.
  15. E1_255 (eje 3, x=7.51, piso 2) es pilar metalico P.M. 300x300x20 sobre
      vigas (plano 2017_67-102), no columna COL70/70.
+ 16. Reparto tributario recalculado desde las losas (metodo b/a): cada borde de
+     losa carga las vigas o brazos rigidos de muro que lo cubren, y la parte de
+     un borde libre pasa a los bordes apoyados del mismo panel. Antes ~1600 m2
+     de losa (vigas intermedias del edificio_2, bordes sobre muros) no cargaban.
+     El paso 14 indexa los nodos por edificio: los muros de ambos lados de la
+     junta (linea x = -10) ya no comparten nodos.
 
 El script siempre parte del respaldo previo a los ajustes, por lo que se
 puede volver a ejecutar sin duplicar cambios.
@@ -607,15 +613,28 @@ def muros_en_el_modelo(data, log):
         for nid in (e["nodeI"], e["nodeJ"]):
             n = nodes[nid]
             marco.setdefault((b, round(n["z"], 2)), set()).add(nid)
-    index = {(round(n["x"], 3), round(n["y"], 3), round(n["z"], 3)): n["id"] for n in data["nodes"]}
+    # indice de nodos por (edificio, coordenada): los edificios estan separados por la
+    # junta de dilatacion, asi que un muro nunca toma un nodo del otro edificio aunque
+    # ambos queden en la misma coordenada (linea x = -10 entre 2017_67 y 2024_22)
+    def coord(n):
+        return (round(n["x"], 3), round(n["y"], 3), round(n["z"], 3))
+    owner = {}
+    for e in data["elements"]:
+        for nid in (e["nodeI"], e["nodeJ"]):
+            owner.setdefault(nid, e.get("sourceBuilding") or "edificio_1")
+    index = {(owner[n["id"]],) + coord(n): n["id"] for n in data["nodes"] if n["id"] in owner}
+    libres = {coord(n): n["id"] for n in data["nodes"] if n["id"] not in owner}
     next_node = max(nodes) + 1
     next_elem = max(e["id"] for e in data["elements"]) + 1
     z_min = min(n["z"] for n in data["nodes"])
 
-    def nodo(x, y, z):
+    def nodo(x, y, z, edificio):
         nonlocal next_node
-        key = (round(x, 3), round(y, 3), round(z, 3))
+        key = (edificio, round(x, 3), round(y, 3), round(z, 3))
         if key in index:
+            return index[key]
+        if key[1:] in libres:
+            index[key] = libres.pop(key[1:])
             return index[key]
         data["nodes"].append({"id": next_node, "x": x, "y": y, "z": z})
         nodes[next_node] = data["nodes"][-1]
@@ -654,9 +673,10 @@ def muros_en_el_modelo(data, log):
     panos = []
     for i, w in enumerate(data.get("walls", [])):
         a, b = nodes[w["nodeI"]], nodes[w["nodeJ"]]
+        edificio = w.get("sourceBuilding") or "edificio_1"
         z0 = round(a["z"], 2)
         z1 = round(z0 + H_PISO, 2)
-        ext = {zc: [nodo(a["x"], a["y"], zc), nodo(b["x"], b["y"], zc)] for zc in (z0, z1)}
+        ext = {zc: [nodo(a["x"], a["y"], zc, edificio), nodo(b["x"], b["y"], zc, edificio)] for zc in (z0, z1)}
         panos.append((i, w, a, b, z0, z1, ext))
     candidatos = {}   # (edificio, z) -> nodos del marco + extremos de muros
     for (bz, z), ids in marco.items():
@@ -673,7 +693,7 @@ def muros_en_el_modelo(data, log):
         t = float(w["grosor"])
         largo = math.hypot(b["x"] - a["x"], b["y"] - a["y"])
         cx, cy = (a["x"] + b["x"]) / 2.0, (a["y"] + b["y"]) / 2.0
-        nb, nt = nodo(cx, cy, z0), nodo(cx, cy, z1)
+        nb, nt = nodo(cx, cy, z0, edificio), nodo(cx, cy, z1, edificio)
         a_lo_largo_x = abs(b["x"] - a["x"]) >= abs(b["y"] - a["y"])
         i_plano, i_fuera = t * largo ** 3 / 12.0, largo * t ** 3 / 12.0
         # columna vertical: eje local y = -Y global, z = +X global (geomTransf vecxz = X)
@@ -707,6 +727,136 @@ def muros_en_el_modelo(data, log):
                + (f"; sin nodos del marco sobre la linea (solo diafragma): {', '.join(sin_conexion)}" if sin_conexion else ""))
 
 
+# Paso 16: reparto tributario recalculado desde las losas del modelo.
+TOL_BORDE = 0.15        # m: viga o brazo rigido "sobre" un borde de losa
+Q_VIVA_KN_M2 = 0.500 * 9.80665   # liveLoad de referencia (500 kg/m2); el analisis usa q_Q * areaTributaria
+
+
+def reparto_tributario(data, log):
+    """Recalcula areaTributaria y deadLoad de todas las vigas desde data["slabs"].
+
+    El reparto original (semana 2) dejaba sin carga los bordes de losa que caen
+    sobre vigas transversales intermedias del edificio_2 o sobre muros: ~1600 m2
+    de losa no cargaban la estructura. Ahora cada panel reparte su area con el
+    metodo b/a (b/a < 2: triangulos a^2/4 en los lados cortos y trapecios
+    a(2b-a)/4 en los largos; b/a >= 2: a*b/2 en cada lado largo) a los elementos
+    que cubren cada borde, en proporcion al largo cubierto:
+      - vigas del mismo piso,
+      - brazos rigidos de muro (borde apoyado en un muro: la carga entra al muro),
+    y la parte de un borde libre (sin apoyo) se reparte entre los bordes apoyados
+    del mismo panel, de modo que el panel completo carga la estructura.
+    q por nivel = el que ya tenia el modelo (deadLoad / areaTributaria)."""
+    nodes = {n["id"]: n for n in data["nodes"]}
+    soportes = []   # (elemento, eje "x"|"y", coordenada fija, (lo, hi), z, edificio)
+    for e in data["elements"]:
+        if e.get("type") not in ("viga", "rigido") or e.get("removed"):
+            continue
+        a, b = nodes[e["nodeI"]], nodes[e["nodeJ"]]
+        if abs(a["z"] - b["z"]) > 0.01:
+            continue
+        if abs(a["y"] - b["y"]) < 0.02 and abs(a["x"] - b["x"]) > 0.02:
+            soportes.append((e, "x", a["y"], tuple(sorted((a["x"], b["x"]))), round(a["z"], 2), e.get("sourceBuilding") or "edificio_1"))
+        elif abs(a["x"] - b["x"]) < 0.02 and abs(a["y"] - b["y"]) > 0.02:
+            soportes.append((e, "y", a["x"], tuple(sorted((a["y"], b["y"]))), round(a["z"], 2), e.get("sourceBuilding") or "edificio_1"))
+
+    # q de losa por (edificio, nivel) segun el modelo vigente; campos derivados por m2
+    q_nivel, ratios = {}, {}
+    for e in data["elements"]:
+        area = float(e.get("areaTributaria") or 0.0)
+        if e.get("type") == "viga" and area > 0.0:
+            key = (e.get("sourceBuilding") or "edificio_1", round(nodes[e["nodeI"]]["z"], 2))
+            q_nivel.setdefault(key, []).append(round(float(e.get("deadLoad") or 0.0) / area, 4))
+            for campo in ("cargaTributaria", "gravityLoad", "factoredLoad12D16L", "factoredLoad14D"):
+                ratios.setdefault((key, campo), []).append(float(e.get(campo) or 0.0) / area)
+    moda = lambda vals: max(set(vals), key=vals.count)
+    mediana = lambda vals: sorted(vals)[len(vals) // 2]
+    q_def = float(data.get("q_G", 6.227))
+
+    nueva = {}
+    sin_apoyo = []
+    for s in data.get("slabs", []):
+        x0, x1, y0, y1, z = s["x0"], s["x1"], s["y0"], s["y1"], round(s["z"], 2)
+        # edificio de la losa: los dos edificios se tocan en la linea x = -10 (junta)
+        edificio_losa = s.get("sourceBuilding") or ("edificio_2" if (x0 + x1) / 2.0 < -10.0 else "edificio_1")
+        lx, ly = x1 - x0, y1 - y0
+        if lx <= 0 or ly <= 0:
+            continue
+        a, b = min(lx, ly), max(lx, ly)
+        if b / a < 2.0:
+            corto, largo = a * a / 4.0, a * (2.0 * b - a) / 4.0
+        else:
+            corto, largo = 0.0, a * b / 2.0
+        lado_x = largo if lx >= ly else corto      # bordes paralelos a x (largo lx)
+        lado_y = corto if lx >= ly else largo
+        if abs(lx - ly) < 1e-9:
+            lado_x = lado_y = a * a / 4.0
+        bordes = [("x", y0, (x0, x1), lado_x), ("x", y1, (x0, x1), lado_x),
+                  ("y", x0, (y0, y1), lado_y), ("y", x1, (y0, y1), lado_y)]
+        reparto = []   # por borde: [(elemento, largo cubierto)], area
+        for eje, c, (lo, hi), area in bordes:
+            cubre = []
+            for e, eje_s, c_s, (slo, shi), zs, eb in soportes:
+                if eb != edificio_losa or eje_s != eje or abs(zs - z) > 0.05 or abs(c_s - c) > TOL_BORDE:
+                    continue
+                largo_c = min(hi, shi) - max(lo, slo)
+                if largo_c > 0.05:
+                    cubre.append((e, largo_c))
+            reparto.append((cubre, area))
+        apoyada = sum(area for cubre, area in reparto if cubre)
+        if apoyada <= 0.0:
+            sin_apoyo.append(s.get("id"))
+            continue
+        escala = (lx * ly) / apoyada       # bordes libres -> bordes apoyados del panel
+        for cubre, area in reparto:
+            total_c = sum(l for _, l in cubre)
+            for e, l in cubre:
+                nueva[e["id"]] = nueva.get(e["id"], 0.0) + area * escala * l / total_c
+
+    antes = {b: 0.0 for b in ("edificio_1", "edificio_2")}
+    despues = dict(antes)
+    for e in data["elements"]:
+        if e.get("type") not in ("viga", "rigido"):
+            continue
+        edificio = e.get("sourceBuilding") or "edificio_1"
+        key = (edificio, round(nodes[e["nodeI"]]["z"], 2))
+        viejo = float(e.get("areaTributaria") or 0.0)
+        area = nueva.get(e["id"], 0.0)
+        antes[edificio] += viejo
+        despues[edificio] += area
+        if area <= 0.0 and viejo <= 0.0:
+            continue
+        q = moda(q_nivel[key]) if key in q_nivel else q_def
+        largo = math.dist((nodes[e["nodeI"]]["x"], nodes[e["nodeI"]]["y"]), (nodes[e["nodeJ"]]["x"], nodes[e["nodeJ"]]["y"]))
+        e["areaTributaria"] = area
+        e["deadLoad"] = q * area
+        e["liveLoad"] = Q_VIVA_KN_M2 * area
+        for campo in ("cargaTributaria", "gravityLoad", "factoredLoad12D16L", "factoredLoad14D"):
+            r = ratios.get((key, campo))
+            e[campo] = (mediana(r) if r else 0.0) * area
+        w = e["gravityLoad"] / largo if largo > 0 else 0.0
+        e["uniformLoad"] = w
+        e["shearI"], e["shearJ"] = w * largo / 2.0, -w * largo / 2.0
+        e["momentI"], e["momentJ"] = -w * largo ** 2 / 12.0, w * largo ** 2 / 12.0
+
+    # totales por piso que muestra el viewer (tributaryList / tributaryAreasByFloor)
+    pisos = {}
+    for e in data["elements"]:
+        if e.get("type") == "viga" and float(e.get("areaTributaria") or 0.0) > 0.0:
+            p = pisos.setdefault(e.get("piso") or "", {"area_total": 0.0, "carga_total": 0.0, "vigas": 0})
+            p["area_total"] += e["areaTributaria"]
+            p["carga_total"] += e["deadLoad"]
+            p["vigas"] += 1
+    for clave in ("tributaryList", "tributaryAreasByFloor"):
+        if isinstance(data.get(clave), list):
+            for fila in data[clave]:
+                fila.update(pisos.get(fila.get("piso"), {}))
+    n_rig = sum(1 for e in data["elements"] if e.get("type") == "rigido" and float(e.get("areaTributaria") or 0.0) > 0.0)
+    log.append("reparto tributario desde losas: area cargada edificio_1 {:.0f} -> {:.0f} m2, edificio_2 {:.0f} -> {:.0f} m2 "
+               "({} brazos de muro reciben losa){}".format(antes["edificio_1"], despues["edificio_1"], antes["edificio_2"],
+                                                         despues["edificio_2"], n_rig,
+                                                         "; paneles sin apoyo: " + ", ".join(sin_apoyo) if sin_apoyo else ""))
+
+
 def aplicar(data):
     log = []
     reflejar_edificio_2(data, log)
@@ -721,6 +871,7 @@ def aplicar(data):
     losas_zona_ij(data, log)
     losas_en_voladizo(data, log)
     muros_en_el_modelo(data, log)
+    reparto_tributario(data, log)
     data[MARCA] = log
     return log
 

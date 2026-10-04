@@ -200,10 +200,15 @@ def stiffness_factor(element, factors):
     return float(factors.get(element.get("type"), 1.0))
 
 
-def apply_model_params(data, q_g_new=None, sections=None, cracked=None):
-    """Aplica al modelo un q_G nuevo (escala la D tributaria de las vigas), cambios de seccion y
-    factores de rigidez fisurada (data["rigidezFisurada"], los lee build_model).
-    Devuelve la lista de cambios de seccion aplicados."""
+def apply_model_params(data, q_g_new=None, sections=None, cracked=None, q_roof_kg_m2=None):
+    """Aplica al modelo un q_G nuevo (escala la D tributaria de las vigas), cambios de seccion,
+    factores de rigidez fisurada (data["rigidezFisurada"], los lee build_model) y la sobrecarga
+    de cubierta (data["Q_cubierta_kN_m2"], la usa transfer_live_load; default: Q_cubierta_kg_m2
+    de data/parametros_analisis.json). Devuelve la lista de cambios de seccion aplicados."""
+    if q_roof_kg_m2 is None:
+        q_roof_kg_m2 = load_analysis_params().get("Q_cubierta_kg_m2")
+    if q_roof_kg_m2 is not None:
+        data["Q_cubierta_kN_m2"] = kg_m2_to_kn_m2(float(q_roof_kg_m2))
     if cracked:
         data["rigidezFisurada"] = {k: float(v) for k, v in cracked.items()}
         print(f"  Rigidez fisurada: {data['rigidezFisurada']}")
@@ -211,7 +216,7 @@ def apply_model_params(data, q_g_new=None, sections=None, cracked=None):
     if q_g_new is not None and q_g_new > 0 and abs(q_g_new - q_g) > 1e-9:
         factor = q_g_new / q_g
         for el in data.get("elements", []):
-            if el.get("type") == "viga":
+            if lleva_losa(el):
                 for key in ("deadLoad", "cargaTributaria", "gravityLoad", "factoredLoad14D", "factoredLoad12D16L", "uniformLoad"):
                     if isinstance(el.get(key), (int, float)):
                         el[key] = float(el[key]) * factor
@@ -321,6 +326,12 @@ def section_properties(width, height):
     return area, iy, iz, j
 
 
+def lleva_losa(element):
+    """Elemento que recibe carga de losa (areaTributaria/deadLoad): vigas y brazos
+    rigidos de muro sobre los bordes de losa apoyados en muros (paso 16 de ajustar_modelo_planos)."""
+    return element.get("type") in ("viga", "rigido")
+
+
 def element_area(element):
     """Area de la seccion [m2]: A_m2 explicita (perfiles, muros equivalentes) o b*h."""
     if "A_m2" in element:
@@ -362,8 +373,20 @@ def id_matches(value, wanted):
     return normalize_id(value) == normalize_id(wanted)
 
 
-def transfer_live_load(data, q_q):
+def transfer_live_load(data, q_q, q_roof=None):
+    """Sobrecarga Q = q * areaTributaria como carga repartida en cada viga (o brazo de muro).
+    En el nivel superior de cada edificio (cubierta) usa q_roof o data["Q_cubierta_kN_m2"];
+    si no hay, q_q. Actualiza liveLoad de cada elemento con la Q aplicada."""
     nodes = node_map(data)
+    if q_roof is None:
+        q_roof = data.get("Q_cubierta_kN_m2")
+    roof_z = {}
+    for element in data.get("elements", []):
+        if lleva_losa(element) and float(element.get("areaTributaria") or 0.0) > 0.0 \
+                and element.get("nodeI") in nodes and element.get("nodeJ") in nodes:
+            building = element.get("sourceBuilding") or "edificio_1"
+            roof_z[building] = max(roof_z.get(building, -1e9), element_mid_z(element, nodes))
+    expected = 0.0
     nodal_loads = {node_id: {"Fx": 0.0, "Fy": 0.0, "Fz": 0.0} for node_id in nodes}
     beams = []
     by_floor = {}
@@ -371,7 +394,7 @@ def transfer_live_load(data, q_q):
     total_q = 0.0
 
     for element in data.get("elements", []):
-        if element.get("type") != "viga":
+        if not lleva_losa(element):
             continue
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
@@ -380,10 +403,14 @@ def transfer_live_load(data, q_q):
         if area <= 0.0:
             continue
 
-        q_total = q_q * area
+        floor = element_mid_z(element, nodes)
+        roof = q_roof is not None and abs(floor - roof_z.get(element.get("sourceBuilding") or "edificio_1", 1e9)) < 0.05
+        q_use = q_roof if roof else q_q
+        q_total = q_use * area
+        expected += q_total
+        element["liveLoad"] = q_total
         length = element_length(element, nodes)
         q_lineal = q_total / length if length > 0.0 else 0.0
-        floor = element_mid_z(element, nodes)
 
         # carga repartida sobre la viga (clave -id: apply_nodal_loads la aplica con eleLoad)
         nodal_loads.setdefault(-element["id"], {"Fx": 0.0, "Fy": 0.0, "Fz": 0.0})["Fz"] -= q_total
@@ -401,7 +428,7 @@ def transfer_live_load(data, q_q):
             "sourceBuilding": element.get("sourceBuilding"),
             "floor_z_m": floor,
             "area_tributaria_m2": area,
-            "q_Q_kN_m2": q_q,
+            "q_Q_kN_m2": q_use,
             "Q_total_kN": q_total,
             "Q_lineal_kN_m": q_lineal,
             "nodeI": element["nodeI"],
@@ -409,9 +436,9 @@ def transfer_live_load(data, q_q):
             "nodal_Fz_each_kN": -0.5 * q_total,   # reacciones de viga simple (referencia)
         })
 
-    expected = q_q * total_area
     return {
         "q_Q_kN_m2": q_q,
+        "q_Q_cubierta_kN_m2": q_roof,
         "area_total_m2": total_area,
         "Q_transferida_kN": total_q,
         "q_Q_por_A_kN": expected,
@@ -427,7 +454,7 @@ def dead_load_by_floor(data):
     nodes = node_map(data)
     by_floor = {}
     for element in data.get("elements", []):
-        if element.get("type") != "viga":
+        if not lleva_losa(element):
             continue
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
@@ -499,7 +526,7 @@ def build_seismic_cases(data, live_transfer, seismic):
     nodes = node_map(data)
     dead = {}
     for element in data.get("elements", []):
-        if element.get("type") != "viga" or element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
+        if not lleva_losa(element) or element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
         key = (element.get("sourceBuilding") or "edificio_1", round(element_mid_z(element, nodes), 3))
         dead[key] = dead.get(key, 0.0) + float(element.get("deadLoad") or 0.0)
@@ -887,7 +914,7 @@ def dead_nodal_loads(data):
     for element in data.get("elements", []):
         if element.get("nodeI") not in nodes or element.get("nodeJ") not in nodes:
             continue
-        total = float(element.get("deadLoad") or 0.0) if element.get("type") == "viga" else 0.0
+        total = float(element.get("deadLoad") or 0.0) if lleva_losa(element) else 0.0
         if not element.get("removed"):
             total += self_weight_kN(element, nodes)
         if total > 0.0:
@@ -1915,7 +1942,7 @@ def gravity_case_report(data):
     aplicado_main = 0.0
     n_floating = 0
     for element in data.get("elements", []):
-        if element.get("type") != "viga":
+        if not lleva_losa(element):
             continue
         ni = element.get("nodeI")
         nj = element.get("nodeJ")
@@ -2733,8 +2760,8 @@ def gravity_w(element, nodes, lambdas):
     length = element_length(element, nodes)
     if length <= 0.0:
         return 0.0
-    slab = float(element.get("deadLoad") or 0.0) if element.get("type") == "viga" else 0.0
-    live = float(element.get("liveLoad") or 0.0) if element.get("type") == "viga" else 0.0
+    slab = float(element.get("deadLoad") or 0.0) if lleva_losa(element) else 0.0
+    live = float(element.get("liveLoad") or 0.0) if lleva_losa(element) else 0.0
     return (lambdas.get("G", 0.0) * (slab + self_weight_kN(element, nodes)) + lambdas.get("Q", 0.0) * live) / length
 
 

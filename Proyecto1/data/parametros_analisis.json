@@ -1,6 +1,8 @@
 {
   "descripcion": "Parametros del analisis (editables aqui o desde Unity, pestana ANALISIS). Los leen exportar_resultados_unity.py, quitar_elemento.py y qa_semana06.py; los argumentos de consola tienen prioridad.",
   "Q_kg_m2": 500,
+  "Q_cubierta_kg_m2": 200,
+  "Q_cubiertaNota": "Sobrecarga del nivel superior de cada edificio (cubierta, losa no accesible): 200 kg/m2 (NCh1537 exige >= 100 para techos; criterio del grupo desde la semana 2). Pisos: Q_kg_m2.",
   "sismo": {
     "metodo": "NCh433",
     "zona": 3,

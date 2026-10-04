@@ -707,13 +707,15 @@ public class ViewerUI : MonoBehaviour
         c.Add(Title("PARÁMETROS DE CARGA"));
         var qG = Input(new FloatField("q_G losa + terminaciones [kN/m²]") { value = Session.qG, formatString = "0.###" });
         var qQ = Input(new FloatField("Q sobrecarga de uso [kg/m²]") { value = Session.qKgM2, formatString = "0.###" });
-        foreach (var f in new[] { qG, qQ })
+        var qR = Input(new FloatField("Q cubierta [kg/m²]") { value = Session.qCubiertaKgM2, formatString = "0.###" });
+        foreach (var f in new[] { qG, qQ, qR })
         {
             f.AddToClassList("dropdown");
             c.Add(f);
         }
         qG.RegisterValueChangedCallback(e => Session.qG = Mathf.Max(0f, e.newValue));
         qQ.RegisterValueChangedCallback(e => Session.qKgM2 = Mathf.Max(0f, e.newValue));
+        qR.RegisterValueChangedCallback(e => Session.qCubiertaKgM2 = Mathf.Max(0f, e.newValue));
         c.Add(Text("G = q_G·A_trib + peso propio (25 kN/m³ hormigón, 78,5 kN/m³ acero).", "hint"));
 
         // sismo: NCh433 estatico (C por edificio y direccion con T* del modal) o C fijo

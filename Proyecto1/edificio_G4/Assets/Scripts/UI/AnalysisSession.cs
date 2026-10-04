@@ -44,6 +44,7 @@ public class AnalysisSession
 
     public float qG = 6.227f;          // kN/m2
     public float qKgM2 = 500f;         // kg/m2
+    public float qCubiertaKgM2 = 200f; // kg/m2, nivel superior de cada edificio
     public float seismicCoeff = 0.20f;   // C del metodo fijo
     /// Sismo NCh433 estatico (DS61): zona, suelo, R, I y fraccion de Q en el peso sismico.
     public bool sismoNCh = true;
@@ -71,6 +72,7 @@ public class AnalysisSession
         if (d == null) return;
         qG = d.q_G > 0f ? d.q_G : 6.227f;
         qKgM2 = d.Q_kN_m2 > 0f ? d.Q_kN_m2 / KnPerKg : 500f;
+        qCubiertaKgM2 = d.Q_cubierta_kN_m2 > 0f ? d.Q_cubierta_kN_m2 / KnPerKg : qKgM2;
         seismicCoeff = d.seismic_coefficient > 0f ? d.seismic_coefficient : 0.20f;
         SismoSummary sis = d.resumenAnalisis?.sismo;
         if (sis != null && !string.IsNullOrEmpty(sis.metodo))
@@ -125,8 +127,8 @@ public class AnalysisSession
         string modsPath = Path.Combine(dir, "mods_unity.json");
         File.WriteAllText(combosPath, CombosJson("Combinaciones editadas en Unity (escenario de reanalisis)."), NoBom);
         File.WriteAllText(modsPath, "{\"sections\": " + SectionsJson() + "}", NoBom);
-        string args = string.Format(Inv, "--q-kg-m2 {0} {1} --qG {2} --combos \"{3}\" --mods \"{4}\" --fisurada {5},{6},{7}",
-            qKgM2, SismoArgs(), qG, combosPath, modsPath, kViga, kColumna, kMuro);
+        string args = string.Format(Inv, "--q-kg-m2 {0} --q-cubierta-kg-m2 {8} {1} --qG {2} --combos \"{3}\" --mods \"{4}\" --fisurada {5},{6},{7}",
+            qKgM2, SismoArgs(), qG, combosPath, modsPath, kViga, kColumna, kMuro, qCubiertaKgM2);
         if (HasArmChanges)
         {
             string armPath = Path.Combine(dir, "armaduras_unity.json");
@@ -279,9 +281,9 @@ public class AnalysisSession
     {
         return string.Format(Inv,
             "{{\n  \"descripcion\": \"Parametros del analisis (guardados desde Unity). Los lee exportar_resultados_unity.py y quitar_elemento.py; los argumentos de consola tienen prioridad.\",\n" +
-            "  \"Q_kg_m2\": {0},\n  \"sismo\": {7},\n  \"coeficienteSismico\": {1},\n  \"q_G_kN_m2\": {2},\n" +
+            "  \"Q_kg_m2\": {0},\n  \"Q_cubierta_kg_m2\": {8},\n  \"sismo\": {7},\n  \"coeficienteSismico\": {1},\n  \"q_G_kN_m2\": {2},\n" +
             "  \"rigidezFisurada\": {{\"viga\": {4}, \"columna\": {5}, \"muro\": {6}}},\n  \"sections\": {3}\n}}\n",
-            qKgM2, seismicCoeff, qG, SectionsJson(), kViga, kColumna, kMuro, SismoJson());
+            qKgM2, seismicCoeff, qG, SectionsJson(), kViga, kColumna, kMuro, SismoJson(), qCubiertaKgM2);
     }
 
     /// Argumentos del sismo para exportar_resultados_unity.py.
