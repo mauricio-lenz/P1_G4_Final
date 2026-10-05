@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [ExecuteAlways]
-public class StructureViewer : MonoBehaviour
+public partial class StructureViewer : MonoBehaviour
 {
     [Header("Datos exportados desde OpenSeesPy")]
     public TextAsset structureJson;
@@ -123,8 +123,8 @@ public class StructureViewer : MonoBehaviour
 
     public void ShowAllLayers()
     {
-        showColumns = showBeams = showWalls = showSupports = showDiaphragms = true;
-        showNodeMarkers = showIds = showLocalAxes = showLoads = false;
+        showColumns = showBeams = showWalls = showSupports = showDiaphragms = showGrid = true;
+        showNodeMarkers = showIds = showLocalAxes = showLoads = showDiaphragmMarks = false;
         if (showUtilization) { showUtilization = false; RestoreUtilizationColors(); }
         floorIndex = 0;
         statusMessage = "Vista restablecida.";
@@ -134,6 +134,7 @@ public class StructureViewer : MonoBehaviour
     {
         showColumns = showBeams = showWalls = true;
         showSupports = showDiaphragms = showNodeMarkers = showIds = showLocalAxes = showLoads = false;
+        showGrid = showDiaphragmMarks = false;
         if (showUtilization) { showUtilization = false; RestoreUtilizationColors(); }
         statusMessage = "Capas auxiliares ocultas.";
     }
@@ -245,6 +246,7 @@ public class StructureViewer : MonoBehaviour
         idLabelObjects.Clear();
         localAxisObjects.Clear();
         loadObjects.Clear();
+        ClearOverlayState();
         objectFloor.Clear();
 
         CreateNodes(loadedData);
@@ -253,6 +255,8 @@ public class StructureViewer : MonoBehaviour
         CreateDiaphragms(loadedData);
         CreateSupports(loadedData);
         CreatePointLoads(loadedData);
+        CreateGridAxes(loadedData);
+        CreateDiaphragmMarks(loadedData);
         CreateGlobalAxes();
         CreateDiagramController();
         CreatePMPanel();
@@ -523,6 +527,7 @@ public class StructureViewer : MonoBehaviour
             ElementSelectable selectable = box.AddComponent<ElementSelectable>();
             selectable.isWall = true;
             selectable.wallId = wall.id;
+            selectable.wallTag = wall.elementTag;
             selectable.wallThickness = wall.grosor;
             selectable.wallLength = wall.longitud;
             selectable.wallBottom = wall.bottom;
@@ -1170,9 +1175,9 @@ public class StructureViewer : MonoBehaviour
         {
             CreateLocalAxes();
         }
-        if (showLoads && loadObjects.Count == 0)
+        if (showLoads)
         {
-            CreateLoadArrows(loadedData);
+            EnsureLoadOverlay();   // G/Q repartidas y EX/EY del caso activo (StructureViewer.Overlays.cs)
         }
 
         SetGroupVisible(columnObjects, showColumns);
@@ -1184,6 +1189,8 @@ public class StructureViewer : MonoBehaviour
         SetGroupVisible(idLabelObjects, showIds);
         SetGroupVisible(localAxisObjects, showLocalAxes);
         SetGroupVisible(loadObjects, showLoads);
+        SetGroupVisible(gridObjects, showGrid);
+        SetGroupVisible(diaphragmMarkObjects, showDiaphragmMarks);
     }
 
     private bool IsRemovedObject(GameObject go)
@@ -1322,6 +1329,17 @@ public class StructureViewer : MonoBehaviour
         if (key.Length == 0) return;
         foreach (ElementSelectable sel in selectables)
         {
+            // muros: MURO-013, W_MURO-013 (elemento OpenSees) o el numero de muro
+            if (sel != null && sel.isWall && !string.IsNullOrEmpty(sel.wallTag)
+                && (string.Equals(sel.wallTag, key, System.StringComparison.OrdinalIgnoreCase)
+                    || string.Equals("W_" + sel.wallTag, key, System.StringComparison.OrdinalIgnoreCase)))
+            {
+                if (!sel.gameObject.activeInHierarchy) floorIndex = 0;
+                var wallPicker = FindAnyObjectByType<ElementPicker>();
+                if (wallPicker != null) wallPicker.SelectElement(sel, true);
+                statusMessage = "Muro " + sel.wallTag + " seleccionado.";
+                return;
+            }
             if (sel == null || sel.data == null) continue;
             if (sel.data.id.ToString() == key || string.Equals(sel.data.elementTag, key, System.StringComparison.OrdinalIgnoreCase))
             {

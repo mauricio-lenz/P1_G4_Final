@@ -1,0 +1,281 @@
+{
+  "descripcion": "Ejes de grilla de los planos (burbujas de las plantas DXF) en coordenadas del modelo. direccion 'y' = eje paralelo a Y (letras, coord = x); 'x' = paralelo a X (numeros, coord = y). Generado por scripts/generar_ejes_grilla.py.",
+  "ejes": [
+    {
+      "nombre": "3'",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": -8.274,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "3",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": -7.251,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "2",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": -0.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "1",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": 8.9,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "1'",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": 9.775,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "8",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": 17.55,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "E'",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": -11.044,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "E",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": -10.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "F",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 0.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "F'",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 1.047,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "G",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 10.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "H",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 20.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "H'",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 24.477,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "I",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 30.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "I'",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 35.0,
+      "plano": "2017_67-101.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "J",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 40.0,
+      "plano": "2017_67-102.dxf",
+      "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "3",
+      "edificio": "edificio_2",
+      "direccion": "x",
+      "coord": -7.25,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "desde": -42.975,
+      "hasta": -8.5
+    },
+    {
+      "nombre": "2",
+      "edificio": "edificio_2",
+      "direccion": "x",
+      "coord": -0.0,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "desde": -42.975,
+      "hasta": -8.5
+    },
+    {
+      "nombre": "1'",
+      "edificio": "edificio_2",
+      "direccion": "x",
+      "coord": 5.695,
+      "plano": "2024_22-101.dxf",
+      "secundario": true,
+      "desde": -42.975,
+      "hasta": -8.5
+    },
+    {
+      "nombre": "1",
+      "edificio": "edificio_2",
+      "direccion": "x",
+      "coord": 8.9,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "desde": -42.975,
+      "hasta": -8.5
+    },
+    {
+      "nombre": "A'",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -41.475,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "ajuste_m": 0.0,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "A",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -37.725,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "ajuste_m": -0.03,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "B",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -30.225,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "ajuste_m": -0.03,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "C",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -20.225,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "ajuste_m": -0.021,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "B'",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -17.025,
+      "plano": "2024_22-101.dxf",
+      "secundario": true,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "C'",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -12.645,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "ajuste_m": 0.008,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "D",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -10.0,
+      "plano": "2024_22-101.dxf",
+      "secundario": false,
+      "ajuste_m": 0.204,
+      "desde": -8.75,
+      "hasta": 10.4
+    }
+  ]
+}

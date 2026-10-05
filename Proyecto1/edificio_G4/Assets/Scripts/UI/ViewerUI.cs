@@ -320,7 +320,16 @@ public class ViewerUI : MonoBehaviour
         grid.Add(Check("IDs", () => viewer.ShowIdsLayer, v => viewer.ShowIdsLayer = v));
         grid.Add(Check("Ejes locales", () => viewer.ShowLocalAxesLayer, v => viewer.ShowLocalAxesLayer = v));
         grid.Add(Check("Cargas", () => viewer.ShowLoadsLayer, v => viewer.ShowLoadsLayer = v));
+        grid.Add(Check("Ejes", () => viewer.ShowGridLayer, v => viewer.ShowGridLayer = v));
+        grid.Add(Check("Diafragmas", () => viewer.ShowDiaphragmsLayer, v => viewer.ShowDiaphragmsLayer = v));
         c.Add(grid);
+        var loadInfo = Text("", "hint");
+        c.Add(loadInfo);
+        syncers.Add(() =>
+        {
+            loadInfo.text = viewer.ShowLoadsLayer ? "Cargas del caso activo — " + viewer.LoadOverlaySummary
+                : "Cargas: muestra G y Q repartidas en cada viga y EX/EY en el nodo maestro, según el caso o combinación activa.";
+        });
 
         var presets = Row();
         presets.style.marginTop = 6;

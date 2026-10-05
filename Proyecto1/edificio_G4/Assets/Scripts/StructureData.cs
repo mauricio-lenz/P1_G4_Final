@@ -8,6 +8,8 @@ public class StructureData
     public float q_G;
     public float Q_kN_m2;
     public float Q_cubierta_kN_m2;   // sobrecarga del nivel superior (cubierta)
+    public DiafragmaData[] diafragmasSismo;   // diafragma rigido por edificio y piso (nodo maestro, CM, W, F)
+    public EjeGrillaData[] ejesGrilla;        // ejes de los planos (scripts/generar_ejes_grilla.py)
     public float seismic_coefficient;
     public AnalysisSummary resumenAnalisis;
     public string p1l4_version;
@@ -41,6 +43,26 @@ public class AnalysisSummary
     public ArmaduraSummary armadura;
     public float rigidezViga = 1f, rigidezColumna = 1f, rigidezMuro = 1f;   // factores de inercia (1 = bruta)
     public SismoSummary sismo;
+}
+
+/// Diafragma rigido de un piso de un edificio: nodo maestro, centro de masa, peso y fuerza sismica.
+[Serializable]
+public class DiafragmaData
+{
+    public string edificio, piso;
+    public float z;
+    public int maestro, esclavos;
+    public float cm_x, cm_y, x0, x1, y0, y1;
+    public float W_kN, F_EX_kN, F_EY_kN, A_k;
+}
+
+/// Eje de grilla de los planos: direccion "y" (letras, paralelo a Y, coord = x) o "x" (numeros, coord = y).
+[Serializable]
+public class EjeGrillaData
+{
+    public string nombre, edificio, direccion, plano;
+    public float coord, desde, hasta;
+    public bool secundario;
 }
 
 /// Sismo usado en el analisis: NCh433 estatico (C por edificio y direccion) o C fijo.
@@ -375,6 +397,7 @@ public class ElementData
 public class WallData
 {
     public int id;
+    public string elementTag;   // MURO-013 (el elemento OpenSees es W_MURO-013)
     public int nodeI;
     public int nodeJ;
     public string type;

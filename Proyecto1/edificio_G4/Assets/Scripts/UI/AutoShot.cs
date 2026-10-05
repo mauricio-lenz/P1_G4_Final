@@ -29,6 +29,13 @@ public class AutoShot : MonoBehaviour
         var viewer = FindAnyObjectByType<StructureViewer>();
         if (viewer == null) { Application.Quit(); yield break; }
 
+        if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-demo") >= 0)
+        {
+            yield return Demo(viewer);
+            Application.Quit();
+            yield break;
+        }
+
         yield return Shot("01_vista");
         viewer.SetCase("C1");
         viewer.Search("E1_72");
@@ -77,6 +84,68 @@ public class AutoShot : MonoBehaviour
             yield return Shot("11_utilizacion");
         }
         Application.Quit();
+    }
+
+    /// Capturas de los items de la demo base (semana 7): -autoshot dir -demo
+    private IEnumerator Demo(StructureViewer viewer)
+    {
+        ViewerUI.ShowTab(ViewerUI.TabVista);
+        viewer.CameraPreset("ISO");
+        viewer.SetCase("G");
+        yield return Shot("demo01_geometria");
+        viewer.ShowSupportsLayer = true;
+        viewer.ShowSlabsLayer = false;
+        viewer.CameraPreset("FRONT");
+        yield return Shot("demo02_apoyos");
+        viewer.ShowSlabsLayer = true;
+        viewer.ShowGridLayer = true;
+        viewer.CameraPreset("TOP");
+        yield return Shot("demo03_ejes");
+        viewer.ShowDiaphragmsLayer = true;
+        viewer.ShowSlabsLayer = false;
+        viewer.ShowGridLayer = false;
+        viewer.CameraPreset("ISO");
+        yield return Shot("demo04_diafragmas");
+        viewer.ShowDiaphragmsLayer = false;
+        viewer.ShowSlabsLayer = false;
+        viewer.ShowLoadsLayer = true;
+        foreach (string caso in new[] { "G", "Q", "EX", "EY" })
+        {
+            viewer.SetCase(caso);
+            yield return new WaitForSeconds(0.8f);
+            yield return Shot("demo05_cargas_" + caso);
+        }
+        viewer.ShowLoadsLayer = false;
+        viewer.ShowSlabsLayer = true;
+        viewer.SetCase("C1");
+        DiagramController.AnimateDeformed = false;
+        viewer.SetResult("Deformada");
+        ViewerUI.ShowTab(ViewerUI.TabResultados);
+        yield return new WaitForSeconds(1f);
+        yield return Shot("demo06_deformada");
+        viewer.SetResult("Momento");
+        viewer.Search("E1_72");
+        yield return new WaitForSeconds(1f);
+        yield return Shot("demo07_diagrama_momento");
+        viewer.SetSuperposition(true, 1f, 0.5f, 1f, 0.3f);
+        yield return new WaitForSeconds(1f);
+        yield return Shot("demo08_superposicion");
+        viewer.SetSuperposition(false, 1f, 1f, 1f, 1f);
+        viewer.SetCase("C1");
+        viewer.SetResult("None");
+        viewer.Search("E1_260");
+        yield return new WaitForSeconds(1.2f);
+        yield return Shot("demo09_PM_columna");
+        viewer.Search("W_MURO-013");
+        yield return new WaitForSeconds(1.2f);
+        yield return Shot("demo10_PM_muro");
+        ViewerUI.ShowTab(ViewerUI.TabAnalisis);
+        yield return Shot("demo11_parametros");
+        viewer.SetUtilizationVisible(true);
+        viewer.CameraPreset("ISO");
+        ViewerUI.ShowTab(ViewerUI.TabResultados);
+        yield return new WaitForSeconds(1f);
+        yield return Shot("demo12_utilizacion");
     }
 
     private IEnumerator Shot(string name)

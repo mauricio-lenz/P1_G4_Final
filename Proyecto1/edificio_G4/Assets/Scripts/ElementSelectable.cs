@@ -8,6 +8,7 @@ public class ElementSelectable : MonoBehaviour
     public string customLabel;
     public bool isWall;
     public int wallId;
+    public string wallTag;   // MURO-013 (buscador)
     public float wallThickness;
     public float wallLength;
     public string wallBottom;
@@ -309,10 +310,12 @@ public class ElementSelectable : MonoBehaviour
             $"\n--- Seccion y Material ---\n" +
             $"Seccion: {secId}\n" +
             $"Geometria: t={wallThickness:0.###} m | L={wallLength:0.###} m\n" +
-            $"Material: H-30 / Acero A630-420 (muro equivalente)\n" +
-            $"fc' = 30.0 MPa | fy = 420.0 MPa\n";
+            $"Material: G35 / Acero A630-420H (muro equivalente)\n";
 
         PMCurveData curve = UnityData.GetPMCurve(pmSectionId);
+        result += curve != null && curve.fc_MPa > 0f
+            ? $"fc' = {curve.fc_MPa:0.0} MPa | fy = {curve.fy_MPa:0.0} MPa\n"
+            : "fc' = 35.0 MPa | fy = 420.0 MPa\n";
         if (curve != null)
         {
             result += $"Acero ref.: {curve.steelBars} barras phi {curve.barDiameter_mm:0.0} mm\n" +

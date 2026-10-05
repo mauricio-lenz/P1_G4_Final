@@ -538,7 +538,7 @@ def main():
             fm = t * L * L / (0.25 * 7.60 * 7.60)
             pm_curves.append({
                 "sectionId": sid, "elementType": "muro", "b_m": t, "h_m": L, "fc_MPa": 35.0, "fy_MPa": 420.0,
-                "steelBars": 0, "barDiameter_mm": 12.0, "Ast_mm2": round(8595.4 * fp, 1), "rho_percent": 0.45,
+                "steelBars": 2 * (int(L / 0.20) + 1), "barDiameter_mm": 12.0, "Ast_mm2": round(8595.4 * fp, 1), "rho_percent": 0.45,
                 "Po_kN": float(wall_pm_full.get("Pn0_kN", 0.0)) * fp,
                 "interpretation": f"Muro t={t:.2f} m, L={L:.2f} m: envolvente W_DPRIME escalada (P x{fp:.3f}, M x{fm:.3f}), "
                                   f"misma cuantia 0.45 % (2 capas phi12@200). Aproximacion: falta el detalle de armadura real.",
@@ -784,17 +784,44 @@ def main():
 
     # Curvas P-M de diseno de columnas (capacidad_ha): una por seccion + armadura
     for cid, cc in col_curves.items():
+        ast, diams = cha.bars_area_mm2(cc["arm"].get("barras", ""))
+        ag = float(cc["b"] or 0.0) * float(cc["h"] or 0.0) * 1e6
         pm_curves.append({
             "sectionId": cid, "elementType": "columna", "b_m": cc["b"], "h_m": cc["h"], "fc_MPa": 35.0, "fy_MPa": 420.0,
-            "Po_kN": cc["P0"], "Ast_mm2": 0.0, "barDiameter_mm": 0.0, "steelBars": 0, "rho_percent": 0.0,
+            "Po_kN": cc["P0"], "Ast_mm2": ast, "barDiameter_mm": float(max(diams)) if diams else 0.0, "steelBars": len(diams),
+            "rho_percent": 100.0 * ast / ag if ag > 0 else 0.0,
             "interpretation": f"Curva de DISENO (phiPn, phiMn) ACI 318-19 por compatibilidad de deformaciones: "
                               f"{cc['arm'].get('barras', '')}, estribos {cc['arm'].get('estribos', '')}; phi 0.65-0.90, phiPmax = 0.80 phi P0.",
             "points": [{"label": "", "P_kN": q["P_kN"], "M_kN_m": q["M_kN_m"]} for q in cc["puntos"]],
         })
 
+    # ── Diafragmas rigidos (capa "Diafragmas" del viewer) y ejes de grilla ──
+    diaph = cvm.diaphragm_groups(data)
+    diafragmas = []
+    for row in seismic.get("pisos", []):
+        key = (row["edificio"], round(row["floor_z_m"], 3))
+        g = diaph.get(key)
+        if g is None:
+            continue
+        ids = [g["master"]] + g["slaves"]
+        xs = [nodes_by_id[i]["x"] for i in ids]
+        ys = [nodes_by_id[i]["y"] for i in ids]
+        diafragmas.append({
+            "edificio": row["edificio"], "piso": row["piso"].split(" [")[0].split(" (")[0], "z": row["floor_z_m"],
+            "maestro": g["master"], "esclavos": len(g["slaves"]),
+            "cm_x": row["centro_masa_estimado"]["x"], "cm_y": row["centro_masa_estimado"]["y"],
+            "x0": min(xs), "x1": max(xs), "y0": min(ys), "y1": max(ys),
+            "W_kN": row["W_sismico_kN"], "F_EX_kN": row["F_EX_kN"], "F_EY_kN": row["F_EY_kN"],
+            "A_k": row.get("A_k") or 0.0,
+        })
+    ejes_path = ROOT_DIR / "data" / "ejes_grilla.json"
+    ejes_grilla = load_json(ejes_path).get("ejes", []) if ejes_path.exists() else []
+
     # ── JSON de salida ───────────────────────────────────────────────
     curva_muro_n = len(wall_pm_data) if wall_pm_data else 0
     output = {
+        "diafragmasSismo": diafragmas,
+        "ejesGrilla": ejes_grilla,
         "p1l4": {
             "version": "1.0",
             "combinations": combos_list,
