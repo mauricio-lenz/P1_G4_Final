@@ -3,7 +3,7 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
 /// <summary>
-/// Semana 6 · Fase 2: detecta la imagen de referencia (Marcador_E1_260),
+/// Semana 6 · Fase 2: detecta la imagen de referencia (Marcador_E1_243),
 /// lee su pose y crea un ARAnchor en esa pose. Todo el contenido AR se cuelga
 /// de <see cref="ContentRoot"/> (hijo del anchor), asi queda fijo en el mundo
 /// aunque la imagen deje de verse.
@@ -14,7 +14,7 @@ using UnityEngine.XR.ARSubsystems;
 /// </summary>
 public class ARImageAnchor : MonoBehaviour
 {
-    public const string MarkerName = "Marcador_E1_260";
+    public const string MarkerName = "Marcador_E1_243";
 
     /// Segundos de tracking continuo antes de anclar (evita anclar con la primera pose, que es ruidosa).
     public float settleTime = 0.6f;

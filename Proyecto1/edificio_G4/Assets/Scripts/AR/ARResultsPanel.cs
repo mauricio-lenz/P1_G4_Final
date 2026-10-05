@@ -160,23 +160,39 @@ public class ARResultsPanel : MonoBehaviour
         GUI.Label(new Rect(lx, ly, iw, 18f), "DEMANDA P-M", UiTheme.Header); ly += 18f;
         Vector2 pm = UnityData.PMDemand(e, combo);
         string pmLine = $"P = {pm.x:0.0} kN (compresion +) | M = {pm.y:0.0} kN·m";
-        PMCurveData curve = e.type == "columna" ? UnityData.GetPMCurve(e.sectionId + "_FIBER") ?? UnityData.GetPMCurve(e.sectionId) : null;
+        // misma curva que el viewer: la de DISENO de la seccion + armadura (pmCurveId); la de fibra solo si no hay
+        PMCurveData curve = e.type != "columna" ? null
+            : (!string.IsNullOrEmpty(e.pmCurveId) ? UnityData.GetPMCurve(e.pmCurveId) : null)
+              ?? UnityData.GetPMCurve(e.sectionId + "_FIBER") ?? UnityData.GetPMCurve(e.sectionId);
         GUI.Label(new Rect(lx, ly, iw, 18f), pmLine, UiTheme.Label); ly += 17f;
         if (curve != null && curve.points != null && curve.points.Length >= 2)
         {
             float mCap = CapacityAt(curve, pm.x);
             string ratio = mCap > 1e-3f ? $"{pm.y / mCap:0.00}" : "fuera de la curva";
             GUI.Label(new Rect(lx, ly, iw, 34f),
-                $"{curve.sectionId}: M_cap(P) = {mCap:0.0} kN·m -> M/M_cap = {ratio} (5 puntos, interp. lineal)", UiTheme.DimLabel);
+                $"{curve.sectionId}: phiMn(P) = {mCap:0.0} kN·m -> C = M/phiMn = {ratio} ({curve.points.Length} puntos, interp. lineal)", UiTheme.DimLabel);
             ly += 34f;
         }
         else ly += 4f;
 
-        // Area tributaria / carga
-        GUI.Label(new Rect(lx, ly, iw, 18f), "AREA TRIBUTARIA Y CARGA (semana 3-4)", UiTheme.Header); ly += 18f;
-        GUI.Label(new Rect(lx, ly, iw, 34f),
-            $"A_trib = {e.areaTributaria:0.00} m² | P_trib = {e.cargaTributaria:0.0} kN | 1.2D+1.6L = {e.factoredLoad12D16L:0.0} kN",
-            UiTheme.Label);
+        // Area tributaria (vigas) o carga axial por caso (columnas), del modelo vigente
+        UnityData.LocalAxes(e, out _, out _, out _, out float largo);
+        if (e.type == "viga")
+        {
+            GUI.Label(new Rect(lx, ly, iw, 18f), "AREA TRIBUTARIA Y CARGA REPARTIDA", UiTheme.Header); ly += 18f;
+            float wG = largo > 0f ? (e.deadLoad + e.selfWeight_kN) / largo : 0f;
+            float wQ = largo > 0f ? e.liveLoad / largo : 0f;
+            GUI.Label(new Rect(lx, ly, iw, 34f),
+                $"A_trib = {e.areaTributaria:0.00} m² | wG = {wG:0.0} kN/m (losa + peso propio) | wQ = {wQ:0.0} kN/m", UiTheme.Label);
+        }
+        else
+        {
+            GUI.Label(new Rect(lx, ly, iw, 18f), "CARGA AXIAL POR CASO (base del elemento)", UiTheme.Header); ly += 18f;
+            float[] fg = UnityData.InternalForcesAt(e, 0f, "G");
+            float[] fq = UnityData.InternalForcesAt(e, 0f, "Q");
+            GUI.Label(new Rect(lx, ly, iw, 34f),
+                $"N(G) = {(fg != null ? fg[0] : 0f):0.0} kN | N(Q) = {(fq != null ? fq[0] : 0f):0.0} kN | peso propio {e.selfWeight_kN:0.0} kN", UiTheme.Label);
+        }
         ly += 36f;
 
         GUI.Label(new Rect(lx, ly, iw, 52f),

@@ -1,13 +1,16 @@
-﻿"""Semana 6 (AR): genera la imagen de referencia que detecta ARCore.
+"""Semana 6 (AR): genera la imagen de referencia que detecta ARCore.
 
-La imagen es la planta del piso 1 del modelo (vigas de CIELO_1 + columnas) con
-la columna ancla E1_260 destacada, sobre un fondo con detalle aleatorio (ARCore
+La imagen es la planta de CIELO_1 (piso de la sala de la demo: vigas de CIELO_1
++ columnas que nacen en ese nivel) con la columna ancla E1_243 destacada, sobre un fondo con detalle aleatorio (ARCore
 necesita muchos puntos caracteristicos y nada repetitivo).
 
 Salidas:
-  edificio_G4/Assets/AR/Marcador_E1_260.png   -> textura de la XRReferenceImageLibrary
-  ar/marcador_E1_260_imprimir.pdf             -> hoja A4 para imprimir al 100 %
-  ar/marcador_E1_260.png                      -> misma imagen, para el informe
+  edificio_G4/Assets/AR/Marcador_E1_243.png   -> textura de la XRReferenceImageLibrary
+  ar/marcador_E1_243_imprimir.pdf             -> hoja A4 para imprimir al 100 %
+  ar/marcador_E1_243.png                      -> misma imagen, para el informe
+
+Tras regenerar: Unity -executeMethod ARSetup.UpdateMarker (o menu MCOC/AR/Actualizar
+marcador) y build del APK AR.
 
 El ancho fisico impreso (MARKER_WIDTH_M) debe coincidir con el ancho declarado
 en Unity (ARSetup.MarkerWidth): ARCore usa ese dato para la escala de la pose.
@@ -20,13 +23,15 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "estructura_completo_unity.json"
-OUT_UNITY = ROOT / "edificio_G4" / "Assets" / "AR" / "Marcador_E1_260.png"
+OUT_UNITY = ROOT / "edificio_G4" / "Assets" / "AR" / "Marcador_E1_243.png"
 OUT_DIR = ROOT / "ar"
 
 MARKER_WIDTH_M = 0.20          # ancho impreso de la imagen (20 cm)
 PX = 1600                      # resolucion de la imagen cuadrada
-ANCHOR_TAG = "E1_260"
-FLOOR_TOP_Z = 3.96             # vigas del cielo del piso 1
+ANCHOR_TAG = "E1_243"
+ANCHOR_TEXT = "COL70/70 · eje F-3 · sala del voladizo"
+ANCHOR_FACE = "+X (hacia la sala)"
+FLOOR_TOP_Z = 3.96             # CIELO_1: piso de la sala (vigas y columnas que nacen aqui)
 
 
 def font(size, bold=False):
@@ -87,7 +92,7 @@ def make_marker():
         if e["type"] != "columna":
             continue
         ni, nj = nodes[e["nodeI"]], nodes[e["nodeJ"]]
-        if abs(min(ni["z"], nj["z"])) > 0.1:
+        if abs(min(ni["z"], nj["z"]) - FLOOR_TOP_Z) > 0.1:
             continue
         px, py = to_px(ni["x"], ni["y"])
         h = max(7.0, e.get("width_m", 0.5) * s / 2)
@@ -108,7 +113,7 @@ def make_marker():
     # Banda superior con titulo y flecha "arriba" (+y del modelo)
     d.rectangle([0, 0, PX, 190], fill=0)
     d.text((40, 30), "MCOC P1_G4  ·  MARCADOR AR", fill=255, font=font(72, True))
-    d.text((40, 118), f"Ancla {ANCHOR_TAG} · COL70/70 · eje G / eje 2 · piso 1", fill=255, font=font(44))
+    d.text((40, 118), f"Ancla {ANCHOR_TAG} · {ANCHOR_TEXT}", fill=255, font=font(40))
     d.polygon([(PX - 110, 30), (PX - 60, 110), (PX - 160, 110)], fill=255)
     d.text((PX - 140, 120), "+Y", fill=255, font=font(44, True))
 
@@ -136,9 +141,10 @@ def make_print_sheet(marker):
     y = top + side + 80
     d.text((left, y), "Imprimir en tamano real (100 %, sin 'ajustar a la pagina').", fill=0, font=font(48, True))
     d.text((left, y + 80), f"Verificar con regla: el cuadrado mide {MARKER_WIDTH_M * 100:.0f} cm de ancho.", fill=0, font=font(44))
-    d.text((left, y + 150), f"Pegar plano y sin brillo en la cara de la columna {ANCHOR_TAG}, centro a 1,20 m del piso.", fill=0, font=font(44))
-    d.text((left, y + 220), "Maqueta en mesa: dejar la hoja sobre la mesa.", fill=0, font=font(44))
-    page.save(OUT_DIR / "marcador_E1_260_imprimir.pdf", resolution=dpi)
+    d.text((left, y + 150), f"Pegar plano y sin brillo en la cara {ANCHOR_FACE} de la columna {ANCHOR_TAG},", fill=0, font=font(44))
+    d.text((left, y + 205), "con el centro a 1,20 m del piso terminado y la banda del titulo hacia arriba.", fill=0, font=font(44))
+    d.text((left, y + 275), "Maqueta en mesa: dejar la hoja sobre la mesa.", fill=0, font=font(44))
+    page.save(OUT_DIR / f"marcador_{ANCHOR_TAG}_imprimir.pdf", resolution=dpi)
 
 
 def main():
@@ -146,10 +152,10 @@ def main():
     OUT_UNITY.parent.mkdir(parents=True, exist_ok=True)
     marker = make_marker()
     marker.save(OUT_UNITY)
-    marker.save(OUT_DIR / "marcador_E1_260.png")
+    marker.save(OUT_DIR / f"marcador_{ANCHOR_TAG}.png")
     make_print_sheet(marker)
     print(f"Marcador: {OUT_UNITY}")
-    print(f"PDF para imprimir: {OUT_DIR / 'marcador_E1_260_imprimir.pdf'} (ancho {MARKER_WIDTH_M * 100:.0f} cm)")
+    print(f"PDF para imprimir: {OUT_DIR / f'marcador_{ANCHOR_TAG}_imprimir.pdf'} (ancho {MARKER_WIDTH_M * 100:.0f} cm)")
 
 
 if __name__ == "__main__":

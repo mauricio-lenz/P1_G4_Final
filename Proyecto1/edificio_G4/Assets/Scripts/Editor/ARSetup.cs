@@ -126,8 +126,32 @@ public static class ARSetup
 
     /// Ancho impreso del marcador (scripts/generar_marcador_ar.py, MARKER_WIDTH_M).
     public const float MarkerWidth = ARSetupConstants.MarkerWidth;
-    private const string MarkerTexturePath = "Assets/AR/Marcador_E1_260.png";
+    private const string MarkerTexturePath = "Assets/AR/Marcador_E1_243.png";
     private const string LibraryPath = "Assets/AR/MarcadorLibrary.asset";
+
+    /// Cambia la imagen del marcador en la libreria existente (sin regenerar la escena AR):
+    ///   Unity.exe -batchmode -quit -projectPath ... -executeMethod ARSetup.UpdateMarker
+    [MenuItem("MCOC/AR/Actualizar marcador (libreria de imagenes)")]
+    public static void UpdateMarker()
+    {
+        var importer = (TextureImporter)AssetImporter.GetAtPath(MarkerTexturePath);
+        if (importer == null) throw new FileNotFoundException("Generar primero el marcador: python scripts/generar_marcador_ar.py", MarkerTexturePath);
+        importer.isReadable = true;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.mipmapEnabled = false;
+        importer.npotScale = TextureImporterNPOTScale.None;
+        importer.SaveAndReimport();
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(MarkerTexturePath);
+        var library = AssetDatabase.LoadAssetAtPath<XRReferenceImageLibrary>(LibraryPath);
+        if (library == null) { CreateReferenceLibrary(); return; }
+        library.SetTexture(0, texture, false);
+        library.SetName(0, ARImageAnchor.MarkerName);
+        library.SetSpecifySize(0, true);
+        library.SetSize(0, new Vector2(MarkerWidth, MarkerWidth));
+        EditorUtility.SetDirty(library);
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[ARSetup] Marcador actualizado: {ARImageAnchor.MarkerName} ({MarkerTexturePath}) {MarkerWidth * 100f:0} cm");
+    }
 
     /// XRReferenceImageLibrary con el marcador y su tamano fisico (ARCore lo
     /// usa para que la pose de la imagen salga en metros reales).

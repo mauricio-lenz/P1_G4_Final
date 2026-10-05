@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Semana 6 · Fase 3: dibuja la estructura (o el sector de E1_260) sobre el
+/// Semana 6 · Fase 3: dibuja la estructura (o el sector de la columna ancla) sobre el
 /// anchor de la imagen, transformando coordenadas OpenSees -> AR.
 ///
 ///   p_AR (mundo) = T_anchor · ( s · M · (p_OpenSees − p_ref) )
@@ -11,7 +11,9 @@ using UnityEngine;
 ///   p_ref      : punto del modelo que coincide con el centro de la imagen.
 ///   M          : cambio de ejes modelo -> ejes de la imagen (x derecha,
 ///                y normal saliendo de la imagen, z hacia el borde superior).
-///                  marcador en la columna (vertical): (dx, −dy, dz)
+///                  marcador en la columna (vertical, normal n de la cara):
+///                    (d·r, d·n, dz) con r = (−n) × z  (derecha de quien mira)
+///                    cara −Y: (dx, −dy, dz) · cara +X: (dy, dx, dz)
 ///                  marcador en la mesa (horizontal):  (dx,  dz, dy)
 ///                Ambos tienen det = −1: pasan de un sistema de mano derecha
 ///                (OpenSees) a uno de mano izquierda (Unity), igual que el
@@ -24,15 +26,19 @@ public class ARStructure : MonoBehaviour
 {
     public enum Mode { Columna1a1, Maqueta100, SobrePlano }
 
-    public const string AnchorTag = "E1_260";
+    public const string AnchorTag = "E1_243";
     /// Elementos revisados en detalle: siempre se dibujan (tambien fuera del sector en 1:1) y tienen acceso directo.
-    public static readonly string[] FeaturedTags = { "E1_260", "E1_72" };
+    /// E1_72 es la viga de borde del voladizo, en el cielo de la sala de la demo.
+    public static readonly string[] FeaturedTags = { "E1_243", "E1_72" };
 
-    // Marcador pegado en la cara −Y de la columna E1_260 (x = 10, y = 0, COL70/70),
-    // con su centro a 1,20 m del piso terminado (z = 0).
-    public static readonly Vector3 MarkerOnColumn = new Vector3(10f, -0.35f, 1.20f);
-    public const float SectorXMin = 5f, SectorXMax = 15f, SectorYMin = -7.25f, SectorYMax = 5f;
-    public const float SectorZMin = 0f, SectorZMax = 7.92f;
+    // Sala de la demo: voladizo sur del edificio 1, sobre las losas L22, L23 y L95 de
+    // CIELO_1 (x 0..7,51, y -11,37..0, piso z = 3,96). Marcador pegado en la cara +X
+    // (hacia la sala) de la columna E1_243 (x = 0, y = -7,25, COL70/70), con su centro
+    // a 1,20 m del piso terminado.
+    public static readonly Vector3 MarkerOnColumn = new Vector3(0.35f, -7.25f, 3.96f + 1.20f);
+    public static readonly Vector3 MarkerFaceNormal = new Vector3(1f, 0f, 0f);   // normal saliente de la cara (modelo)
+    public const float SectorXMin = -1f, SectorXMax = 8.5f, SectorYMin = -12f, SectorYMax = 0.5f;
+    public const float SectorZMin = 3.96f, SectorZMax = 7.92f;
 
     // Dibujo de la planta en el marcador (mismos parametros que scripts/generar_marcador_ar.py)
     private const float MarkerPx = 1600f, PlanMarginTop = 230f, PlanMargin = 110f, PlanBottomBand = 160f;
@@ -116,7 +122,10 @@ public class ARStructure : MonoBehaviour
     /// Cambio de ejes M (modelo -> ejes de la imagen), sin escala.
     public Vector3 AxesToImage(Vector3 d)
     {
-        return mode == Mode.Columna1a1 ? new Vector3(d.x, -d.y, d.z) : new Vector3(d.x, d.z, d.y);
+        if (mode != Mode.Columna1a1) return new Vector3(d.x, d.z, d.y);
+        Vector3 n = MarkerFaceNormal;
+        Vector3 r = new Vector3(-n.y, n.x, 0f);   // (−n) × z: derecha de quien mira la cara
+        return new Vector3(Vector3.Dot(d, r), Vector3.Dot(d, n), d.z);
     }
 
     /// Punto del modelo (OpenSees) -> coordenadas locales del anchor: s · M · (p − p_ref).
