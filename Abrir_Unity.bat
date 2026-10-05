@@ -39,8 +39,8 @@ if defined ver if not defined unityExe if exist "%LOCALAPPDATA%\Unity\Editor\%ve
 if defined unityExe (
     echo Version requerida: %ver%
     echo Ejecutable: %unityExe%
-    echo Abriendo Unity...
-    start "" "%unityExe%" -projectPath "%projDir%"
+    echo Abriendo Unity con Direct3D 11 ^(D3D12 cierra el editor en algunos equipos^)...
+    start "" "%unityExe%" -force-d3d11 -projectPath "%projDir%"
 ) else (
     echo No encontre Unity.exe para la version %ver%.
     echo Abriendo la carpeta del proyecto para abrirlo desde Unity Hub...

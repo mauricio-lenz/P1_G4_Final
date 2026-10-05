@@ -36,3 +36,4 @@ P1L2/Builds/
 *.slnx
 .vsconfig
 **/edificio_G4/.utmp/
+.pytest_cache/

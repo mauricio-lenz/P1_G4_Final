@@ -109,7 +109,7 @@ def main():
     # ---- P-M columna y muro (con el JSON que lee Unity) ----
     u = json.loads(UNITY_JSON.read_text(encoding="utf-8"))
     curves = {c["sectionId"]: c for c in u["p1l4"]["pmCurves"]}
-    col_pts = curves["COL70/70_FIBER"]["points"]
+    # curva de DISENO de cada columna (seccion + armadura, la misma del viewer y el AR)
     forces = {}
     for f in u["p1l4"]["elementForces"]:
         forces[(f["id"], f["combo"])] = f["f"]
@@ -125,7 +125,7 @@ def main():
                 continue
             p = -0.5 * (-f[0] + f[6])                       # compresion +, N interno al centro
             m = max(math.hypot(f[4], f[5]), math.hypot(f[10], f[11]))
-            cap = capacity_at(col_pts, p)
+            cap = capacity_at(curves[e.get("pmCurveId") or "COL70/70_FIBER"]["points"], p)
             ratio = m / cap if cap > 0 else float("inf")
             if worst is None or ratio > worst["C"]:
                 worst = {"elementTag": e["elementTag"], "combo": combo, "P_kN": p, "M_kN_m": m, "Mcap_kN_m": cap, "C": ratio}

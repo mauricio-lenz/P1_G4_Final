@@ -2366,16 +2366,23 @@ def _col_build_fibers(n):
 
 
 def _fiber_moment_curvature(P_target, n, max_curv, num):
+    """Curva M-phi de la COL70/70 hasta la falla: se detiene cuando la fibra de
+    hormigon mas comprimida llega a eps_cu (= 0.0035), igual que el muro.
+    Sin ese limite el hormigon conserva 0.85 f'c y el acero endurece sin fin, y
+    "Mmax" quedaba dado por el rango de curvatura (656 kN-m a phi = 0.12 1/m)
+    en vez de la capacidad (~540 kN-m)."""
     fibers = _col_build_fibers(n)
     curv = []
     M = []
     for i in range(num + 1):
         k = max_curv * i / num
-        _, m = _fiber_solve_PM(k, P_target, fibers)
+        eps0, m = _fiber_solve_PM(k, P_target, fibers)
         if m is None:
             break
         curv.append(k)
         M.append(m)
+        if eps0 + k * _B / 2.0 >= _FIB_EPS_CU - 1e-12:   # fibra extrema comprimida en eps_cu
+            break
     return curv, M
 
 

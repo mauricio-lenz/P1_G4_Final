@@ -495,7 +495,7 @@ public class ViewerUI : MonoBehaviour
         c.Add(row1);
         var row2 = Row();
         var clear = Btn("Quitar cambios", null, "wide");
-        var run = Btn("Reanalizar ahora", () => { if (Session.StartReanalysis()) viewer.Status = "Reanálisis en curso..."; }, "wide");
+        var run = Btn("Reanalizar ahora", () => { if (Session.StartReanalysis()) viewer.Status = "Reanálisis en curso..."; else viewer.Status = Session.Message; }, "wide");
         row2.Add(clear);
         row2.Add(run);
         c.Add(row2);
@@ -819,7 +819,7 @@ public class ViewerUI : MonoBehaviour
         c.Add(Title("REANÁLISIS CON OPENSEES"));
         var run = Btn("Reanalizar el modelo completo", () =>
         {
-            if (Session.StartReanalysis()) viewer.Status = "Reanálisis en curso...";
+            if (Session.StartReanalysis()) viewer.Status = "Reanálisis en curso..."; else viewer.Status = Session.Message;
         }, "wide");
         run.style.height = 30;
         c.Add(run);

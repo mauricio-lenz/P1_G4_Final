@@ -138,13 +138,18 @@ public class PythonJob
         }
         process.WaitForExit();   // vacia las lecturas asincronas pendientes
         lastElapsed = Time.unscaledTime - startTime;
+        int exitCode = process.ExitCode;
         process = null;
-        if (!File.Exists(OutputPath))
+        if (exitCode != 0 || !File.Exists(OutputPath))
         {
             string err;
             lock (errors) err = errors.ToString().Trim();
             string[] lines = err.Split('\n');
-            Error = "Error en Python: " + (err.Length == 0 ? (lastLine.Length > 0 ? lastLine : "sin salida") : lines[lines.Length - 1].Trim());
+            // el exportador valida las entradas y sale con codigo 2: "ERROR de validacion: ..."
+            string validation = System.Array.Find(lines, l => l.StartsWith("ERROR"));
+            if (validation != null) Error = validation.Trim();
+            else Error = $"Error en Python (codigo {exitCode}): " + (err.Length == 0 ? (lastLine.Length > 0 ? lastLine : "sin salida") : lines[lines.Length - 1].Trim());
+            if (File.Exists(OutputPath)) File.Delete(OutputPath);   // nunca cargar un resultado de una corrida fallida
         }
         return true;
 #else

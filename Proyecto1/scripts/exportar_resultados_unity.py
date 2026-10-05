@@ -273,9 +273,13 @@ def main():
     if args.q_cubierta_kg_m2 is None:
         args.q_cubierta_kg_m2 = float(params.get("Q_cubierta_kg_m2", args.q_kg_m2))
     c_fijo = float(args.sc if args.sc is not None else params.get("coeficienteSismico", cvm.DEFAULT_SEISMIC_COEFF))
-    sismo_cfg = cvm.seismic_setting(params, sc=args.sc, overrides={
-        "metodo": {"nch433": "NCh433", "fijo": "fijo"}.get(args.sismo), "C": c_fijo, "zona": args.zona,
-        "suelo": args.suelo, "R": args.R, "I": args.I, "fraccionQ": args.fraccionQ})
+    try:
+        sismo_cfg = cvm.seismic_setting(params, sc=args.sc, overrides={
+            "metodo": {"nch433": "NCh433", "fijo": "fijo"}.get(args.sismo), "C": c_fijo, "zona": args.zona,
+            "suelo": args.suelo, "R": args.R, "I": args.I, "fraccionQ": args.fraccionQ})
+    except (ValueError, TypeError, KeyError) as ex:
+        sys.stderr.write(f"ERROR de validacion: parametros sismicos: {ex}\n")
+        sys.exit(2)
     if args.qG is None and params.get("q_G_kN_m2"):
         args.qG = float(params["q_G_kN_m2"])
     secciones_param = params.get("sections", {}) or {}
@@ -284,8 +288,23 @@ def main():
     elif args.fisurada.strip().lower() == "bruta":
         fisurada = None
     else:
-        kv, kc, km = (float(v) for v in args.fisurada.split(","))
+        try:
+            kv, kc, km = (float(v) for v in args.fisurada.split(","))
+        except ValueError:
+            sys.stderr.write(f'ERROR de validacion: --fisurada "{args.fisurada}" debe ser "viga,columna,muro" (ej. 0.35,0.70,0.35) o "bruta"\n')
+            sys.exit(2)
         fisurada = {"viga": kv, "columna": kc, "muro": km}
+
+    # Validacion de todas las entradas antes de analizar (Honors H4: Unity muestra este mensaje)
+    import validacion_entradas as val
+    try:
+        val.validar(args.q_kg_m2, args.q_cubierta_kg_m2, args.qG, fisurada, sismo_cfg, secciones_param,
+                    combos_path=args.combos or cvm.COMBINATIONS_PATH, mods_path=args.mods,
+                    armaduras_path=args.armaduras)
+        val.validar(500.0, 500.0, None, None, {"metodo": "fijo", "C": 0.0}, armaduras_path=ROOT_DIR / "data" / "armaduras.json")
+    except val.ErrorValidacion as ex:
+        sys.stderr.write(f"ERROR de validacion: {ex}\n")
+        sys.exit(2)
     if params:
         print(f"Parametros de data/parametros_analisis.json: Q={args.q_kg_m2} kg/m2, q_G={args.qG}, secciones={len(secciones_param)}")
 
@@ -581,8 +600,9 @@ def main():
                     for p in col_pm_raw
                 ],
             }
-            write_json(P1L2_RESOURCES / "semana3_resultados_unity.json", col_capacity_unity)
-            print("  semana3_resultados_unity.json regenerado (G35).")
+            if args.out is None:   # un escenario (Unity, tests) no modifica los datos del proyecto
+                write_json(P1L2_RESOURCES / "semana3_resultados_unity.json", col_capacity_unity)
+                print("  semana3_resultados_unity.json regenerado (G35).")
         except Exception as e:
             print(f"  AVISO: no se pudo regenerar semana3_resultados_unity.json: {e}")
 
@@ -819,7 +839,35 @@ def main():
 
     # ── JSON de salida ───────────────────────────────────────────────
     curva_muro_n = len(wall_pm_data) if wall_pm_data else 0
+    # Registro de la corrida (reproducibilidad): comando, versiones y huella de las entradas
+    import hashlib, platform, subprocess, datetime
+    def _sha(path):
+        try:
+            return hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]
+        except (OSError, TypeError):
+            return None
+    try:
+        commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT_DIR, capture_output=True, text=True, timeout=10).stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        commit = None
+    try:
+        import importlib.metadata as _md
+        ops_version = _md.version("openseespy")
+    except Exception:
+        ops_version = None
+    corrida = {
+        "comando": "python -X utf8 Proyecto1/scripts/exportar_resultados_unity.py " + " ".join(sys.argv[1:]),
+        "fecha": datetime.datetime.now().isoformat(timespec="seconds"),
+        "python": platform.python_version(), "openseespy": ops_version, "commit": commit,
+        "entradas_sha256": {
+            "modelo": _sha(JSON_BASE), "parametros": _sha(cvm.PARAMS_PATH),
+            "combinaciones": _sha(args.combos or cvm.COMBINATIONS_PATH), "armaduras": _sha(ROOT_DIR / "data" / "armaduras.json"),
+            "mods": _sha(args.mods) if args.mods else None, "armaduras_cambios": _sha(args.armaduras) if args.armaduras else None,
+        },
+    }
+
     output = {
+        "corrida": corrida,
         "diafragmasSismo": diafragmas,
         "ejesGrilla": ejes_grilla,
         "p1l4": {

@@ -119,9 +119,41 @@ public class AnalysisSession
     }
 
     // ------------------------------------------------------------------
+    /// Revision rapida en Unity antes de lanzar Python (el exportador vuelve a validar todo).
+    public string ValidateInputs()
+    {
+        var problems = new List<string>();
+        if (qKgM2 < 0f || qKgM2 > 5000f) problems.Add($"Q = {qKgM2:0} kg/m² fuera de 0-5000");
+        if (qCubiertaKgM2 < 0f || qCubiertaKgM2 > 5000f) problems.Add($"Q cubierta = {qCubiertaKgM2:0} kg/m² fuera de 0-5000");
+        if (qG <= 0f || qG > 50f) problems.Add($"q_G = {qG:0.###} kN/m² fuera de 0-50");
+        foreach (var (name, k) in new[] { ("vigas", kViga), ("columnas", kColumna), ("muros", kMuro) })
+            if (k < 0.05f || k > 1f) problems.Add($"rigidez de {name} = {k:0.##} fuera de 0,05-1");
+        if (sismoNCh)
+        {
+            if (zona < 1 || zona > 3) problems.Add($"zona sísmica {zona} (1 a 3)");
+            if (R < 1f || R > 11f) problems.Add($"R = {R:0.#} fuera de 1-11");
+            if (I < 0.5f || I > 1.5f) problems.Add($"I = {I:0.##} fuera de 0,5-1,5");
+        }
+        else if (seismicCoeff < 0f || seismicCoeff > 1.5f) problems.Add($"C = {seismicCoeff:0.###} fuera de 0-1,5");
+        var names = new HashSet<string>();
+        foreach (Combo c in combos)
+        {
+            if (string.IsNullOrWhiteSpace(c.name) || !names.Add(c.name)) problems.Add($"combinación sin nombre o repetida ({c.name})");
+            foreach (float l in new[] { c.G, c.Q, c.EX, c.EY })
+                if (float.IsNaN(l) || Mathf.Abs(l) > 5f) { problems.Add($"{c.name}: |λ| > 5"); break; }
+        }
+        return problems.Count == 0 ? null : "Revisar: " + string.Join("; ", problems);
+    }
+
     public bool StartReanalysis()
     {
         if (job.Running) return false;
+        string invalid = ValidateInputs();
+        if (invalid != null)
+        {
+            Message = invalid;
+            return false;
+        }
         string dir = Application.temporaryCachePath;
         string combosPath = Path.Combine(dir, "combos_unity.json");
         string modsPath = Path.Combine(dir, "mods_unity.json");

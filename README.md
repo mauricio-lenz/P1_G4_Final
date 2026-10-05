@@ -1,92 +1,133 @@
-# Proyecto MCOC — Grupo 4 (entrega final autocontenida)
+# MCOC P1_G4 — Edificio G35: OpenSees + Unity + AR
 
-Modelo estructural de dos edificios de hormigón armado G35 con perfiles metálicos A36 (edificio 1: planos
-2017_67; edificio 2: planos 2024_22; separados por junta de dilatación):
-análisis OpenSees/Python + viewer Unity **en una sola carpeta autocontenida
-(`Proyecto1/`)**. Informe vigente de la semana 6 (AR): [`reports/semana06.md`](reports/semana06.md); semana 5: [`reports/semana05.md`](reports/semana05.md).
+Modelo estructural de dos edificios de hormigón armado G35, con perfiles metálicos A36. El edificio 1 sale de los planos 2017_67 y el edificio 2 de los planos 2024_22. Están separados por una junta de dilatación.
+
+El cálculo lo hace OpenSees desde Python. Unity sirve como pre y postprocesador, y sobre Unity corre una app de realidad aumentada para Android.
+
+**Flujo:** planos DXF → modelo JSON (`Proyecto1/data`) → OpenSees (`Proyecto1/scripts`) → resultados JSON → viewer Unity y AR (`Proyecto1/edificio_G4`).
+
+**Informes:** el final está en `reports/final.md` y los semanales en `reports/semana02` a `semana06.md`.
+
+## Requisitos
+
+| Componente | Versión probada |
+|---|---|
+| Windows | 10 / 11 (64 bits) |
+| Python | **3.12.10**, en el PATH como `python` |
+| OpenSeesPy | **3.8.0.0**. Todas las dependencias van con versión fija en `requirements.txt` |
+| Unity | **6000.6.0f1**, con los módulos Android Build Support y Windows Build Support (IL2CPP) |
+| Paquetes Unity | AR Foundation 6.6.2, Google ARCore XR Plugin 6.6.2 y XR Management 4.7.0. Unity los instala solo al abrir el proyecto |
+| Teléfono (AR) | Android compatible con ARCore. Se probó con un Samsung Galaxy S24 |
+
+```bat
+python -m pip install -r requirements.txt
+```
+
+## Cómo usarlo
+
+`Ejecutar.bat` abre un menú con todo lo de esta sección, e instala las dependencias si faltan. Los comandos equivalentes, desde la raíz del repo, son los siguientes.
+
+**1. Analizar y generar resultados.** Corre G, Q, EX, EY y C1 a C3 en OpenSees, calcula la capacidad ACI 318 y escribe el JSON que lee Unity:
+
+```bat
+python -X utf8 Proyecto1\scripts\exportar_resultados_unity.py
+```
+
+- Los parámetros se leen de `Proyecto1/data/parametros_analisis.json`: Q, Q de cubierta, q_G, sismo NCh433 y rigidez fisurada.
+- Las combinaciones se leen de `combinaciones.json` y las armaduras de `armaduras.json`. Los argumentos de consola tienen prioridad, por ejemplo `--q-kg-m2 300`, `--suelo D` o `--sc 0.2`; `--help` muestra todos.
+- La salida es `Proyecto1/edificio_G4/Assets/Resources/estructura_p1l4_unity.json`. Incluye en `corrida` el comando, las versiones y el hash de cada entrada.
+- Si una entrada no es válida, el script termina con código 2 y escribe `ERROR de validacion: …`.
+
+**2. Reconstruir el modelo desde los planos.** Parte del respaldo `estructura_completo_unity.pre_planos.json`, aplica los 16 ajustes y vuelve a exportar:
+
+```bat
+python -X utf8 Proyecto1\scripts\ajustar_modelo_planos.py
+```
+
+Los ejes de grilla se leen de los DXF, que no están en el repo (carpeta `../Planos_1_dxf`):
+
+```bat
+python -X utf8 Proyecto1\scripts\generar_ejes_grilla.py
+```
+
+**3. Ejecutar los tests y el QA.**
+
+```bat
+python -m pytest                  :: 43 tests, unos 60 s
+python -m pytest -m "not lento"   :: sin las corridas completas del exportador, unos 10 s
+python -X utf8 Proyecto1\scripts\qa_semana06.py          :: evidencia en Proyecto1/resultados/qa_semana06.json
+python -X utf8 Proyecto1\scripts\sensibilidad_rigidez.py :: sección bruta vs fisurada
+```
+
+Lo que cubren los tests:
+
+| Archivo | Verifica |
+|---|---|
+| `test_modelo.py` | Equilibrio, superposición, unidades, ejes locales, junta sin nodos compartidos, diafragmas |
+| `test_cargas.py` | Conservación del área tributaria, Q por nivel, peso sísmico, C de la NCh433 calculado a mano |
+| `test_capacidad.py` | Convergencia del M-φ, puntos ACI de la P-M de columna, Whitney vs fibras, flexión de viga a mano, P-M de muro |
+| `test_unity_json.py` | Integridad del JSON de Unity, que coincida con OpenSees y la trazabilidad de la corrida |
+| `test_h4_reanalisis.py` | Validación de entradas y comparación del reanálisis de Unity con la corrida directa |
+| `test_h5_armadura.py` | Que un cambio de armadura regenere la curva P-M y baje el DCR |
+
+**4. Abrir el viewer.**
+
+- **Editor:** abrir `Proyecto1/edificio_G4` con Unity 6000.6.0f1 (o `Abrir_Unity.bat`, que usa `-force-d3d11`), cargar la escena `Assets/Scenes/StructureViewerScene` y presionar Play.
+- **Ejecutable de Windows:** `Proyecto1/edificio_G4/Builds/Windows/P1G4_Viewer.exe`, que viene en la release. Para regenerar las capturas de la demo: `P1G4_Viewer.exe -autoshot <carpeta> -demo`.
+- **Pestañas:**
+  - VISTA: capas de ejes, diafragmas, cargas, apoyos y tributarias.
+  - RESULTADOS: diagramas, deformada, superposición y utilización.
+  - CARGAS: carga móvil y carga en un elemento.
+  - MODIFICAR: armadura, sección y quitar elemento.
+  - ANÁLISIS: parámetros, sismo y combinaciones, más *Reanalizar*, que llama a Python y OpenSees.
+
+**5. Compilar para el teléfono.** Desde los menús del editor de Unity:
+
+| Menú | Salida |
+|---|---|
+| `MCOC/Build Android (APK)` | `Builds/Android/P1G4_Viewer.apk` |
+| `MCOC/AR/Build Android AR (APK)` | `Builds/Android/P1G4_AR.apk` |
+| `MCOC/Build Windows (viewer)` | `Builds/Windows/P1G4_Viewer.exe` |
+
+También se puede compilar por consola, con Unity cerrado:
+
+```bat
+Unity.exe -batchmode -quit -force-d3d11 -projectPath Proyecto1\edificio_G4 -executeMethod BuildAndroid.BuildAR
+```
+
+Para instalar en el teléfono: `adb install -r P1G4_AR.apk`.
+
+**AR:**
+1. Imprimir `Proyecto1/ar/marcador_E1_243_imprimir.pdf` al 100 %. El cuadrado debe medir 20 cm.
+2. Pegarlo en la cara +X de la columna **E1_243** (eje F-3, sala del voladizo), con el centro a 1,20 m del piso.
+3. Los modos son 1:1 sobre la columna, maqueta 1:100 y sobre el plano.
+
+Si se cambia el marcador: `python -X utf8 Proyecto1\scripts\generar_marcador_ar.py`, luego el menú `MCOC/AR/Actualizar marcador` y volver a compilar el APK.
+
+## Modelo vigente
+
+```text
+Nodos 722 · elementos 1023 (398 vigas, 129 columnas, 10 arriostres, 91 muros como columna ancha, 395 brazos rígidos)
+Apoyos 78 · paneles de losa 239 · niveles −3.96 / 0 / 3.96 / 7.92 / 11.88 / 15.84 m (z = 0 en cielo 1S)
+G = 75 701 kN · Q = 25 886 kN (500 kg/m² en pisos, 200 kg/m² en cubierta)
+Sismo NCh433 estático (zona 3, suelo C, R = 7, I = 1, P = D + 0.25Q): corte basal EX 9 174 kN · EY 6 640 kN
+Rigidez fisurada ACI 318-19: vigas 0.35 Ig, columnas 0.70 Ig, muros 0.35 Ig
+Capacidad ACI 318-19: columnas DCR ≤ 0.83; 34 vigas con DCR > 1 (armadura tipo); 5 muros traccionados con C > 1
+```
+
+Las limitaciones están en `reports/final.md`, sección 19.
 
 ## Estructura
 
 ```text
 Proyecto1/
-├─ scripts/
-│  ├─ carga_viva_sismo.py            # modelo OpenSees, cargas, sismo con diafragma rigido
-│  ├─ exportar_resultados_unity.py   # 7 analisis (G,Q,EX,EY,C1-C3) -> JSON de Unity
-│  ├─ ajustar_modelo_planos.py       # ajustes del modelo segun los planos DXF (reproducible)
-│  ├─ verificar_superposicion.py     # verificacion numerica de C1/C2/C3
-│  ├─ extraer_indicadores.py         # indicadores por combo
-│  ├─ modificar_modelo.py            # modificaciones persistentes del modelo (--restore)
-│  ├─ quitar_elemento.py             # reanalisis al quitar elementos (lo usa Unity)
-│  ├─ carga_movil.py                 # casos unitarios de la carga movil (sidequest)
-│  ├─ carga_elemento.py              # casos unitarios de carga puntual/distribuida en un elemento
-│  └─ exportar_excel_esfuerzos.py    # esfuerzos por elemento -> .xlsx
-├─ data/
-│  ├─ estructura_completo_unity.json            # modelo vigente
-│  ├─ estructura_completo_unity.pre_planos.json # respaldo base de ajustar_modelo_planos.py
-│  ├─ combinaciones.json                        # combinaciones de carga (editar aqui)
-│  ├─ part_e_wall.json                          # curva P-M del muro
-│  └─ semana3_resultados_unity.json             # curva P-M de la columna
-├─ edificio_G4/                      # proyecto Unity (escena StructureViewerScene)
-│  └─ Assets/Resources/estructura_p1l4_unity.json
-└─ resultados/                       # esfuerzos_por_elemento.xlsx
-reports/                             # informes semanales (semana02, 03, 05, 06)
-```
-
-## Modelo vigente
-
-```text
-Nodos: 589 · Elementos: 557 (398 vigas, 149 columnas, 10 arriostres) · Muros: 91
-Apoyos: 34 · Paneles de losa: 239 · Niveles: -3.96 / 0 / 3.96 / 7.92 / 11.88 / 15.84 m
-Casos: G, Q, EX, EY · Combinaciones: C1, C2, C3
-Equilibrio G: 59 900.9 kN aplicados (losa 27 878.1 + peso propio 32 022.9) = 59 900.9 kN de reaccion
-G y Q como cargas repartidas en cada elemento (eleLoad -beamUniform)
-```
-
-Combinaciones: `C1 = G+0.5Q+0.3EX+0.2EY`, `C2 = G+0.5Q+0.3EX−0.2EY`,
-`C3 = G+0.5Q−0.3EX+0.2EY` (Q = 500 kg/m², coeficiente sísmico 0.20). Se definen
-en `Proyecto1/data/combinaciones.json`: editar ahí (se pueden agregar o quitar) y
-re-exportar. La superposición se verifica contra la corrida directa de OpenSees
-con error ~1e-11. Materiales según planos: hormigón G35 (E = 27.8 GPa), refuerzo
-A630-420H, perfiles A36.
-
-## Viewer Unity
-
-Abrir `Proyecto1/edificio_G4` con Unity 6000.6.0f1 (o `Abrir_Unity.bat`), escena
-`StructureViewerScene`, **Play**. Además de navegación, selección, apoyos, ejes,
-cargas, tributarias, deformada, diagramas, superposición en vivo y P-M, la
-columna izquierda tiene tres paneles:
-
-| Panel | Qué hace |
-|---|---|
-| Carga móvil | Carga P (editable) que recorre el eje 2 del piso/edificio elegido; exacta y continua |
-| Carga en elemento | Carga puntual o distribuida (−Z, X, Y) sobre el elemento elegido por id/tag |
-| Quitar elemento | Reanálisis OpenSees sin los elementos indicados; compara con el modelo original |
-
-Carga en elemento y quitar elemento ejecutan Python en segundo plano (requieren
-`python` con openseespy en el PATH; solo editor o PC).
-
-## Ejecutar
-
-```bat
-python -X utf8 Proyecto1\scripts\ajustar_modelo_planos.py     & rem reconstruye el modelo y re-exporta a Unity
-python -X utf8 Proyecto1\scripts\exportar_resultados_unity.py & rem solo re-exporta a Unity
-python -X utf8 Proyecto1\scripts\verificar_superposicion.py   & rem verifica C1/C2/C3
-python -X utf8 Proyecto1\scripts\exportar_excel_esfuerzos.py  & rem Excel de esfuerzos (requiere openpyxl)
-```
-
-## Limitaciones conocidas
-
-- Los muros no están en el análisis OpenSees: se usan para visualización y para
-  una demanda P-M estimada (corte de piso repartido por orientación y t·L). Los
-  muros que sostienen extremos de vigas sin pilar (ejes A' y D' del edificio 2)
-  se modelan como columnas equivalentes de gravedad.
-- Los factores de las combinaciones (0.3EX / 0.2EY) están pendientes de revisión
-  frente a la norma.
-- Los muros equivalentes de gravedad no tienen curva P-M propia; la curva de los
-  pilares metálicos (AISC 360 H1-1) no considera pandeo.
-
-## Dependencias
-
-```text
-pip install -r requirements.txt   (openseespy, numpy, openpyxl)
+├─ scripts/        carga_viva_sismo.py (núcleo OpenSees), exportar_resultados_unity.py, ajustar_modelo_planos.py,
+│                  capacidad_ha.py (ACI 318), validacion_entradas.py, qa_semana06.py, generar_ejes_grilla.py,
+│                  generar_marcador_ar.py, quitar_elemento.py, carga_movil.py, carga_elemento.py, ...
+├─ data/           modelo, parámetros, combinaciones, armaduras, ejes de grilla
+├─ edificio_G4/    proyecto Unity (viewer + AR); resultados en Assets/Resources/
+├─ ar/             marcador AR para imprimir
+└─ resultados/     evidencia del QA, sensibilidad y Excel de esfuerzos
+tests/             suite pytest
+reports/           informes (final.md y semanales)
 ```
