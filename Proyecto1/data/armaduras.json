@@ -1,6 +1,6 @@
 {
   "descripcion": "Armaduras de vigas y columnas de hormigon (ACI 318-19). 'secciones' = armadura tipo de cada seccion; 'elementos' = excepciones por elementTag (tienen prioridad). Editable aqui (VS Code) o desde Unity (pestana MODIFICAR > ARMADURA). Notacion: '4φ22' (o 4f22), '2φ22+2φ25'; estribos 'Eφ10a10' (2 ramas), 'EDφ10a10' (estribo doble, 4 ramas).",
-  "origen": "Armadura TIPO supuesta a partir de los planos 2017_67 (detalles tipo 002: suples +F=4φ22/4φ25; elevaciones 300-402: EDφ10a10 en apoyos y EDφ10a20 en tramo). Falta cargar la armadura real viga por viga.",
+  "origen": "Armadura TIPO supuesta a partir de los planos 2017_67 (detalles tipo 002: suples +F=4φ22/4φ25; elevaciones 300-402: EDφ10a10 en apoyos y EDφ10a20 en tramo). Las vigas y muros que aparecen en las elevaciones usan las barras reales de data/armaduras_planos.json (scripts/extraer_armaduras_planos.py), que tienen prioridad sobre esta armadura tipo; 'elementos' (cambios manuales o desde Unity) tiene prioridad sobre ambas. Las columnas usan COL70/70 8φ25 supuesta (rho 0.80 %, bajo el minimo ACI de 1 %: conservador), porque los planos no traen cuadro de pilares.",
   "recubrimiento_m": 0.04,
   "secciones": {
     "V60/80": {"inferior": "4φ22", "superior": "4φ22", "supleApoyo": "4φ22", "estribosApoyo": "EDφ10a10", "estribosTramo": "EDφ10a20"},

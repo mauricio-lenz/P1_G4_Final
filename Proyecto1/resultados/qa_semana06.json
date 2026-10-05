@@ -113,17 +113,17 @@
   },
   "PM_muro": {
     "muros": 91,
-    "muros_C_mayor_1": 5,
+    "muros_C_mayor_1": 0,
     "peor": {
-      "muro": "MURO-013",
-      "curva": "W_ESC_25x158",
+      "muro": "MURO-020",
+      "curva": "W_PL_MURO-020",
       "combo": "C2",
-      "P_kN": -796.9,
-      "M_kN_m": 142.13,
-      "Mcap_kN_m": 0.0,
-      "C": 99.0
+      "P_kN": 152.55,
+      "M_kN_m": 1567.15,
+      "Mcap_kN_m": 1914.8206141963958,
+      "C": 0.8184317572002405
     },
-    "ok": false,
+    "ok": true,
     "nota": "demanda del analisis OpenSees (columna ancha); curva escalada por geometria de cada muro (misma cuantia)"
   },
   "IDs_Unity": {

@@ -38,7 +38,10 @@ PLANTAS = [
     ("2024_22-101.dxf", "edificio_2", (0, 9000), "A'", 1096.5, 1829.7, -41.475),     # cielo 1S a 3
 ]
 OMITIR_E2 = {"D'", "E'"}       # al otro lado de la junta de dilatacion
-SECUNDARIOS = {"F'", "H'", "1'", "3'", "8", "B'"}
+PRINCIPALES = {"A'", "A", "B", "C", "C'", "D", "E'", "E", "F", "G", "H", "I", "I'", "J", "1", "2", "3"}
+# ejes principales (A..J, 1..3) y secundarios de los muros y vigas intermedias (Ea, 2a, 1'', 1A', H1...)
+PATRON_EJE = r"[A-Z]'?|\d{1,2}'?|[A-Z][a-d1-2]|[A-Z]{2}|\d[a-c]|\d''|\d[A-Z]{1,2}'?"
+MARGEN_M = 1.5             # los secundarios se guardan solo si caen dentro del edificio (+ margen)
 SNAP_E2 = 0.35                 # m
 
 
@@ -48,7 +51,7 @@ def burbujas(path, y_range):
     out = []
     for e in msp.query("TEXT MTEXT"):
         t = (e.plain_text() if e.dxftype() == "MTEXT" else e.dxf.text).strip()
-        if re.fullmatch(r"[A-Z]'?|\d{1,2}'?", t) and "EJE" in e.dxf.layer.upper():
+        if re.fullmatch(PATRON_EJE, t) and "EJE" in e.dxf.layer.upper():
             if y_range[0] <= e.dxf.insert.y < y_range[1]:
                 out.append((t, e.dxf.insert.x, e.dxf.insert.y))
     return out
@@ -75,12 +78,28 @@ def main():
         for nombre, px, py in burbujas(args.planos / archivo, y_range):
             if edificio == "edificio_2" and nombre in OMITIR_E2:
                 continue
-            letra = nombre[0].isalpha()
+            letra = nombre[0].isalpha()           # letras: ejes paralelos a Y (coord = x)
             valor = (px - px_ref) / 100.0 + x_ref if letra else (py - py_2) / 100.0
             key = (edificio, nombre)
             if key not in ejes:
                 ejes[key] = {"nombre": nombre, "edificio": edificio, "direccion": "y" if letra else "x",
-                             "coord": round(valor, 3), "plano": archivo, "secundario": nombre in SECUNDARIOS}
+                             "coord": round(valor, 3), "plano": archivo, "secundario": nombre not in PRINCIPALES}
+    # secundarios fuera del edificio (anexos, escaleras exteriores): se descartan
+    data = json.loads(MODEL.read_text(encoding="utf-8"))
+    nodes = {nd["id"]: nd for nd in data["nodes"]}
+    caja = {}
+    for el in data["elements"]:
+        b = el.get("sourceBuilding") or "edificio_1"
+        for nid in (el["nodeI"], el["nodeJ"]):
+            n = nodes[nid]
+            c = caja.setdefault(b, [1e9, -1e9, 1e9, -1e9])
+            c[0], c[1], c[2], c[3] = min(c[0], n["x"]), max(c[1], n["x"]), min(c[2], n["y"]), max(c[3], n["y"])
+    for key in [k for k, e in ejes.items() if e["secundario"]]:
+        e = ejes[key]
+        x0, x1, y0, y1 = caja[e["edificio"]]
+        lo, hi = (x0, x1) if e["direccion"] == "y" else (y0, y1)
+        if not lo - MARGEN_M <= e["coord"] <= hi + MARGEN_M:
+            del ejes[key]
     # edificio_2: ajuste a las lineas del modelo
     for (edificio, nombre), eje in ejes.items():
         if edificio != "edificio_2" or eje["direccion"] != "y":

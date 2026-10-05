@@ -48,12 +48,15 @@ Los ejes de grilla se leen de los DXF, que no están en el repo (carpeta `../Pla
 
 ```bat
 python -X utf8 Proyecto1\scripts\generar_ejes_grilla.py
+python -X utf8 Proyecto1\scripts\extraer_armaduras_planos.py
 ```
+
+El segundo lee las elevaciones 300-310 (2017_67) y 300-305 (2024_22). Saca las barras de cada viga (cantidad, diámetro, capa, inicio y fin) y las mallas y barras de borde de cada muro, y las escribe en `Proyecto1/data/armaduras_planos.json`, que sí está en el repo. Las vigas y muros que no aparecen en ninguna elevación usan la armadura tipo de `armaduras.json`, que está marcada como supuesta.
 
 **3. Ejecutar los tests y el QA.**
 
 ```bat
-python -m pytest                  :: 43 tests, unos 60 s
+python -m pytest                  :: 50 tests, unos 40 s
 python -m pytest -m "not lento"   :: sin las corridas completas del exportador, unos 10 s
 python -X utf8 Proyecto1\scripts\qa_semana06.py          :: evidencia en Proyecto1/resultados/qa_semana06.json
 python -X utf8 Proyecto1\scripts\sensibilidad_rigidez.py :: sección bruta vs fisurada
@@ -65,7 +68,8 @@ Lo que cubren los tests:
 |---|---|
 | `test_modelo.py` | Equilibrio, superposición, unidades, ejes locales, junta sin nodos compartidos, diafragmas |
 | `test_cargas.py` | Conservación del área tributaria, Q por nivel, peso sísmico, C de la NCh433 calculado a mano |
-| `test_capacidad.py` | Convergencia del M-φ, puntos ACI de la P-M de columna, Whitney vs fibras, flexión de viga a mano, P-M de muro |
+| `test_capacidad.py` | Convergencia del M-φ, puntos ACI de la P-M de columna, Whitney vs fibras, flexión de viga a mano, P-M de diseño de muro a mano (malla y barras de borde) |
+| `test_planos.py` | Barras de la viga E1_62 leídas de los planos y su φMn a mano, caras de apoyo, mapeo de las elevaciones, rótulos de malla y barras de borde en esquinas |
 | `test_unity_json.py` | Integridad del JSON de Unity, que coincida con OpenSees y la trazabilidad de la corrida |
 | `test_h4_reanalisis.py` | Validación de entradas y comparación del reanálisis de Unity con la corrida directa |
 | `test_h5_armadura.py` | Que un cambio de armadura regenere la curva P-M y baje el DCR |
@@ -112,7 +116,8 @@ Apoyos 78 · paneles de losa 239 · niveles −3.96 / 0 / 3.96 / 7.92 / 11.88 / 
 G = 75 701 kN · Q = 25 886 kN (500 kg/m² en pisos, 200 kg/m² en cubierta)
 Sismo NCh433 estático (zona 3, suelo C, R = 7, I = 1, P = D + 0.25Q): corte basal EX 9 174 kN · EY 6 640 kN
 Rigidez fisurada ACI 318-19: vigas 0.35 Ig, columnas 0.70 Ig, muros 0.35 Ig
-Capacidad ACI 318-19: columnas DCR ≤ 0.83; 34 vigas con DCR > 1 (armadura tipo); 5 muros traccionados con C > 1
+Armadura: 319 vigas y 81 muros con las barras de los planos; 79 vigas, 10 muros y las columnas con armadura tipo supuesta
+Capacidad ACI 318-19: vigas DCR ≤ 0.87 (sección por sección, en la cara de los apoyos); columnas DCR ≤ 0.83; muros C ≤ 0.82
 ```
 
 Las limitaciones están en `reports/final.md`, sección 19.
@@ -123,8 +128,8 @@ Las limitaciones están en `reports/final.md`, sección 19.
 Proyecto1/
 ├─ scripts/        carga_viva_sismo.py (núcleo OpenSees), exportar_resultados_unity.py, ajustar_modelo_planos.py,
 │                  capacidad_ha.py (ACI 318), validacion_entradas.py, qa_semana06.py, generar_ejes_grilla.py,
-│                  generar_marcador_ar.py, quitar_elemento.py, carga_movil.py, carga_elemento.py, ...
-├─ data/           modelo, parámetros, combinaciones, armaduras, ejes de grilla
+│                  extraer_armaduras_planos.py, generar_marcador_ar.py, quitar_elemento.py, carga_movil.py, ...
+├─ data/           modelo, parámetros, combinaciones, armaduras (tipo y de los planos), ejes de grilla
 ├─ edificio_G4/    proyecto Unity (viewer + AR); resultados en Assets/Resources/
 ├─ ar/             marcador AR para imprimir
 └─ resultados/     evidencia del QA, sensibilidad y Excel de esfuerzos

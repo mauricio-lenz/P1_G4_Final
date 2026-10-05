@@ -111,6 +111,8 @@ public class CapacityData
     public float DCR;
     public string comboGobernante;
     public CapacityCombo[] porCombo;
+    public string fuenteArmadura;   // lamina de la elevacion si las barras salen de los planos (seccion por seccion)
+    public string nota;
 
     public CapacityCombo ForCombo(string combo)
     {
@@ -290,6 +292,7 @@ public class PMCurveData
     public float Ast_mm2;
     public float rho_percent;
     public float Po_kN;
+    public string armado;           // muros: "doble malla V φ10a20 + bordes 2φ22 / -" (no cabe en n barras de un diametro)
     public string interpretation;
     public PMPoint[] points;
     public DemandRecord[] demands;

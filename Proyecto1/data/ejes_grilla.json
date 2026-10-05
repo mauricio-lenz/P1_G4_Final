@@ -22,12 +22,32 @@
       "hasta": 41.5
     },
     {
+      "nombre": "2a",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": -4.946,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
       "nombre": "2",
       "edificio": "edificio_1",
       "direccion": "x",
       "coord": -0.0,
       "plano": "2017_67-101.dxf",
       "secundario": false,
+      "desde": -12.544,
+      "hasta": 41.5
+    },
+    {
+      "nombre": "1''",
+      "edificio": "edificio_1",
+      "direccion": "x",
+      "coord": 4.999,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
       "desde": -12.544,
       "hasta": 41.5
     },
@@ -52,16 +72,6 @@
       "hasta": 41.5
     },
     {
-      "nombre": "8",
-      "edificio": "edificio_1",
-      "direccion": "x",
-      "coord": 17.55,
-      "plano": "2017_67-101.dxf",
-      "secundario": true,
-      "desde": -12.544,
-      "hasta": 41.5
-    },
-    {
       "nombre": "E'",
       "edificio": "edificio_1",
       "direccion": "y",
@@ -78,6 +88,46 @@
       "coord": -10.0,
       "plano": "2017_67-101.dxf",
       "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "Ea",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": -6.7,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "Eb",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": -6.4,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "Ec",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": -3.6,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "Ed",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": -3.3,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
       "desde": -8.751,
       "hasta": 10.4
     },
@@ -112,6 +162,16 @@
       "hasta": 10.4
     },
     {
+      "nombre": "Ga",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 11.45,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
       "nombre": "H",
       "edificio": "edificio_1",
       "direccion": "y",
@@ -122,10 +182,30 @@
       "hasta": 10.4
     },
     {
+      "nombre": "H1",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 23.825,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
       "nombre": "H'",
       "edificio": "edificio_1",
       "direccion": "y",
       "coord": 24.477,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "H2",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 28.825,
       "plano": "2017_67-101.dxf",
       "secundario": true,
       "desde": -8.751,
@@ -142,12 +222,32 @@
       "hasta": 10.4
     },
     {
+      "nombre": "IA",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 32.6,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
       "nombre": "I'",
       "edificio": "edificio_1",
       "direccion": "y",
       "coord": 35.0,
       "plano": "2017_67-101.dxf",
       "secundario": false,
+      "desde": -8.751,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "IB",
+      "edificio": "edificio_1",
+      "direccion": "y",
+      "coord": 35.875,
+      "plano": "2017_67-101.dxf",
+      "secundario": true,
       "desde": -8.751,
       "hasta": 10.4
     },
@@ -172,12 +272,32 @@
       "hasta": -8.5
     },
     {
+      "nombre": "2A'",
+      "edificio": "edificio_2",
+      "direccion": "x",
+      "coord": -2.985,
+      "plano": "2024_22-101.dxf",
+      "secundario": true,
+      "desde": -42.975,
+      "hasta": -8.5
+    },
+    {
       "nombre": "2",
       "edificio": "edificio_2",
       "direccion": "x",
       "coord": -0.0,
       "plano": "2024_22-101.dxf",
       "secundario": false,
+      "desde": -42.975,
+      "hasta": -8.5
+    },
+    {
+      "nombre": "1A'",
+      "edificio": "edificio_2",
+      "direccion": "x",
+      "coord": 4.635,
+      "plano": "2024_22-101.dxf",
+      "secundario": true,
       "desde": -42.975,
       "hasta": -8.5
     },
@@ -274,6 +394,17 @@
       "plano": "2024_22-101.dxf",
       "secundario": false,
       "ajuste_m": 0.204,
+      "desde": -8.75,
+      "hasta": 10.4
+    },
+    {
+      "nombre": "E1",
+      "edificio": "edificio_2",
+      "direccion": "y",
+      "coord": -10.0,
+      "plano": "2024_22-101.dxf",
+      "secundario": true,
+      "ajuste_m": 0.033,
       "desde": -8.75,
       "hasta": 10.4
     }

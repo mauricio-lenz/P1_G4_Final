@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Linq;
 
 public class PMPanel : MonoBehaviour
@@ -123,7 +123,11 @@ public class PMPanel : MonoBehaviour
         y += lineH + 10f;
 
         string matInfo = $"fc' = {currentCurve.fc_MPa:0} MPa | fy = {currentCurve.fy_MPa:0} MPa";
-        if (currentCurve.steelBars > 0)
+        if (!string.IsNullOrEmpty(currentCurve.armado))
+        {
+            matInfo += $" | {currentCurve.armado}";
+        }
+        else if (currentCurve.steelBars > 0)
         {
             matInfo += $" | {currentCurve.steelBars} bars phi {currentCurve.barDiameter_mm:0}mm";
         }

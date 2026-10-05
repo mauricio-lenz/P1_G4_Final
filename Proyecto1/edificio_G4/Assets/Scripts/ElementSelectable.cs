@@ -318,7 +318,9 @@ public class ElementSelectable : MonoBehaviour
             : "fc' = 35.0 MPa | fy = 420.0 MPa\n";
         if (curve != null)
         {
-            result += $"Acero ref.: {curve.steelBars} barras phi {curve.barDiameter_mm:0.0} mm\n" +
+            result += (string.IsNullOrEmpty(curve.armado)
+                          ? $"Acero ref.: {curve.steelBars} barras phi {curve.barDiameter_mm:0.0} mm\n"
+                          : $"Armadura: {curve.armado}\n") +
                       $"Ast = {curve.Ast_mm2:0.0} mm2 | rho = {curve.rho_percent:0.###}%\n";
         }
 
@@ -441,6 +443,11 @@ public class ElementSelectable : MonoBehaviour
         CapacityCombo c = cap.ForCombo(UnityData.ActiveCombo);
         if (data.type == "viga")
         {
+            s += string.IsNullOrEmpty(cap.fuenteArmadura)
+                ? "Fuente: armadura tipo de la seccion (data/armaduras.json)\n"
+                : $"Fuente: planos {cap.fuenteArmadura} (barras reales, verificacion seccion por seccion en la cara de los apoyos)\n" +
+                  "Inferior / superior: barras en la seccion de mayor M+ / M-\n";
+            if (!string.IsNullOrEmpty(cap.nota)) s += cap.nota + "\n";
             s += $"Inferior: {a.inferior}\nSuperior: {a.superior}\nSuple apoyo: {a.supleApoyo}\n" +
                  $"Estribos apoyo: {a.estribosApoyo}\nEstribos tramo: {a.estribosTramo}\n" +
                  $"phiMn+ = {cap.phiMn_pos_kN_m:0.0} kN*m\nphiMn- = {cap.phiMn_neg_kN_m:0.0} kN*m\nphiVn apoyo = {cap.phiVn_apoyo_kN:0.0} kN\n";

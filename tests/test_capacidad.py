@@ -73,15 +73,31 @@ def test_notacion_de_barras():
     assert (av, s, d) == (pytest.approx(4 * math.pi * 100 / 4), 100.0, 10)
 
 
-def test_pm_muro_escalada(unity):
-    """Curvas de muro: P escala con t*L y M con t*L^2 desde la de referencia (t = 0.25, L = 7.60)."""
+def test_pm_muro_diseno_a_mano():
+    """Muro 20x340 con doble malla V f10a20 sin barras de borde: 17 posiciones (de 35 mm a 3365 mm
+    cada 200 mm) x 2 barras; P0 y traccion pura a mano. 4 mallas duplican la armadura de la malla."""
+    curva = cha.curva_pm_muro(0.20, 3.40, "10a20")
+    ast = 17 * 2 * math.pi * 10 ** 2 / 4
+    assert curva["n_barras"] == 17
+    assert curva["Ast_mm2"] == pytest.approx(ast)
+    assert curva["P0_kN"] == pytest.approx((0.85 * FC * (200 * 3400 - ast) + FY * ast) / 1000.0)
+    assert min(q["P_kN"] for q in curva["puntos"]) == pytest.approx(-0.9 * FY * ast / 1000.0)
+    assert cha.curva_pm_muro(0.20, 3.40, "10a20", n_mallas=4)["Ast_mm2"] == pytest.approx(2 * ast)
+
+
+def test_pm_muro_barras_de_borde():
+    """Las barras de borde suben la capacidad en flexion pura (P = 0) y reemplazan la malla en la punta."""
+    sin = cha.curva_pm_muro(0.20, 3.40, "10a20")
+    con = cha.curva_pm_muro(0.20, 3.40, "10a20", {"ini": [(2, 22), (2, 22)], "fin": [(2, 22), (2, 22)]})
+    assert cha.m_capacidad(con["puntos"], 0.0) > 1.3 * cha.m_capacidad(sin["puntos"], 0.0)
+    # 2 pares de f22 por punta (en 35 y 135 mm) en vez de las posiciones de malla de esa zona
+    assert con["Ast_mm2"] == pytest.approx(sin["Ast_mm2"] - 2 * 2 * math.pi * 10 ** 2 / 4 + 8 * math.pi * 22 ** 2 / 4)
+
+
+def test_pm_muros_unity(unity):
+    """Cada muro del JSON de Unity tiene su curva de diseno: de los planos (W_PL_) o con malla supuesta (W_DM_)."""
     curvas = {c["sectionId"]: c for c in unity["p1l4"]["pmCurves"]}
-    ref = curvas["W_DPRIME_OPENING_TO_3"]["points"]
-    for sid, c in curvas.items():
-        if not sid.startswith("W_ESC_"):
-            continue
-        fp = c["b_m"] * c["h_m"] / (0.25 * 7.60)
-        fm = c["b_m"] * c["h_m"] ** 2 / (0.25 * 7.60 ** 2)
-        for p, r in zip(c["points"], ref):
-            assert p["P_kN"] == pytest.approx(r["P_kN"] * fp, rel=1e-6, abs=1e-6)
-            assert p["M_kN_m"] == pytest.approx(r["M_kN_m"] * fm, rel=1e-6, abs=1e-6)
+    for r in unity["p1l4"]["wallRegistry"]:
+        sid = r["pmSectionId"]
+        assert sid in curvas and sid.startswith(("W_PL_", "W_DM_")), sid
+        assert (r["fuenteArmadura"] == "supuesta") == sid.startswith("W_DM_")

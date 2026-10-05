@@ -574,7 +574,9 @@ public class ViewerUI : MonoBehaviour
             }
             beamBox.style.display = current != null && current.type == "viga" ? DisplayStyle.Flex : DisplayStyle.None;
             colBox.style.display = current != null && current.type == "columna" ? DisplayStyle.Flex : DisplayStyle.None;
-            info.text = current != null ? $"{current.elementTag} · {current.type} {current.sectionId}"
+            info.text = current != null ? $"{current.elementTag} · {current.type} {current.sectionId}" +
+                    (string.IsNullOrEmpty(current.capacidad.fuenteArmadura) ? " · armadura tipo"
+                        : $" · barras de los planos ({current.capacidad.fuenteArmadura}); un cambio aquí reemplaza las de los planos")
                 : e != null ? $"{e.elementTag}: sin armadura de hormigón editable" : "Selecciona una viga o columna de hormigón.";
             if (current != null)
             {

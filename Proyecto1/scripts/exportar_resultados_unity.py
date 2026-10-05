@@ -447,6 +447,7 @@ def main():
     overrides = load_json(args.armaduras) if args.armaduras else None
     arm = cha.load_armaduras(overrides=overrides)
     col_curves = {}   # una curva P-M de diseno por seccion + armadura (no una por elemento)
+    indice = cha.indice_apoyos(data.get("elements", []), nodes_by_id)   # caras de apoyo de las vigas
     resumen_arm = {"vigas": 0, "columnas": 0, "vigas_DCR_mayor_1": 0, "columnas_DCR_mayor_1": 0,
                    "DCR_max_viga": 0.0, "DCR_max_columna": 0.0, "peorViga": "", "peorColumna": ""}
     for el_out in elements_out:
@@ -461,7 +462,8 @@ def main():
             if f:
                 fbc[combo_name] = f
                 wbc[combo_name] = cvm.gravity_w(el_out, nodes_by_id, lambdas) if el_out.get("type") == "viga" else 0.0
-        cap = cha.evaluar(el_out, fbc, wbc, length, arm)
+        apoyos = cha.zonas_apoyo(el_out, nodes_by_id, indice) if el_out.get("type") == "viga" else None
+        cap = cha.evaluar(el_out, fbc, wbc, length, arm, nodes_by_id, apoyos)
         if not cap:
             continue
         if "curvaPM" in cap:
@@ -543,26 +545,82 @@ def main():
             "points": wall_points
         })
 
-    # Curva por geometria de muro: escalada de la de referencia (t=0.25, L=7.60) con la misma
-    # cuantia y disposicion (2 capas phi12@200): P ~ t*L, M ~ t*L^2. Aproximacion de primer orden.
-    wall_curve_id = {}
-    if wall_pm_data:
-        for wall in data.get("walls", []):
-            t = float(wall.get("grosor", 0.0)); L = float(wall.get("longitud", 0.0))
-            sid = "W_ESC_{:d}x{:d}".format(int(round(t * 100)), int(round(L * 100)))
-            wall_curve_id[id(wall)] = sid
-            if any(c["sectionId"] == sid for c in pm_curves):
+    # Curvas P-M de DISENO de cada muro (capacidad_ha.curva_pm_muro, mismo metodo que las columnas):
+    # armadura de las elevaciones de muros de los planos (doble malla vertical + barras de borde por
+    # punta, en el piso del pano) o, si el muro no tiene elevacion, doble malla supuesta phi12@20 sin
+    # barras de borde (0.45 % aprox.), marcada como supuesta.
+    import capacidad_ha as cha_m
+    wall_curve_id, wall_curve_fuente = {}, {}
+    planos_muros = [el for el in cha_m.load_planos() if (el.get("muros") or {}).get("mallas")]
+    elems_muro = {int(e["wallIndex"]): e for e in data.get("elements", []) if e.get("type") == "muro" and e.get("wallIndex")}
+    nodos_m = cvm.node_map(data)
+
+    NOMBRE_MALLAS = {2: "doble malla", 3: "triple malla", 4: "4 mallas"}
+
+    def armadura_muro(e):
+        a_, b_ = nodos_m[e["nodeI"]], nodos_m[e["nodeJ"]]
+        eje = e.get("wallInPlaneAxis", "X")
+        direccion = "x" if eje == "X" else "y"
+        c_linea = a_["y"] if eje == "X" else a_["x"]
+        centro = a_["x"] if eje == "X" else a_["y"]
+        L_ = float(e["height_m"])
+        s0, s1 = centro - L_ / 2.0, centro + L_ / 2.0
+        z_top = round(max(a_["z"], b_["z"]), 2)
+        for el in planos_muros:
+            if el["edificio"] != (e.get("sourceBuilding") or "edificio_1") or el["direccion"] != direccion:
                 continue
-            fp = t * L / (0.25 * 7.60)
-            fm = t * L * L / (0.25 * 7.60 * 7.60)
-            pm_curves.append({
-                "sectionId": sid, "elementType": "muro", "b_m": t, "h_m": L, "fc_MPa": 35.0, "fy_MPa": 420.0,
-                "steelBars": 2 * (int(L / 0.20) + 1), "barDiameter_mm": 12.0, "Ast_mm2": round(8595.4 * fp, 1), "rho_percent": 0.45,
-                "Po_kN": float(wall_pm_full.get("Pn0_kN", 0.0)) * fp,
-                "interpretation": f"Muro t={t:.2f} m, L={L:.2f} m: envolvente W_DPRIME escalada (P x{fp:.3f}, M x{fm:.3f}), "
-                                  f"misma cuantia 0.45 % (2 capas phi12@200). Aproximacion: falta el detalle de armadura real.",
-                "points": [{"label": p["label"], "P_kN": p["P_kN"] * fp, "M_kN_m": p["M_kN_m"] * fm} for p in wall_points],
-            })
+            if not any(abs(l["coord"] - c_linea) < 0.35 for l in el["lineas"]):
+                continue
+            mallas = [m for m in el["muros"]["mallas"] if abs(m["z"] - z_top) < 0.05 and s0 - 0.3 <= m["s"] <= s1 + 0.3]
+            if not mallas:
+                continue
+            malla = min(mallas, key=lambda m: abs(m["s"] - centro))
+            bordes = {"ini": [], "fin": []}
+            # barras de borde: hasta 45 cm por fuera del extremo del muro del modelo (que termina en el eje;
+            # el muro dibujado sigue hasta la cara exterior de la esquina, p. ej. eje 1'' en E: eje -10.00,
+            # cara -10.35, barras de borde en -10.31...-9.80) y 60 cm hacia adentro
+            for v in el["muros"]["verticales"]:
+                if abs(v["z"] - z_top) > 0.05 or not (s0 - 0.45 <= v["s"] <= s1 + 0.45):
+                    continue
+                lado = "ini" if abs(v["s"] - s0) <= abs(v["s"] - s1) else "fin"
+                if min(abs(v["s"] - s0), abs(v["s"] - s1)) <= 0.6:
+                    bordes[lado].append((v["n"], v["d"]))
+            return malla, bordes, f'{el["plano"]} {el["titulo"]}'.strip()
+        return None, None, None
+
+    for i, wall in enumerate(data.get("walls", [])):
+        e = elems_muro.get(i + 1)
+        t = float(e["width_m"]) if e else float(wall.get("grosor", 0.0))
+        L = float(e["height_m"]) if e else float(wall.get("longitud", 0.0))
+        malla, bordes, fuente = armadura_muro(e) if e else (None, None, None)
+        if malla:
+            sid = "W_PL_" + e["elementTag"][2:]
+            curva = cha_m.curva_pm_muro(t, L, malla["malla_v"], bordes, n_mallas=int(malla.get("n_mallas", 2)))
+            txt_b = " / ".join("+".join(f"{n}φ{d}" for n, d in bordes[l]) or "-" for l in ("ini", "fin"))
+            armado = (f"{NOMBRE_MALLAS.get(curva['n_mallas'], str(curva['n_mallas']) + ' mallas')} V φ{curva['malla_v']}"
+                      + ("" if txt_b == "- / -" else f" + bordes {txt_b}"))
+            desc = (f"Muro {e['elementTag'][2:]} t={t:.2f} m, L={L:.2f} m: curva de DISENO ACI 318-19 con la armadura de "
+                    f"{fuente}: {NOMBRE_MALLAS.get(curva['n_mallas'], str(curva['n_mallas']) + ' mallas')} V φ{curva['malla_v']} "
+                    f"(H φ{malla['malla_h']}), bordes {txt_b}.")
+        else:
+            sid = "W_DM_{:d}x{:d}".format(int(round(t * 100)), int(round(L * 100)))
+            curva = cha_m.curva_pm_muro(t, L, "12a20", None)
+            armado = "doble malla SUPUESTA V φ12a20"
+            desc = (f"Muro t={t:.2f} m, L={L:.2f} m: curva de DISENO ACI 318-19 con doble malla SUPUESTA φ12@20 "
+                    f"(sin elevacion de este muro en los planos).")
+        wall_curve_id[id(wall)] = sid
+        wall_curve_fuente[id(wall)] = fuente or "supuesta"
+        if any(c["sectionId"] == sid for c in pm_curves):
+            continue
+        pm_curves.append({
+            "sectionId": sid, "elementType": "muro", "b_m": t, "h_m": L, "fc_MPa": 35.0, "fy_MPa": 420.0,
+            "steelBars": curva["n_barras"], "barDiameter_mm": float(curva["malla_v"].split("a")[0]),
+            "Ast_mm2": round(curva["Ast_mm2"], 1), "rho_percent": round(curva["rho_percent"], 3),
+            "Po_kN": round(curva["P0_kN"], 1), "armado": armado, "interpretation": desc,
+            "points": [{"label": "", "P_kN": round(q["P_kN"], 1), "M_kN_m": round(q["M_kN_m"], 1)} for q in curva["puntos"]],
+        })
+    n_pl = sum(1 for v in wall_curve_fuente.values() if v != "supuesta")
+    print(f"Curvas P-M de muros: {n_pl} con armadura de los planos, {len(wall_curve_fuente) - n_pl} con malla supuesta")
 
     # ── Regenerar semana3_resultados_unity.json (G35) ─────────────
     # Deja el archivo de capacidad de P1L2 consistente con el modelo
@@ -759,7 +817,8 @@ def main():
             "longitud": longitud,
             "bottom": wall.get("bottom", ""),
             "top": wall.get("top", ""),
-            "pmSectionId": wall_curve_id.get(id(wall), "W_DPRIME_OPENING_TO_3") if has_curve else "",
+            "pmSectionId": wall_curve_id.get(id(wall), "W_DPRIME_OPENING_TO_3"),
+            "fuenteArmadura": wall_curve_fuente.get(id(wall), "supuesta"),
             "hasCurve": has_curve,
             "demands": entry["demands"]
         })
