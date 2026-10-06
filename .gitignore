@@ -37,3 +37,6 @@ P1L2/Builds/
 .vsconfig
 **/edificio_G4/.utmp/
 .pytest_cache/
+
+# Guia de la demo: solo local, para estudiar (no va al repo)
+reports/guia_demo_unity.*
