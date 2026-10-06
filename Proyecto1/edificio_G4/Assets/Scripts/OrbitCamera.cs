@@ -193,6 +193,14 @@ public class OrbitCamera : MonoBehaviour
         UpdatePosition();
     }
 
+    /// Angulos de la camara (grados): giro alrededor de la vertical y elevacion.
+    public void SetAngles(float yaw, float pitch)
+    {
+        x = yaw;
+        y = Mathf.Clamp(pitch, -10f, 80f);
+        UpdatePosition();
+    }
+
     public void SetPreset(string preset)
     {
         if (preset == "TOP") { x = 0f; y = 80f; }

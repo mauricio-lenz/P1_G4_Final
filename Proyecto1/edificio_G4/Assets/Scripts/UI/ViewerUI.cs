@@ -336,6 +336,16 @@ public class ViewerUI : MonoBehaviour
         presets.Add(Btn("Mostrar todo", () => viewer.ShowAllLayers(), "wide"));
         presets.Add(Btn("Solo estructura", () => viewer.StructureOnly(), "wide"));
         c.Add(presets);
+        // modo de presentacion: recreacion visual del edificio real (no cambia el analisis)
+        var facade = Btn("Fachada", () =>
+        {
+            FacadeView.Toggle(viewer);
+            viewer.Status = FacadeView.Active ? "Fachada y entorno del edificio real: solo visual, el análisis no cambia."
+                                              : "Fachada quitada.";
+        }, "wide");
+        facade.style.marginTop = 4;
+        c.Add(facade);
+        syncers.Add(() => facade.text = FacadeView.Active ? "Quitar fachada" : "Fachada");
 
         c.Add(Title("PISO"));
         var floors = new DropdownField(new List<string>(viewer.FloorNames), viewer.FloorIndex);

@@ -29,6 +29,12 @@ public class AutoShot : MonoBehaviour
         var viewer = FindAnyObjectByType<StructureViewer>();
         if (viewer == null) { Application.Quit(); yield break; }
 
+        if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-fachada") >= 0)
+        {
+            yield return Fachada(viewer);
+            Application.Quit();
+            yield break;
+        }
         if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-demo") >= 0)
         {
             yield return Demo(viewer);
@@ -146,6 +152,33 @@ public class AutoShot : MonoBehaviour
         ViewerUI.ShowTab(ViewerUI.TabResultados);
         yield return new WaitForSeconds(1f);
         yield return Shot("demo12_utilizacion");
+    }
+
+    /// Capturas del modo fachada (solo visual): -autoshot dir -fachada
+    private IEnumerator Fachada(StructureViewer viewer)
+    {
+        ViewerUI.ShowTab(ViewerUI.TabVista);
+        viewer.SetCase("G");
+        FacadeView.Show(viewer);
+        yield return new WaitForSeconds(1.5f);
+        var cam = FindAnyObjectByType<OrbitCamera>();
+        viewer.CameraPreset("ISO");
+        yield return Shot("fachada_01_iso");
+        if (cam != null)
+        {
+            cam.SetAngles(10f, 12f);
+            yield return Shot("fachada_02_sur");
+            cam.SetAngles(190f, 14f);
+            yield return Shot("fachada_03_norte");
+            cam.SetAngles(250f, 22f);
+            yield return Shot("fachada_04_oriente");
+            cam.FocusOn(new Vector3(18f, 5f, -12f), 34f);
+            cam.SetAngles(-15f, 10f);
+            yield return Shot("fachada_05_escalera");
+        }
+        FacadeView.Hide();
+        viewer.CameraPreset("ISO");
+        yield return Shot("fachada_06_quitada");
     }
 
     private IEnumerator Shot(string name)
