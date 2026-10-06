@@ -56,7 +56,7 @@ El segundo lee las elevaciones 300-310 (2017_67) y 300-305 (2024_22). Saca las b
 **3. Ejecutar los tests y el QA.**
 
 ```bat
-python -m pytest                  :: 53 tests, unos 75 s
+python -m pytest                  :: 55 tests, unos 75 s
 python -m pytest -m "not lento"   :: sin las corridas completas del exportador, unos 10 s
 python -X utf8 Proyecto1\scripts\qa_semana06.py          :: evidencia en Proyecto1/resultados/qa_semana06.json
 python -X utf8 Proyecto1\scripts\sensibilidad_rigidez.py :: sección bruta vs fisurada
@@ -70,7 +70,7 @@ Lo que cubren los tests:
 | `test_cargas.py` | Conservación del área tributaria, Q por nivel, peso sísmico, C de la NCh433 calculado a mano, sismo en el centro de masa y torsión accidental |
 | `test_capacidad.py` | Convergencia del M-φ, puntos ACI de la P-M de columna, Whitney vs fibras, flexión de viga a mano, P-M de diseño de muro a mano (malla y barras de borde) |
 | `test_planos.py` | Barras de la viga E1_62 leídas de los planos y su φMn a mano, caras de apoyo, mapeo de las elevaciones, rótulos de malla y barras de borde en esquinas |
-| `test_unity_json.py` | Integridad del JSON de Unity, que coincida con OpenSees y la trazabilidad de la corrida |
+| `test_unity_json.py` | Integridad del JSON de Unity, que coincida con OpenSees, la trazabilidad de la corrida, el panel de áreas tributarias y la flecha de vigas |
 | `test_h4_reanalisis.py` | Validación de entradas y comparación del reanálisis de Unity con la corrida directa |
 | `test_h5_armadura.py` | Que un cambio de armadura regenere la curva P-M y baje el DCR |
 

@@ -53,3 +53,24 @@ def test_mas_armadura_mas_capacidad_menor_dcr(con_12f25, unity):
     peor = max(base.values(), key=lambda x: x["capacidad"]["DCR"])["elementTag"]
     nuevo = next(e for e in con_12f25["elements"] if e["elementTag"] == peor)
     assert nuevo["capacidad"]["DCR"] < base[peor]["capacidad"]["DCR"]
+
+
+@pytest.mark.lento
+def test_cambio_de_seccion_conserva_la_capacidad(tmp_session):
+    """Cambiar la seccion de una viga (Unity -> --mods) a una que no esta en armaduras.json no la deja sin
+    verificacion: usa la armadura de su seccion original con las dimensiones nuevas. E1_62 (barras del plano,
+    12f25 inferiores en 3 capas) de V60/80 a V60/60: phiMn+ a mano con d = 600 - 120,8 = 479,2 mm."""
+    mods = tmp_session / "mods_seccion.json"
+    mods.write_text(json.dumps({"sections": {"E1_62": {"width_m": 0.6, "height_m": 0.6, "sectionId": "V60/60"},
+                                             "E1_72": {"width_m": 0.6, "height_m": 1.0, "sectionId": "V60/100"}}}), encoding="utf-8")
+    out = tmp_session / "seccion.json"
+    r = run_exporter(out, "--mods", mods)
+    assert r.returncode == 0, r.stderr[-2000:]
+    elems = {e["elementTag"]: e for e in json.loads(out.read_text(encoding="utf-8"))["elements"]}
+    for tag in ("E1_62", "E1_72"):
+        assert elems[tag].get("capacidad"), f"{tag} quedo sin capacidad"
+        assert "seccion cambiada" in elems[tag]["capacidad"]["nota"]
+    d = 600.0 - (2 * 62.5 + 6 * 112.5 + 4 * 162.5) / 12.0
+    a_s = 12 * math.pi * 25 ** 2 / 4
+    a = a_s * FY / (0.85 * FC * 600.0)
+    assert elems["E1_62"]["capacidad"]["phiMn_pos_kN_m"] == pytest.approx(0.9 * a_s * FY * (d - a / 2.0) / 1e6, abs=0.1)

@@ -228,9 +228,13 @@ def apply_model_params(data, q_g_new=None, sections=None, cracked=None, q_roof_k
         if not cambio:
             continue
         antes = el.get("sectionId")
+        alto_antes = el.get("height_m")
         for key in ("width_m", "height_m", "sectionId"):
             if key in cambio:
                 el[key] = cambio[key]
+        if antes and el.get("sectionId") != antes:
+            el.setdefault("sectionIdOriginal", antes)   # capacidad_ha usa su armadura si la seccion nueva no tiene tipo
+            el.setdefault("height_m_original", alto_antes)   # las barras del plano se ubican con la altura dibujada
         cambios.append({"id": el["id"], "tag": el.get("elementTag", ""), "antes": antes or "", "despues": el.get("sectionId", "")})
         print(f"  Seccion {el.get('elementTag')}: {antes} -> {el.get('sectionId')}")
     return cambios

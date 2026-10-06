@@ -35,7 +35,7 @@ Modelamos en OpenSees los dos edificios de hormigón armado G35 de los planos de
 | Armadura | 319 vigas y 81 muros con las barras de los planos; el resto y las columnas, con armadura tipo supuesta |
 | Capacidad (C1 a C3, con torsión accidental) | vigas DCR ≤ 0,87 · columnas ≤ 0,83 · muros C ≤ 0,82: ningún elemento sobre 1 |
 | Capacidad (NCh3171) | 39 vigas, 16 columnas y 20 muros sobre 1 (sensibilidad, sección 12) |
-| QA | 50 tests automáticos y `qa_semana06.py`, todos en verde |
+| QA | 55 tests automáticos y `qa_semana06.py`, todos en verde |
 
 **Conclusión principal:** con las combinaciones del curso ningún elemento supera su capacidad; con las combinaciones de diseño de la NCh3171 sí. Parte de esa diferencia viene de la armadura supuesta y de la idealización de los muros, pero no la descartamos: el modelo es un laboratorio de análisis, no una verificación de diseño del edificio real.
 
@@ -64,9 +64,9 @@ Ambos edificios tienen radier en z = −3,96 y cinco niveles de diafragma cada 3
 - **Rigidez:** fisurada según ACI 318-19 §6.6.3.1.1: vigas 0,35 I_g, columnas 0,70 I_g, muros 0,35 I_g.
 - **Cargas:** las gravitacionales, como carga repartida en cada viga, para que OpenSees entregue los momentos de empotramiento; el sismo, en el **centro de masa** de cada diafragma (sección 6), con la torsión accidental de la NCh433.
 - **Materiales** (nota general de los planos):
-  - hormigón G35: f'c = 35 MPa, E = 4 700 √f'c = 27,8 GPa, ν = 0,2;
-  - acero de refuerzo A630-420H: f_y = 420 MPa;
-  - perfiles A36: f_y = 250 MPa, E = 200 GPa.
+    - hormigón G35: f'c = 35 MPa, E = 4 700 √f'c = 27,8 GPa, ν = 0,2;
+    - acero de refuerzo A630-420H: f_y = 420 MPa;
+    - perfiles A36: f_y = 250 MPa, E = 200 GPa.
 
 ---
 
@@ -378,7 +378,7 @@ Los esfuerzos internos a lo largo de cada barra se interpolan entre los extremos
 | Cargas | G y Q repartidas en cada viga y la fuerza EX o EY de cada piso, según el caso o la combinación activa |
 | Áreas tributarias | Área y carga de losa por piso y edificio (6 136,8 m² en total) |
 | Diagramas | N, V y M de cada barra en ejes locales, dibujados del lado traccionado, con escala común y valores máximos |
-| Deformada | La del caso o la combinación activa, con escala ajustable y animación |
+| Deformada y desplazamientos | La deformada del caso o la combinación activa, con escala ajustable y animación. Cada barra se dibuja con Hermite (desplazamientos y giros de OpenSees en sus nodos) más la flecha de la carga repartida del tramo. El panel del elemento muestra los desplazamientos de sus nodos en mm y, en vigas, la flecha respecto de sus apoyos (L/δ); coincide con OpenSees con la viga partida en su punto medio |
 | Superposición en vivo | Sliders λ_G, λ_Q, λ_EX, λ_EY que recombinan los casos base al instante |
 
 ![Capas del viewer](img/final/viewer_capas.jpg)
@@ -411,9 +411,9 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 - **Marcador:** imagen de 20 × 20 cm generada desde el modelo (`generar_marcador_ar.py`), con la planta del piso y la columna destacada. Va pegado en la cara +X de la columna **E1_243** (eje F-3), hacia la sala del voladizo, con su centro a 1,20 m sobre el CIELO_1.
 - **Anclaje:** ARCore detecta la imagen y crea un anchor en su pose; el modelo queda fijo aunque la imagen salga de cuadro, y *RE-ANCLAR* lo recrea.
 - **Transformación:** cada nodo pasa al mundo AR con p_AR = T_anchor · s · M · (p − p_ref):
-  - p_ref es el punto del modelo en el centro del marcador;
-  - M cambia los ejes del modelo a los de la imagen, a partir de la normal de la cara (det = −1, porque OpenSees usa mano derecha y Unity mano izquierda);
-  - s es la escala.
+    - p_ref es el punto del modelo en el centro del marcador;
+    - M cambia los ejes del modelo a los de la imagen, a partir de la normal de la cara (det = −1, porque OpenSees usa mano derecha y Unity mano izquierda);
+    - s es la escala.
 - **Modos:** 1:1 sobre la columna, con el sector de la sala del voladizo; maqueta 1:100 sobre una mesa; y sobre el plano impreso, que sirve para verificar la geometría.
 - **Resultados:** tocando una barra se ven N, V y M, el desplazamiento, la demanda P-M y la carga tributaria del caso o combinación activa. El teléfono no corre OpenSees: lee el mismo JSON del viewer.
 
@@ -440,7 +440,7 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 
 ## 18. QA y tests
 
-**Tests automáticos** (`python -m pytest`; 53 tests, unos 75 s; los marcados `lento` corren el exportador completo):
+**Tests automáticos** (`python -m pytest`; 55 tests, unos 75 s; los marcados `lento` corren el exportador completo):
 
 | Archivo | N | Qué verifica |
 |---|---|---|
@@ -448,7 +448,7 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 | `test_cargas.py` | 8 | Áreas tributarias = área de losa, Q por nivel, peso sísmico, C de la NCh433 a mano, centro de masa y torsión accidental |
 | `test_capacidad.py` | 9 | Convergencia y corte de la M-φ, puntos ACI de la P-M, Whitney contra fibras, flexión de viga a mano, P-M de muros |
 | `test_planos.py` | 5 | Barras de E1_62 y su φM_n, caras de apoyo, mapeo de las elevaciones, mallas y barras de borde |
-| `test_unity_json.py` | 7 | Integridad y trazabilidad del JSON, igualdad con OpenSees, panel de áreas tributarias |
+| `test_unity_json.py` | 9 | Integridad y trazabilidad del JSON, igualdad con OpenSees, panel de áreas tributarias, flecha de vigas como la calcula Unity |
 | `test_h4_reanalisis.py` | 12 | Validación de entradas, código de salida 2, reanálisis de Unity = corrida directa |
 | `test_h5_armadura.py` | 2 | Curva P-M regenerada y DCR menor con más armadura |
 
@@ -508,7 +508,7 @@ El grupo definió qué hacer y con qué criterio, contrastó los resultados con 
 - equilibrio y superposición;
 - cálculos a mano: C de la NCh433, φM_n de E1_62, A_st y P0 de muros y columnas;
 - comparación con los planos: armadura, muros y ejes;
-- 53 tests automáticos (sección 18).
+- 55 tests automáticos (sección 18).
 
 **Contribución real del agente.** Aceleró mucho la implementación y la lectura de los planos DXF; manualmente, leer 1 546 grupos de barras no habría sido viable. También cometió errores de criterio estructural, que encontramos revisando los resultados y no el código. La responsabilidad de las decisiones y de los números es del grupo.
 
@@ -521,11 +521,11 @@ Cada integrante fue responsable de un módulo, y cada módulo tuvo al menos un r
 ### Matías Campos — modelo y cargas
 
 - **Contribuciones:**
-  - contrastó el modelo OpenSees con las plantas y elevaciones DXF y decidió los 16 ajustes;
-  - definió las cargas (q_G, Q de pisos y de cubierta, esta última de 200 kgf/m²) y el sismo NCh433 con el DS61 (zona 3, suelo C, R = 7), en lugar del C fijo de semanas anteriores;
-  - decidió usar el modelo ETABS del profesor solo como referencia y no como validación;
-  - participó en los tres módulos: definió con Mauricio los criterios de capacidad y con Iván el flujo del viewer, y probó la AR en terreno con su teléfono (Samsung Galaxy S24);
-  - coordinó el grupo, eligió la columna E1_243 y la sala del voladizo para la AR, priorizó los Honors H4 y H5, y revisó el informe.
+    - contrastó el modelo OpenSees con las plantas y elevaciones DXF y decidió los 16 ajustes;
+    - definió las cargas (q_G, Q de pisos y de cubierta, esta última de 200 kgf/m²) y el sismo NCh433 con el DS61 (zona 3, suelo C, R = 7), en lugar del C fijo de semanas anteriores;
+    - decidió usar el modelo ETABS del profesor solo como referencia y no como validación;
+    - participó en los tres módulos: definió con Mauricio los criterios de capacidad y con Iván el flujo del viewer, y probó la AR en terreno con su teléfono (Samsung Galaxy S24);
+    - coordinó el grupo, eligió la columna E1_243 y la sala del voladizo para la AR, priorizó los Honors H4 y H5, y revisó el informe.
 - **Módulos revisados:** los tres. Revisó el equilibrio, la conservación de cargas y las derivas del modelo; la armadura leída de los planos y el ejemplo E1_62 en capacidad; y los paneles del viewer y la AR en el teléfono.
 - **Error detectado:** el sismo de cada piso se aplicaba en el **centroide de los nodos** del diafragma y no en el **centro de masa**. En el edificio 1 la diferencia era de 4,6 a 5,0 m, cerca del 10 % del largo de la planta y el doble de la excentricidad accidental de la norma. Se corrigió calculando el centro de masa con los pesos D + 0,25 Q y aplicando la fuerza más el torsor equivalente, y se agregó la torsión accidental de la NCh433 (sección 6). Con C1 a C3 el DCR máximo de columnas pasó de 0,827 a 0,832; con NCh3171, las columnas sobre 1 pasaron de 6 a 16. Evidencia: `test_sismo_en_centro_de_masa` y `test_torsion_accidental_nch433`.
 - **Concepto aprendido:** por qué los modos del edificio 2 salen diagonales. Es casi igual de flexible en X que en Y, y sus muros rígidos están en un extremo; cuando las dos flexibilidades son parecidas, cualquier acople por torsión gira los ejes principales hacia 45°. No es un error del modelo, y en este caso no cambia el diseño porque C queda en Cmin.
@@ -533,10 +533,10 @@ Cada integrante fue responsable de un módulo, y cada módulo tuvo al menos un r
 ### Mauricio Lenz — capacidad de hormigón armado
 
 - **Contribuciones:**
-  - validó la sección de fibras de la COL70/70 y la convergencia de la malla (sección 9);
-  - definió la verificación ACI 318-19: bloque de Whitney, φ según ε_t, flexión en la cara del apoyo;
-  - contrastó con los planos la armadura leída de las elevaciones de vigas y muros;
-  - interpretó la sensibilidad con las combinaciones NCh3171 (sección 12).
+    - validó la sección de fibras de la COL70/70 y la convergencia de la malla (sección 9);
+    - definió la verificación ACI 318-19: bloque de Whitney, φ según ε_t, flexión en la cara del apoyo;
+    - contrastó con los planos la armadura leída de las elevaciones de vigas y muros;
+    - interpretó la sensibilidad con las combinaciones NCh3171 (sección 12).
 - **Módulo revisado:** Unity y AR, de Iván González.
 - **Error detectado:** el panel "Áreas tributarias por piso" del viewer mostraba unos 3 180 m², pero el análisis repartía 6 136,8 m². Sumaba solo las vigas del edificio 1: las vigas del edificio 2 no tenían nombre de piso, y los brazos de muro que reciben losa no se contaban. Se corrigió agrupando por edificio y cota; ahora el panel muestra los 10 pisos y un total igual al del análisis. Evidencia: `test_panel_areas_tributarias`.
 - **Concepto aprendido:** la diferencia entre la curva P-M nominal y la de diseño. φ varía entre 0,65 y 0,90 según la deformación del acero extremo, y hay un tope de compresión de 0,80 φ P0. Por eso la cuantía mínima de 1 % en columnas importa: con 8φ25 (0,80 %) la columna supuesta queda bajo el mínimo.
@@ -544,9 +544,9 @@ Cada integrante fue responsable de un módulo, y cada módulo tuvo al menos un r
 ### Iván González — Unity y AR
 
 - **Contribuciones:**
-  - diseñó el flujo del viewer como pre y postprocesador: capas, diagramas, superposición en vivo y modificación del modelo;
-  - probó el reanálisis desde Unity con su validación de entradas (Honors H4);
-  - montó la app de AR y revisó su precisión con el marcador.
+    - diseñó el flujo del viewer como pre y postprocesador: capas, diagramas, superposición en vivo y modificación del modelo;
+    - probó el reanálisis desde Unity con su validación de entradas (Honors H4);
+    - montó la app de AR y revisó su precisión con el marcador.
 - **Módulo revisado:** capacidad de hormigón armado, de Mauricio Lenz.
 - **Error detectado:** en el mapa de utilización del viewer aparecían vigas con DCR de 9,99, en rojo. El momento se estaba verificando en el eje de la columna, dentro del apoyo, donde la viga no tiene que resistirlo y donde a veces no pasa ninguna barra. La ACI 318-19 §9.4.2 permite verificar en la cara del apoyo. Se corrigió descartando las estaciones dentro de columnas y muros: junto con la armadura real de los planos, las vigas con DCR > 1 bajaron de 34 a 0. Evidencia: `test_caras_de_apoyo_E1_62`.
 - **Concepto aprendido:** la transformación del modelo a la AR, p_AR = T_marcador · s · M · (p − p_ref). La precisión depende del registro del marcador (tamaño impreso, cara y altura de pegado), no del modelo estructural.

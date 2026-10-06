@@ -71,3 +71,54 @@ def test_panel_areas_tributarias(unity, modelo):
     assert {f["piso"].split(" · ")[1] for f in pisos} == {"E1", "E2"}
     assert sum(f["area_total"] for f in pisos) == pytest.approx(total["area_total"])
     assert total["area_total"] == pytest.approx(modelo["live"]["area_total_m2"], rel=1e-9)
+
+
+@pytest.mark.parametrize("tag", ["E1_72", "E1_62"])
+def test_flecha_de_viga_como_en_unity(modelo, tag):
+    """La deformada y la flecha que muestra Unity (UnityData.DeformedOffset) = Hermite con los desplazamientos
+    y giros de los nodos + q x^2 (L-x)^2 / (24 E I) de la carga repartida. Debe ser igual al desplazamiento
+    del nodo central de OpenSees con la viga partida en dos (caso G)."""
+    import copy
+    import math
+    base = modelo["data"]
+    k = cvm.load_analysis_params()["rigidezFisurada"]["viga"]
+    E = 4700.0 * 35.0 ** 0.5 * 1000.0
+    nodes = cvm.node_map(base)
+    res = cvm.run_and_extract(base, cvm.dead_nodal_loads(base))
+    D = res["displacements"]
+    g = lambda n: D.get(n) or D.get(str(n))
+    e = next(x for x in base["elements"] if x["elementTag"] == tag)
+    a, b = nodes[e["nodeI"]], nodes[e["nodeJ"]]
+    L = math.dist((a["x"], a["y"], a["z"]), (b["x"], b["y"], b["z"]))
+    lx = [(b[c] - a[c]) / L for c in "xyz"]
+    cruz = lambda u, v: [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]
+    ly = cruz([0.0, 0.0, 1.0], lx)
+    ly = [c / math.sqrt(sum(q * q for q in ly)) for c in ly]
+    lz = cruz(lx, ly)
+    dot = lambda u, v: sum(p * q for p, q in zip(u, v))
+    dI, dJ = g(e["nodeI"]), g(e["nodeJ"])
+    wI, wJ = dot([dI["ux"], dI["uy"], dI["uz"]], lz), dot([dJ["ux"], dJ["uy"], dJ["uz"]], lz)
+    tyI, tyJ = -dot([dI["rx"], dI["ry"], dI["rz"]], ly), -dot([dJ["rx"], dJ["ry"], dJ["rz"]], ly)
+    s = 0.5
+    w_hermite = 0.5 * wI + L / 8.0 * tyI + 0.5 * wJ - L / 8.0 * tyJ
+    q = (e["deadLoad"] + cvm.self_weight_kN(e, nodes)) / L
+    w_carga = q * (L / 2.0) ** 4 / (24.0 * E * k * e["width_m"] * e["height_m"] ** 3 / 12.0)
+    uz_unity = w_hermite * lz[2] - w_carga
+    # OpenSees con la viga partida en su punto medio
+    d2 = copy.deepcopy(base)
+    n2 = cvm.node_map(d2)
+    e2 = next(x for x in d2["elements"] if x["elementTag"] == tag)
+    nid = max(n["id"] for n in d2["nodes"]) + 1
+    d2["nodes"].append({"id": nid, "x": (a["x"] + b["x"]) / 2, "y": (a["y"] + b["y"]) / 2, "z": (a["z"] + b["z"]) / 2})
+    e3 = copy.deepcopy(e2)
+    e3.update(id=max(x["id"] for x in d2["elements"]) + 1, elementTag=tag + "_b", nodeI=nid)
+    e2["nodeJ"] = nid
+    for kk in ("deadLoad", "liveLoad", "areaTributaria", "cargaTributaria", "gravityLoad"):
+        if isinstance(e2.get(kk), (int, float)):
+            e2[kk] /= 2.0
+            e3[kk] /= 2.0
+    d2["elements"].append(e3)
+    D2 = cvm.run_and_extract(d2, cvm.dead_nodal_loads(d2))["displacements"]
+    uz_partida = (D2.get(nid) or D2.get(str(nid)))["uz"]
+    assert uz_unity == pytest.approx(uz_partida, abs=2e-6)      # 0,002 mm
+    assert abs(w_hermite * lz[2] - uz_partida) > 1e-4     # sin el termino de carga no calza (> 0,1 mm)

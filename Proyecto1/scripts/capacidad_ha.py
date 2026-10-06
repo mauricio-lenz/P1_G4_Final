@@ -73,8 +73,10 @@ def load_armaduras(path=ARMADURAS_PATH, overrides=None):
 
 
 def armadura_de(element, arm):
-    """Armadura efectiva del elemento: la de su seccion con las excepciones del elemento."""
-    base = arm["secciones"].get(element.get("sectionId"), {})
+    """Armadura efectiva del elemento: la de su seccion con las excepciones del elemento. Si la seccion se
+    cambio (Unity / --mods) a una que no tiene armadura tipo, se usa la de su seccion original: mismas
+    barras con las dimensiones nuevas."""
+    base = arm["secciones"].get(element.get("sectionId")) or arm["secciones"].get(element.get("sectionIdOriginal"), {})
     extra = arm["elementos"].get(element.get("elementTag"), {}) or arm["elementos"].get(str(element.get("id")), {})
     return {**base, **extra}
 
@@ -108,7 +110,9 @@ def barras_planos(element, nodes, planos=None):
     else:
         return None
     largo = sj - si
-    h_cm = float(element.get("height_m") or 0.8) * 100.0
+    # superior/inferior por la profundidad de la barra en el dibujo: se compara con la altura de la viga
+    # en el plano (si la seccion se cambio, la original); la altura util d se calcula con la seccion actual
+    h_cm = float(element.get("height_m_original") or element.get("height_m") or 0.8) * 100.0
     edificio = element.get("sourceBuilding") or "edificio_1"
     for el in planos:
         if el["edificio"] != edificio or el["direccion"] != direccion or not any(abs(l["coord"] - c) < 0.3 for l in el["lineas"]):
@@ -407,10 +411,16 @@ def evaluar(element, forces_by_combo, w_by_combo, length, arm, nodes=None, apoyo
     recub = arm["recubrimiento_m"]
     tipo = element.get("type")
     out = {"armadura": a, "porCombo": []}
+    if element.get("sectionIdOriginal") and element.get("sectionId") not in arm["secciones"]:
+        out["nota"] = (f"seccion cambiada {element['sectionIdOriginal']} -> {element.get('sectionId')}: "
+                       f"armadura de la seccion original con las dimensiones nuevas")
     manual = arm["elementos"].get(element.get("elementTag"), {}) or arm["elementos"].get(str(element.get("id")), {})
     planos = barras_planos(element, nodes) if tipo == "viga" else None
     if planos:
         res_planos = evaluar_viga_planos(element, forces_by_combo, w_by_combo, length, a, recub, planos, apoyos=apoyos)
+        if element.get("sectionIdOriginal") and element.get("sectionId") != element["sectionIdOriginal"]:
+            res_planos.setdefault("nota", f"seccion cambiada {element['sectionIdOriginal']} -> {element.get('sectionId')}: "
+                                          f"barras de los planos con las dimensiones nuevas")
         if not any(k in manual for k in ("inferior", "superior", "supleApoyo")):
             return res_planos
         # cambio manual (Unity / armaduras.json) sobre las barras de los planos en las secciones gobernantes

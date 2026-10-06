@@ -209,17 +209,17 @@ public static class UnityData
             foreach (DisplacementRecord d in baseDisp)
             {
                 if (d == null) continue;
-                float ux = 0f, uy = 0f, uz = 0f;
+                float ux = 0f, uy = 0f, uz = 0f, rx = 0f, ry = 0f, rz = 0f;
                 for (int c = 0; c < SuperpositionBaseCases.Length; c++)
                 {
                     float lambda = SuperpositionLambdas[c];
                     if (Mathf.Abs(lambda) < 0.0005f) continue;
-                    Vector3 v = GetNodeDisplacement(SuperpositionBaseCases[c], d.node);
-                    ux += lambda * v.x;
-                    uy += lambda * v.y;
-                    uz += lambda * v.z;
+                    DisplacementRecord b = GetDisplacementRecord(SuperpositionBaseCases[c], d.node);
+                    if (b == null) continue;
+                    ux += lambda * b.ux; uy += lambda * b.uy; uz += lambda * b.uz;
+                    rx += lambda * b.rx; ry += lambda * b.ry; rz += lambda * b.rz;
                 }
-                supDisp.Add(new DisplacementRecord { combo = SuperpositionComboName, node = d.node, ux = ux, uy = uy, uz = uz });
+                supDisp.Add(new DisplacementRecord { combo = SuperpositionComboName, node = d.node, ux = ux, uy = uy, uz = uz, rx = rx, ry = ry, rz = rz });
             }
         }
         DisplacementsByCombo[SuperpositionComboName] = supDisp;
@@ -815,6 +815,81 @@ public static class UnityData
             }
         }
         return loads;
+    }
+
+    // ------------------------------------------------------------------
+    // Deformada y flecha de una barra
+    // ------------------------------------------------------------------
+    /// E del hormigon G35 = 4700 sqrt(35) MPa, en kN/m2 (igual que carga_viva_sismo.py).
+    public const float EConcreteKNm2 = 27805575f;
+
+    /// Flecha de la carga repartida del tramo (G y Q de la combinacion) con los extremos fijos:
+    /// w(x) = q x^2 (L - x)^2 / (24 E I), con I = k b h^3 / 12 (k = rigidez fisurada de vigas).
+    /// Es la parte de la elastica que no sale de los desplazamientos y giros de los nodos.
+    /// Coordenadas del modelo [m]; s = x/L.
+    public static Vector3 SpanLoadDeflection(ElementData e, string combo, float s)
+    {
+        if (e == null || e.type != "viga" || e.width_m <= 0f || e.height_m <= 0f) return Vector3.zero;
+        if (combo == MovingLoadComboName || combo == ElementLoadComboName) return Vector3.zero;
+        LocalAxes(e, out Vector3 lx, out _, out _, out float L);
+        if (L < 1e-6f) return Vector3.zero;
+        GravityLambdas(combo, out float lg, out float lq);
+        float total = lg * e.deadLoad + lq * e.liveLoad + lg * e.selfWeight_kN;   // kN del tramo, hacia -Z
+        if (Mathf.Abs(total) < 1e-9f) return Vector3.zero;
+        float k = Structure != null && Structure.resumenAnalisis != null && Structure.resumenAnalisis.rigidezViga > 0f
+            ? Structure.resumenAnalisis.rigidezViga : 1f;
+        float ei = EConcreteKNm2 * k * e.width_m * e.height_m * e.height_m * e.height_m / 12f;
+        Vector3 dir = new Vector3(0f, 0f, -1f);
+        Vector3 transversal = dir - Vector3.Dot(dir, lx) * lx;   // la componente axial no flecta
+        float x = Mathf.Clamp01(s) * L;
+        float w = (total / L) * x * x * (L - x) * (L - x) / (24f * ei);
+        return transversal * w;
+    }
+
+    /// Desplazamiento [m, modelo] del punto s = x/L de la barra: Hermite con los desplazamientos y
+    /// giros de OpenSees en los nodos, mas la flecha de la carga repartida del tramo (vigas).
+    public static Vector3 DeformedOffset(ElementData e, string combo, float s)
+    {
+        DisplacementRecord dI = GetDisplacementRecord(combo, e.nodeI);
+        DisplacementRecord dJ = GetDisplacementRecord(combo, e.nodeJ);
+        Vector3 uI = dI != null ? new Vector3(dI.ux, dI.uy, dI.uz) : Vector3.zero;
+        Vector3 uJ = dJ != null ? new Vector3(dJ.ux, dJ.uy, dJ.uz) : Vector3.zero;
+        Vector3 rI = dI != null ? new Vector3(dI.rx, dI.ry, dI.rz) : Vector3.zero;
+        Vector3 rJ = dJ != null ? new Vector3(dJ.rx, dJ.ry, dJ.rz) : Vector3.zero;
+        LocalAxes(e, out Vector3 lx, out Vector3 ly, out Vector3 lz, out float L);
+        Vector3 u = Vector3.Lerp(uI, uJ, s);   // sin giros: lineal
+        if ((rI.sqrMagnitude > 0f || rJ.sqrMagnitude > 0f) && L > 1e-6f)
+        {
+            float vI = Vector3.Dot(uI, ly), vJ = Vector3.Dot(uJ, ly);
+            float wI = Vector3.Dot(uI, lz), wJ = Vector3.Dot(uJ, lz);
+            float tzI = Vector3.Dot(rI, lz), tzJ = Vector3.Dot(rJ, lz);    // dv/dx = theta_z
+            float tyI = -Vector3.Dot(rI, ly), tyJ = -Vector3.Dot(rJ, ly);  // dw/dx = -theta_y
+            float h1 = 1f - 3f * s * s + 2f * s * s * s, h2 = L * (s - 2f * s * s + s * s * s);
+            float h3 = 3f * s * s - 2f * s * s * s, h4 = L * (-s * s + s * s * s);
+            float axial = Mathf.Lerp(Vector3.Dot(uI, lx), Vector3.Dot(uJ, lx), s);
+            float v = h1 * vI + h2 * tzI + h3 * vJ + h4 * tzJ;
+            float w = h1 * wI + h2 * tyI + h3 * wJ + h4 * tyJ;
+            u = axial * lx + v * ly + w * lz;
+        }
+        return u + SpanLoadDeflection(e, combo, s);
+    }
+
+    /// Flecha vertical maxima de una viga respecto de la cuerda entre sus nodos (sus apoyos):
+    /// delta [m] (+ hacia abajo), su posicion x [m] y el largo L. false si no es una viga horizontal.
+    public static bool BeamDeflection(ElementData e, string combo, out float delta, out float xAt, out float L)
+    {
+        delta = 0f; xAt = 0f;
+        LocalAxes(e, out Vector3 lx, out _, out _, out L);
+        if (e == null || e.type != "viga" || L < 1e-6f || Mathf.Abs(lx.z) > 0.2f) return false;
+        Vector3 uI = DeformedOffset(e, combo, 0f), uJ = DeformedOffset(e, combo, 1f);
+        const int n = 40;
+        for (int i = 1; i < n; i++)
+        {
+            float s = i / (float)n;
+            float rel = Vector3.Lerp(uI, uJ, s).z - DeformedOffset(e, combo, s).z;   // + = baja respecto de la cuerda
+            if (Mathf.Abs(rel) > Mathf.Abs(delta)) { delta = rel; xAt = s * L; }
+        }
+        return true;
     }
 
     /// Esfuerzos internos [N, Vy, Vz, T, My, Mz] (ejes locales) en t = x/L para el combo activo.

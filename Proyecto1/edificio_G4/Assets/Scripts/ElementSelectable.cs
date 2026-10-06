@@ -138,6 +138,7 @@ public class ElementSelectable : MonoBehaviour
                   $"Mz = {mz:0.###} kN*m\n";
 
         result += GetEndForcesText();
+        result += DisplacementText();
 
         if (data.type == "viga" && data.areaTributaria > 0f)
         {
@@ -431,6 +432,28 @@ public class ElementSelectable : MonoBehaviour
             return 0f;
         }
         return GetCapacityRatio(GetActiveDemand());
+    }
+
+    /// Bloque "Desplazamientos": nodos I y J del caso activo (OpenSees) y, en vigas, la flecha maxima
+    /// respecto de sus apoyos (Hermite con los giros de los nodos + carga repartida del tramo).
+    private string DisplacementText()
+    {
+        string combo = UnityData.ActiveCombo;
+        if (data == null || string.IsNullOrEmpty(combo)) return "";
+        DisplacementRecord dI = UnityData.GetDisplacementRecord(combo, data.nodeI);
+        DisplacementRecord dJ = UnityData.GetDisplacementRecord(combo, data.nodeJ);
+        if (dI == null && dJ == null) return "";
+        string Fila(string nombre, DisplacementRecord d) => d == null ? "" :
+            $"{nombre}: ux {d.ux * 1000f:0.00} · uy {d.uy * 1000f:0.00} · uz {d.uz * 1000f:0.00} · |u| {Mathf.Sqrt(d.ux * d.ux + d.uy * d.uy + d.uz * d.uz) * 1000f:0.00} mm\n";
+        string s = $"\n--- Desplazamientos ({UnityData.GetComboLabel(combo)}) ---\n" +
+                   Fila($"Nodo I ({data.nodeI})", dI) + Fila($"Nodo J ({data.nodeJ})", dJ);
+        if (UnityData.BeamDeflection(data, combo, out float delta, out float xAt, out float L))
+        {
+            float mm = delta * 1000f;
+            string ratio = Mathf.Abs(delta) > 1e-7f ? $"L/{L / Mathf.Abs(delta):0}" : "—";
+            s += $"Flecha respecto de los apoyos: {mm:0.00} mm {(mm >= 0f ? "hacia abajo" : "hacia arriba")} en x = {xAt:0.00} m de {L:0.00} m ({ratio})\n";
+        }
+        return s;
     }
 
     /// Bloque "Armadura y capacidad" del panel de propiedades.

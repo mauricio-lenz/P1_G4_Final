@@ -72,7 +72,10 @@ def main():
     ap = argparse.ArgumentParser(description="Informe final Markdown -> PDF")
     ap.add_argument("--md", type=Path, default=REPO / "reports" / "final.md")
     ap.add_argument("--pdf", type=Path, default=REPO / "reports" / "final.pdf")
+    ap.add_argument("--titulo", default="Laboratorio estructural OpenSees + Unity + AR")
+    ap.add_argument("--subtitulo", default="Informe final · Grupo 4 (P1_G4)")
     args = ap.parse_args()
+    args.md, args.pdf = args.md.resolve(), args.pdf.resolve()
 
     texto = args.md.read_text(encoding="utf-8")
     # la portada reemplaza el titulo y el encabezado del Markdown (hasta la primera linea ---)
@@ -92,26 +95,26 @@ def main():
     portada = f"""
 <div class="portada">
   <div class="curso">MCOC · Universidad de los Andes · Proyecto 1</div>
-  <h1>Laboratorio estructural OpenSees + Unity + AR</h1>
-  <div class="sub">Informe final · Grupo 4 (P1_G4)</div>
+  <h1>{html.escape(args.titulo)}</h1>
+  <div class="sub">{html.escape(args.subtitulo)}</div>
   <table>
     <tr><td>Integrantes</td><td>Matías Campos · Iván González · Mauricio Lenz</td></tr>
     <tr><td>Entrega</td><td>semana 7 · 8 de octubre de 2026</td></tr>
     <tr><td>Repositorio</td><td>github.com/mauricio-lenz/P1_G4_Final</td></tr>
     <tr><td>Versión</td><td>commit {html.escape(commit or "—")} · PDF generado el {dt.date.today():%d-%m-%Y}</td></tr>
   </table>
-  <div class="nota">Este PDF se genera desde <code>reports/final.md</code> con <code>Proyecto1/scripts/informe_a_pdf.py</code>.
+  <div class="nota">Este PDF se genera desde <code>reports/{args.md.name}</code> con <code>Proyecto1/scripts/informe_a_pdf.py</code>.
   El documento de la entrega es el Markdown del repositorio; las cifras se regeneran con
   <code>exportar_resultados_unity.py</code> y <code>figuras_informe_final.py</code>.</div>
 </div>
 <div class="indice"><h2>Contenido</h2><ul>{indice}</ul>{rubrica_html}</div>
 """
-    pagina = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe final — P1_G4</title>
+    pagina = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>{html.escape(args.subtitulo)}</title>
 <style>{CSS}</style></head><body>{portada}{cuerpo}
-<div class="pie">reports/final.md · github.com/mauricio-lenz/P1_G4_Final · commit {html.escape(commit or "—")}</div>
+<div class="pie">reports/{args.md.name} · github.com/mauricio-lenz/P1_G4_Final · commit {html.escape(commit or "—")}</div>
 </body></html>"""
 
-    html_tmp = args.md.parent / "_final_print.html"      # junto al .md para que resuelvan las rutas img/...
+    html_tmp = args.md.parent / f"_{args.md.stem}_print.html"      # junto al .md para que resuelvan las rutas img/...
     html_tmp.write_text(pagina, encoding="utf-8")
     nav = next((p for p in NAVEGADORES if p.exists()), None)
     if nav is None:

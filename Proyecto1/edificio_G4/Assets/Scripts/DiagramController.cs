@@ -476,41 +476,19 @@ public class DiagramController : MonoBehaviour
         Debug.Log($"[DiagramController] Deformada {combo}: {created} elementos, |u| max {deformedMaxMm:0.00} mm, escala x{deformedScaleShown:0}");
     }
 
-    /// Puntos de la elastica: ejes locales, axial lineal, flexion con Hermite (giros de OpenSees).
+    /// Puntos de la elastica: Hermite con los giros de OpenSees mas la flecha de la carga repartida
+    /// del tramo (UnityData.DeformedOffset), la misma que muestra el panel del elemento.
     private static void BuildDeformedShape(ElementData e, string combo, float scale, Vector3 a, Vector3 b,
         out Vector3[] basePts, out Vector3[] offPts)
     {
         const int n = 12;
         basePts = new Vector3[n + 1];
         offPts = new Vector3[n + 1];
-        DisplacementRecord dI = UnityData.GetDisplacementRecord(combo, e.nodeI);
-        DisplacementRecord dJ = UnityData.GetDisplacementRecord(combo, e.nodeJ);
-        Vector3 uI = dI != null ? new Vector3(dI.ux, dI.uy, dI.uz) : Vector3.zero;   // modelo
-        Vector3 uJ = dJ != null ? new Vector3(dJ.ux, dJ.uy, dJ.uz) : Vector3.zero;
-        Vector3 rI = dI != null ? new Vector3(dI.rx, dI.ry, dI.rz) : Vector3.zero;
-        Vector3 rJ = dJ != null ? new Vector3(dJ.rx, dJ.ry, dJ.rz) : Vector3.zero;
-        bool hasRot = rI.sqrMagnitude > 0f || rJ.sqrMagnitude > 0f;   // combos sinteticos no traen giros
-
-        UnityData.LocalAxes(e, out Vector3 lx, out Vector3 ly, out Vector3 lz, out float L);
-        float vI = Vector3.Dot(uI, ly), vJ = Vector3.Dot(uJ, ly);
-        float wI = Vector3.Dot(uI, lz), wJ = Vector3.Dot(uJ, lz);
-        float tzI = Vector3.Dot(rI, lz), tzJ = Vector3.Dot(rJ, lz);   // dv/dx = theta_z
-        float tyI = -Vector3.Dot(rI, ly), tyJ = -Vector3.Dot(rJ, ly); // dw/dx = −theta_y
-
         for (int i = 0; i <= n; i++)
         {
             float s = i / (float)n;
             basePts[i] = Vector3.Lerp(a, b, s);
-            Vector3 u = Vector3.Lerp(uI, uJ, s);   // lineal (axial y sin giros)
-            if (hasRot && L > 1e-6f)
-            {
-                float h1 = 1f - 3f * s * s + 2f * s * s * s, h2 = L * (s - 2f * s * s + s * s * s);
-                float h3 = 3f * s * s - 2f * s * s * s, h4 = L * (-s * s + s * s * s);
-                float axial = Mathf.Lerp(Vector3.Dot(uI, lx), Vector3.Dot(uJ, lx), s);
-                float v = h1 * vI + h2 * tzI + h3 * vJ + h4 * tzJ;
-                float w = h1 * wI + h2 * tyI + h3 * wJ + h4 * tyJ;
-                u = axial * lx + v * ly + w * lz;
-            }
+            Vector3 u = UnityData.DeformedOffset(e, combo, s);
             offPts[i] = new Vector3(u.x, u.z, u.y) * scale;   // a Unity
         }
     }
