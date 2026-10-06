@@ -91,3 +91,45 @@ def test_c_fijo_criterio_anterior(modelo):
     s = cvm.build_seismic_cases(modelo["data"], modelo["live"], 0.20)
     for row in s["pisos"]:
         assert abs(row["F_EX_kN"] - 0.20 * (row["D_kN"] + 0.5 * row["Q_kN"])) < 1e-9
+
+
+def test_sismo_en_centro_de_masa(modelo):
+    """EX y EY actuan en el centro de masa de cada diafragma (pesos nodales D + 0.25Q), no en el centroide
+    de los nodos: en el nodo maestro van la fuerza y el torsor Mz = r x F (r del maestro al CM)."""
+    data, live, seis = modelo["data"], modelo["live"], modelo["seismic"]
+    nodes = cvm.node_map(data)
+    peso = dict(cvm.nodal_vertical_kN(data, cvm.dead_nodal_loads(data)))
+    for b in live["vigas"]:
+        for n in (b["nodeI"], b["nodeJ"]):
+            peso[n] = peso.get(n, 0.0) + 0.25 * abs(b["nodal_Fz_each_kN"])
+    dg = cvm.diaphragm_groups(data)
+    for fila in seis["pisos"]:
+        d = dg[(fila["edificio"], round(fila["floor_z_m"], 3))]
+        ids = [d["master"]] + d["slaves"]
+        w = sum(peso.get(i, 0.0) for i in ids)
+        xm = sum(nodes[i]["x"] * peso.get(i, 0.0) for i in ids) / w
+        ym = sum(nodes[i]["y"] * peso.get(i, 0.0) for i in ids) / w
+        assert fila["centro_masa_estimado"]["x"] == pytest.approx(xm)
+        assert fila["centro_masa_estimado"]["y"] == pytest.approx(ym)
+        m = nodes[d["master"]]
+        ex = seis["cargas_nodales_EX"][str(d["master"])]
+        ey = seis["cargas_nodales_EY"][str(d["master"])]
+        assert ex["Mz"] == pytest.approx(-(ym - m["y"]) * fila["F_EX_kN"])
+        assert ey["Mz"] == pytest.approx((xm - m["x"]) * fila["F_EY_kN"])
+
+
+def test_torsion_accidental_nch433(modelo):
+    """NCh433 6.2.8: torsor accidental por piso Mz = F_k * 0.10 b_k Z_k / H (b_k perpendicular al sismo)."""
+    data, seis = modelo["data"], modelo["seismic"]
+    nodes = cvm.node_map(data)
+    dg = cvm.diaphragm_groups(data)
+    alto = {r["edificio"]: (r["z_base_m"], r["H_m"]) for r in seis["edificios"]}
+    for fila in seis["pisos"]:
+        d = dg[(fila["edificio"], round(fila["floor_z_m"], 3))]
+        ids = [d["master"]] + d["slaves"]
+        b_x = max(nodes[i]["x"] for i in ids) - min(nodes[i]["x"] for i in ids)
+        b_y = max(nodes[i]["y"] for i in ids) - min(nodes[i]["y"] for i in ids)
+        z0, h = alto[fila["edificio"]]
+        f = (fila["floor_z_m"] - z0) / h
+        assert seis["cargas_nodales_TX"][str(d["master"])]["Mz"] == pytest.approx(fila["F_EX_kN"] * 0.10 * b_y * f)
+        assert seis["cargas_nodales_TY"][str(d["master"])]["Mz"] == pytest.approx(fila["F_EY_kN"] * 0.10 * b_x * f)

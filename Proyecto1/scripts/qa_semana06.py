@@ -150,7 +150,7 @@ def main():
                 wworst = {"muro": w.get("elementTag"), "curva": sid, "combo": d["combo"], "P_kN": d["P_kN"], "M_kN_m": d["M_kN_m"], "Mcap_kN_m": cap, "C": ratio}
         n_over += over
     qa["PM_muro"] = {"muros": n_walls, "muros_C_mayor_1": n_over, "peor": wworst, "ok": n_over == 0,
-                     "nota": "demanda del analisis OpenSees (columna ancha); curva escalada por geometria de cada muro (misma cuantia)"}
+                     "nota": "demanda del analisis OpenSees (columna ancha); curva de diseno ACI 318-19 de cada muro con su malla y barras de borde de los planos (W_PL_) o doble malla f12a20 supuesta (W_DM_)"}
     print(f"P-M muro: {n_walls} muros, {n_over} con C>1 | peor {wworst['muro']} {wworst['combo']}: P={wworst['P_kN']:.0f}, "
           f"M={wworst['M_kN_m']:.0f}, Mcap={wworst['Mcap_kN_m']:.0f} -> C={wworst['C']:.2f}")
 

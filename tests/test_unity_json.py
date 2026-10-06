@@ -1,4 +1,6 @@
 """JSON que lee Unity (viewer y AR): integridad, trazabilidad y consistencia con el analisis."""
+import pytest
+
 from conftest import cvm
 
 
@@ -58,3 +60,14 @@ def test_json_unity_coincide_con_opensees(unity, resultados):
                 continue
             err = max(err, *(abs(u[k] - d[k]) for k in ("ux", "uy", "uz")))
     assert err < 1e-9, f"diferencia maxima {err:.2e} m: re-exportar el JSON de Unity"
+
+
+def test_panel_areas_tributarias(unity, modelo):
+    """El panel "Áreas tributarias por piso" del viewer suma los dos edificios (vigas y brazos de muro):
+    su total es el área que reparte el análisis (antes mostraba solo las vigas del edificio 1, ~3 180 m²)."""
+    filas = unity["tributaryList"]
+    total = next(f for f in filas if f["piso"].startswith("Total"))
+    pisos = [f for f in filas if not f["piso"].startswith("Total")]
+    assert {f["piso"].split(" · ")[1] for f in pisos} == {"E1", "E2"}
+    assert sum(f["area_total"] for f in pisos) == pytest.approx(total["area_total"])
+    assert total["area_total"] == pytest.approx(modelo["live"]["area_total_m2"], rel=1e-9)

@@ -1,0 +1,767 @@
+{
+ "corrida_unity": {
+  "comando": "python -X utf8 Proyecto1/scripts/exportar_resultados_unity.py ",
+  "commit": "7a3f73e",
+  "entradas_sha256": {
+   "armaduras": "26d3b05895e4afb0",
+   "armaduras_cambios": null,
+   "combinaciones": "f21db1be606091d8",
+   "modelo": "387a064e08450a8c",
+   "mods": null,
+   "parametros": "b4719736d031ff17"
+  },
+  "fecha": "2026-10-06T01:26:12",
+  "openseespy": "3.8.0.0",
+  "python": "3.12.10"
+ },
+ "resumenAnalisis": {
+  "G_aplicada_kN": 75700.9374789417,
+  "G_reaccion_kN": 75700.93747894405,
+  "Q_aplicada_kN": 25885.85882430345,
+  "Q_kN_m2": 4.903325,
+  "Q_reaccion_kN": 25885.85882429937,
+  "armadura": {
+   "DCR_max_columna": 0.832,
+   "DCR_max_viga": 0.873,
+   "columnas": 118,
+   "columnas_DCR_mayor_1": 0,
+   "peorColumna": "E1_291",
+   "peorViga": "B3063_V30/80",
+   "vigas": 398,
+   "vigas_DCR_mayor_1": 0
+  },
+  "coeficienteSismico": 0.11386083086970486,
+  "corteBasal_EX_kN": 9174.482993049443,
+  "corteBasal_EY_kN": 6639.760509506739,
+  "q_G_kN_m2": 6.22722275,
+  "rigidezColumna": 0.7,
+  "rigidezMuro": 0.35,
+  "rigidezViga": 0.35,
+  "sismo": {
+   "C_equivalente_X": 0.11386083086970486,
+   "C_equivalente_Y": 0.08240340616043888,
+   "C_fijo": 0.2,
+   "I": 1.0,
+   "R": 7.0,
+   "edificios": [
+    {
+     "C_X": 0.147,
+     "C_Y": 0.09177483315787949,
+     "P_kN": 45897.95972530152,
+     "Q0_X_kN": 6747.0000796193235,
+     "Q0_Y_kN": 4212.277596076619,
+     "T_X_s": 0.42194447854843475,
+     "T_Y_s": 0.6842017577980315,
+     "edificio": "edificio_1"
+    },
+    {
+     "C_X": 0.07,
+     "C_Y": 0.07,
+     "P_kN": 34678.32733471599,
+     "Q0_X_kN": 2427.48291343012,
+     "Q0_Y_kN": 2427.48291343012,
+     "T_X_s": 0.8556086555780306,
+     "T_Y_s": 0.8556086555780306,
+     "edificio": "edificio_2"
+    }
+   ],
+   "fraccionQ": 0.25,
+   "hipotesis": "W_sismico = D + 0.25Q",
+   "metodo": "NCh433",
+   "suelo": "C",
+   "zona": 3
+  },
+  "uMax": [
+   {
+    "caso": "G",
+    "u_mm": 25.880208810344193
+   },
+   {
+    "caso": "Q",
+    "u_mm": 10.658425573711074
+   },
+   {
+    "caso": "EX",
+    "u_mm": 21.16144731092511
+   },
+   {
+    "caso": "EY",
+    "u_mm": 27.772534072482944
+   },
+   {
+    "caso": "C1",
+    "u_mm": 31.629214456243357
+   },
+   {
+    "caso": "C2",
+    "u_mm": 32.03729793644236
+   },
+   {
+    "caso": "C3",
+    "u_mm": 31.6256365767079
+   }
+  ]
+ },
+ "sismo_pisos": [
+  {
+   "piso": "CIELO_1S (z=0.000 m) [edificio_1]",
+   "edificio": "edificio_1",
+   "floor_z_m": 0.0,
+   "D_kN": 3585.1097304000023,
+   "Q_kN": 683.1900789000001,
+   "W_sismico_kN": 3755.907250125002,
+   "A_k": 0.10557280900008414,
+   "F_EX_kN": 278.8784255736023,
+   "F_EY_kN": 174.1089862472753
+  },
+  {
+   "piso": "CIELO_1S (z=0.000 m) [edificio_2]",
+   "edificio": "edificio_2",
+   "floor_z_m": 0.0,
+   "D_kN": 6590.34232656,
+   "Q_kN": 2556.748967819376,
+   "W_sismico_kN": 7229.529568514845,
+   "A_k": 0.10557280900008414,
+   "F_EX_kN": 281.8982393072069,
+   "F_EY_kN": 281.8982393072069
+  },
+  {
+   "piso": "CIELO_1 (z=3.960 m) [edificio_1]",
+   "edificio": "edificio_1",
+   "floor_z_m": 3.96,
+   "D_kN": 9586.798251961598,
+   "Q_kN": 3768.696575665002,
+   "W_sismico_kN": 10528.972395877849,
+   "A_k": 0.11983052175843245,
+   "F_EX_kN": 887.3632104261364,
+   "F_EY_kN": 553.9973509340066
+  },
+  {
+   "piso": "CIELO_1 (z=3.960 m) [edificio_2]",
+   "edificio": "edificio_2",
+   "floor_z_m": 3.96,
+   "D_kN": 6590.34232656,
+   "Q_kN": 2556.748967819376,
+   "W_sismico_kN": 7229.529568514845,
+   "A_k": 0.11983052175843245,
+   "F_EX_kN": 319.9688766350731,
+   "F_EY_kN": 319.9688766350731
+  },
+  {
+   "piso": "CIELO_2 (z=7.920 m) [edificio_1]",
+   "edificio": "edificio_1",
+   "floor_z_m": 7.92,
+   "D_kN": 9417.055826361588,
+   "Q_kN": 3944.490583565003,
+   "W_sismico_kN": 10403.17847225284,
+   "A_k": 0.14214113720780752,
+   "F_EX_kN": 1040.0011429816136,
+   "F_EY_kN": 649.2920502118474
+  },
+  {
+   "piso": "CIELO_2 (z=7.920 m) [edificio_2]",
+   "edificio": "edificio_2",
+   "floor_z_m": 7.92,
+   "D_kN": 6590.34232656,
+   "Q_kN": 2556.748967819376,
+   "W_sismico_kN": 7229.529568514845,
+   "A_k": 0.14214113720780752,
+   "F_EX_kN": 379.5422011739133,
+   "F_EY_kN": 379.5422011739133
+  },
+  {
+   "piso": "CIELO_3 (z=11.880 m) [edificio_1]",
+   "edificio": "edificio_1",
+   "floor_z_m": 11.88,
+   "D_kN": 10447.899215668225,
+   "Q_kN": 4459.311759612499,
+   "W_sismico_kN": 11562.72715557135,
+   "A_k": 0.18524193653371784,
+   "F_EX_kN": 1506.42519975229,
+   "F_EY_kN": 940.4892610346374
+  },
+  {
+   "piso": "CIELO_3 (z=11.880 m) [edificio_2]",
+   "edificio": "edificio_2",
+   "floor_z_m": 11.88,
+   "D_kN": 6590.34232656,
+   "Q_kN": 2556.748967819376,
+   "W_sismico_kN": 7229.529568514845,
+   "A_k": 0.18524193653371784,
+   "F_EX_kN": 494.6290266338448,
+   "F_EY_kN": 494.6290266338448
+  },
+  {
+   "piso": "CIELO_4 (z=15.840 m) [edificio_1]",
+   "edificio": "edificio_1",
+   "floor_z_m": 15.84,
+   "D_kN": 9193.189073868236,
+   "Q_kN": 1815.9415104250002,
+   "W_sismico_kN": 9647.174451474486,
+   "A_k": 0.44721359549995804,
+   "F_EX_kN": 3034.332100885681,
+   "F_EY_kN": 1894.3899476488525
+  },
+  {
+   "piso": "CIELO_4 (z=15.840 m) [edificio_2]",
+   "edificio": "edificio_2",
+   "floor_z_m": 15.84,
+   "D_kN": 5513.400949442,
+   "Q_kN": 987.2324448584503,
+   "W_sismico_kN": 5760.209060656613,
+   "A_k": 0.44721359549995804,
+   "F_EX_kN": 951.4445696800818,
+   "F_EY_kN": 951.4445696800818
+  }
+ ],
+ "Q": {
+  "q_Q_kN_m2": 4.903325,
+  "q_Q_cubierta_kN_m2": 1.96133,
+  "area_total_m2": 6136.778565000027,
+  "Q_transferida_kN": 25885.858824303472,
+  "q_Q_por_A_kN": 25885.858824303472,
+  "error_conservacion_kN": 0.0
+ },
+ "modal": {
+  "edificio_1": {
+   "modos": [
+    {
+     "modo": 1,
+     "T_s": 0.6842,
+     "UX": 0.005,
+     "UY": 0.455
+    },
+    {
+     "modo": 2,
+     "T_s": 0.503,
+     "UX": 0.001,
+     "UY": 0.142
+    },
+    {
+     "modo": 3,
+     "T_s": 0.4219,
+     "UX": 0.588,
+     "UY": 0.003
+    },
+    {
+     "modo": 4,
+     "T_s": 0.2099,
+     "UX": 0.0,
+     "UY": 0.0
+    },
+    {
+     "modo": 5,
+     "T_s": 0.1998,
+     "UX": 0.0,
+     "UY": 0.0
+    },
+    {
+     "modo": 6,
+     "T_s": 0.1945,
+     "UX": 0.0,
+     "UY": 0.0
+    }
+   ],
+   "suma_UX_12": 0.595,
+   "suma_UY_12": 0.655
+  },
+  "edificio_2": {
+   "modos": [
+    {
+     "modo": 1,
+     "T_s": 0.8556,
+     "UX": 0.381,
+     "UY": 0.26
+    },
+    {
+     "modo": 2,
+     "T_s": 0.759,
+     "UX": 0.357,
+     "UY": 0.22
+    },
+    {
+     "modo": 3,
+     "T_s": 0.3518,
+     "UX": 0.01,
+     "UY": 0.215
+    },
+    {
+     "modo": 4,
+     "T_s": 0.2887,
+     "UX": 0.0,
+     "UY": 0.0
+    },
+    {
+     "modo": 5,
+     "T_s": 0.2873,
+     "UX": 0.0,
+     "UY": 0.0
+    },
+    {
+     "modo": 6,
+     "T_s": 0.2866,
+     "UX": 0.0,
+     "UY": 0.0
+    }
+   ],
+   "suma_UX_12": 0.857,
+   "suma_UY_12": 0.709
+  }
+ },
+ "derivas": {
+  "cm": {
+   "edificio_1_EX": [
+    {
+     "z": 0.0,
+     "u_mm": 0.01,
+     "deriva_por_mil": 0.001
+    },
+    {
+     "z": 3.96,
+     "u_mm": 0.35,
+     "deriva_por_mil": 0.088
+    },
+    {
+     "z": 7.92,
+     "u_mm": 3.85,
+     "deriva_por_mil": 0.883
+    },
+    {
+     "z": 11.88,
+     "u_mm": 8.14,
+     "deriva_por_mil": 1.083
+    },
+    {
+     "z": 15.84,
+     "u_mm": 12.24,
+     "deriva_por_mil": 1.034
+    }
+   ],
+   "edificio_2_EX": [
+    {
+     "z": 0.0,
+     "u_mm": 2.32,
+     "deriva_por_mil": 0.586
+    },
+    {
+     "z": 3.96,
+     "u_mm": 6.38,
+     "deriva_por_mil": 1.026
+    },
+    {
+     "z": 7.92,
+     "u_mm": 11.19,
+     "deriva_por_mil": 1.213
+    },
+    {
+     "z": 11.88,
+     "u_mm": 16.15,
+     "deriva_por_mil": 1.254
+    },
+    {
+     "z": 15.84,
+     "u_mm": 20.79,
+     "deriva_por_mil": 1.172
+    }
+   ],
+   "edificio_1_EY": [
+    {
+     "z": 0.0,
+     "u_mm": 0.03,
+     "deriva_por_mil": 0.008
+    },
+    {
+     "z": 3.96,
+     "u_mm": 0.33,
+     "deriva_por_mil": 0.076
+    },
+    {
+     "z": 7.92,
+     "u_mm": 4.91,
+     "deriva_por_mil": 1.155
+    },
+    {
+     "z": 11.88,
+     "u_mm": 11.34,
+     "deriva_por_mil": 1.625
+    },
+    {
+     "z": 15.84,
+     "u_mm": 16.42,
+     "deriva_por_mil": 1.283
+    }
+   ],
+   "edificio_2_EY": [
+    {
+     "z": 0.0,
+     "u_mm": 1.49,
+     "deriva_por_mil": 0.377
+    },
+    {
+     "z": 3.96,
+     "u_mm": 4.95,
+     "deriva_por_mil": 0.873
+    },
+    {
+     "z": 7.92,
+     "u_mm": 9.33,
+     "deriva_por_mil": 1.106
+    },
+    {
+     "z": 11.88,
+     "u_mm": 13.99,
+     "deriva_por_mil": 1.176
+    },
+    {
+     "z": 15.84,
+     "u_mm": 18.55,
+     "deriva_por_mil": 1.154
+    }
+   ]
+  },
+  "exceso_punto": {
+   "EX": {
+    "elemento": "E1_241",
+    "edificio": "edificio_1",
+    "z": 7.92,
+    "deriva_punto_por_mil": 0.935,
+    "deriva_cm_por_mil": 0.883,
+    "exceso_por_mil": 0.052
+   },
+   "EY": {
+    "elemento": "E1_294",
+    "edificio": "edificio_1",
+    "z": 11.88,
+    "deriva_punto_por_mil": 2.223,
+    "deriva_cm_por_mil": 1.625,
+    "exceso_por_mil": 0.598
+   }
+  }
+ },
+ "mphi_Mmax_P0": {
+  "10": 596.3,
+  "20": 587.7,
+  "40": 591.1
+ },
+ "pm_columna": {
+  "P0_kN": 16110.0,
+  "phiPmax_kN": 8377.2,
+  "phiMn_P0_kN_m": 460.7,
+  "Mn_fibras_P0_kN_m": 520.7
+ },
+ "pm_muros": {
+  "MURO-020": {
+   "curva": "W_PL_MURO-020",
+   "armado": "doble malla V φ10a20",
+   "rho_percent": 0.393
+  },
+  "MURO-056": {
+   "curva": "W_PL_MURO-056",
+   "armado": "4 mallas V φ12a20 + bordes 5φ32+5φ32 / 5φ32+5φ32+5φ32+5φ32",
+   "rho_percent": 1.532
+  }
+ },
+ "viga_E1_62": {
+  "L_m": 5.0,
+  "Mu_pos_max_reconstruido": 547.23,
+  "Mu_pos_exportado": 547.71
+ },
+ "dcr_curso": {
+  "viga": {
+   "n": 398,
+   "DCR_mayor_1": 0,
+   "DCR_mayor_1_planos": 0,
+   "DCR_max": 0.873,
+   "peor": "B3084_V30/80",
+   "combo_peor": "C2 (+TX +TY)",
+   "top5": [
+    [
+     "B3084_V30/80",
+     0.873,
+     "C2 (+TX +TY)"
+    ],
+    [
+     "B3063_V30/80",
+     0.873,
+     "C2 (+TX +TY)"
+    ],
+    [
+     "E1_193",
+     0.872,
+     "C2 (-TX -TY)"
+    ],
+    [
+     "B3059_V30/80",
+     0.869,
+     "C1 (-TX -TY)"
+    ],
+    [
+     "B3042_V30/80",
+     0.869,
+     "C2 (+TX +TY)"
+    ]
+   ],
+   "gobierna_en_fallas": []
+  },
+  "columna": {
+   "n": 118,
+   "DCR_mayor_1": 0,
+   "DCR_mayor_1_planos": 0,
+   "DCR_max": 0.832,
+   "peor": "E1_291",
+   "combo_peor": "C1 (-TX -TY)",
+   "top5": [
+    [
+     "E1_291",
+     0.832,
+     "C1 (-TX -TY)"
+    ],
+    [
+     "E1_287",
+     0.812,
+     "C2 (-TX -TY)"
+    ],
+    [
+     "E1_283",
+     0.735,
+     "C2 (+TX +TY)"
+    ],
+    [
+     "C5007",
+     0.612,
+     "C2 (+TX +TY)"
+    ],
+    [
+     "C5001",
+     0.609,
+     "C1 (-TX -TY)"
+    ]
+   ],
+   "gobierna_en_fallas": []
+  },
+  "muro": {
+   "n": 91,
+   "C_mayor_1": 0,
+   "fuera_de_curva": 0,
+   "C_max": 0.82,
+   "top5": [
+    [
+     0.82,
+     "MURO-020",
+     "W_PL_MURO-020",
+     "C2",
+     149.4,
+     1566.5
+    ],
+    [
+     0.76,
+     "MURO-091",
+     "W_PL_MURO-091",
+     "C1",
+     -453.7,
+     1451.7
+    ],
+    [
+     0.687,
+     "MURO-018",
+     "W_PL_MURO-018",
+     "C3",
+     5.0,
+     1180.8
+    ],
+    [
+     0.519,
+     "MURO-017",
+     "W_PL_MURO-017",
+     "C2",
+     286.3,
+     1115.8
+    ],
+    [
+     0.506,
+     "MURO-019",
+     "W_PL_MURO-019",
+     "C2",
+     485.8,
+     1215.4
+    ]
+   ]
+  }
+ },
+ "dcr_nch3171": {
+  "viga": {
+   "n": 398,
+   "DCR_mayor_1": 39,
+   "DCR_mayor_1_planos": 22,
+   "DCR_max": 9.99,
+   "peor": "E1_220",
+   "combo_peor": "U6 (+TY)",
+   "top5": [
+    [
+     "E1_220",
+     9.99,
+     "U6 (+TY)"
+    ],
+    [
+     "E1_218",
+     9.99,
+     "U6 (+TY)"
+    ],
+    [
+     "E1_193",
+     1.773,
+     "U6 (-TY)"
+    ],
+    [
+     "E1_194",
+     1.6,
+     "U6 (-TY)"
+    ],
+    [
+     "B3021_V30/80",
+     1.395,
+     "U2"
+    ]
+   ],
+   "gobierna_en_fallas": [
+    [
+     "U2",
+     19
+    ],
+    [
+     "U3 (-TX)",
+     6
+    ],
+    [
+     "U6 (-TY)",
+     5
+    ],
+    [
+     "U4 (+TX)",
+     5
+    ],
+    [
+     "U6 (+TY)",
+     2
+    ],
+    [
+     "U3 (+TX)",
+     2
+    ]
+   ]
+  },
+  "columna": {
+   "n": 118,
+   "DCR_mayor_1": 16,
+   "DCR_mayor_1_planos": 0,
+   "DCR_max": 9.99,
+   "peor": "C1003",
+   "combo_peor": "U10 (-TY)",
+   "top5": [
+    [
+     "C1003",
+     9.99,
+     "U10 (-TY)"
+    ],
+    [
+     "E1_281",
+     1.72,
+     "U9 (+TY)"
+    ],
+    [
+     "E1_301",
+     1.576,
+     "U10 (-TY)"
+    ],
+    [
+     "E1_289",
+     1.442,
+     "U10 (-TY)"
+    ],
+    [
+     "E1_291",
+     1.415,
+     "U3 (-TX)"
+    ]
+   ],
+   "gobierna_en_fallas": [
+    [
+     "U10 (-TY)",
+     7
+    ],
+    [
+     "U9 (+TY)",
+     2
+    ],
+    [
+     "U3 (-TX)",
+     2
+    ],
+    [
+     "U6 (+TY)",
+     2
+    ],
+    [
+     "U3 (+TX)",
+     1
+    ],
+    [
+     "U6 (-TY)",
+     1
+    ],
+    [
+     "U5 (-TY)",
+     1
+    ]
+   ]
+  },
+  "muro": {
+   "n": 91,
+   "C_mayor_1": 20,
+   "fuera_de_curva": 13,
+   "C_max": 99.0,
+   "top5": [
+    [
+     99.0,
+     "MURO-090",
+     "W_PL_MURO-090",
+     "U7",
+     -2814.4,
+     3577.7
+    ],
+    [
+     99.0,
+     "MURO-089",
+     "W_PL_MURO-089",
+     "U7",
+     -5070.3,
+     4042.5
+    ],
+    [
+     99.0,
+     "MURO-088",
+     "W_PL_MURO-088",
+     "U7",
+     -5560.3,
+     3041.2
+    ],
+    [
+     99.0,
+     "MURO-077",
+     "W_PL_MURO-077",
+     "U7",
+     -2813.3,
+     1955.8
+    ],
+    [
+     99.0,
+     "MURO-047",
+     "W_PL_MURO-047",
+     "U8",
+     -1022.6,
+     623.1
+    ]
+   ]
+  }
+ }
+}

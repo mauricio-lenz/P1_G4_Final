@@ -204,6 +204,30 @@ def steel_box_pm_curve(section_id, b, t, fy_mpa=STEEL_FY_MPA, phi=PHI_STEEL):
     }
 
 
+def tributarias_por_piso(data):
+    """Area tributaria y carga de losa (q_G A) por edificio y piso, desde los elementos que reciben
+    losa (vigas y brazos rigidos de muro). Antes se copiaba data["tributaryList"], que solo sumaba
+    las vigas del edificio 1 (las del edificio 2 no tienen nombre de piso)."""
+    import carga_viva_sismo as cvm
+    nodos = {n["id"]: n for n in data.get("nodes", [])}
+    nombres = cvm.floor_name_by_z(data)
+    filas = {}
+    for e in data.get("elements", []):
+        area = float(e.get("areaTributaria") or 0.0)
+        if area <= 0.0 or e.get("nodeI") not in nodos:
+            continue
+        z = round(nodos[e["nodeI"]]["z"], 3)
+        b = "E2" if e.get("sourceBuilding") == "edificio_2" else "E1"
+        f = filas.setdefault((b, z), {"area_total": 0.0, "carga_total": 0.0, "vigas": 0})
+        f["area_total"] += area
+        f["carga_total"] += float(e.get("deadLoad") or 0.0)
+        f["vigas"] += 1
+    out = [dict(v, piso=f"{nombres.get(str(z), f'z={z:.2f}')} · {b}") for (b, z), v in sorted(filas.items())]
+    out.append({"piso": "Total E1 + E2", "area_total": sum(v["area_total"] for v in filas.values()),
+                "carga_total": sum(v["carga_total"] for v in filas.values()), "vigas": sum(v["vigas"] for v in filas.values())})
+    return out
+
+
 def load_json(path):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
@@ -393,6 +417,26 @@ def main():
             print(f"  ERROR: {e}")
             base_results[case_name] = None
 
+    # Torsion accidental NCh433 6.2.8: casos de torsor puro TX (con el sismo X) y TY (con el sismo Y).
+    # No se muestran como casos en Unity: entran a la capacidad como variantes C +/- |lambda_EX| TX +/- |lambda_EY| TY.
+    torsion_results = {}
+    for case_name in ("TX", "TY"):
+        cargas = cvm.vector_loads_from_dict(seismic.get("cargas_nodales_" + case_name, {}))
+        if cargas and any(abs(v[-1]) > 0 for v in cargas.values()):
+            print(f"\nAnalizando torsion accidental {case_name}...")
+            torsion_results[case_name] = cvm.run_and_extract(data, cargas)
+
+    def variantes_torsion(lambdas, f_combo, elem_id):
+        """[(etiqueta, fuerzas)] de la combinacion con la torsion accidental en los dos sentidos."""
+        variantes = [("", list(f_combo))]
+        for case_name, lam in (("TX", lambdas.get("EX", 0.0)), ("TY", lambdas.get("EY", 0.0))):
+            f_t = ((torsion_results.get(case_name) or {}).get("element_forces") or {}).get(elem_id)
+            if not lam or not f_t:
+                continue
+            variantes = [(f"{et} {'+' if sg > 0 else '-'}{case_name}".strip(), [a + sg * abs(lam) * b for a, b in zip(f, f_t)])
+                         for et, f in variantes for sg in (1.0, -1.0)]
+        return variantes
+
     all_results = {}
     for combo_name, lambdas in combos.items():
         print(f"\nAnalizando combinacion {combo_name}...")
@@ -460,12 +504,25 @@ def main():
         for combo_name, lambdas in combos.items():
             f = ((all_results.get(combo_name) or {}).get("element_forces") or {}).get(el_out["id"])
             if f:
-                fbc[combo_name] = f
-                wbc[combo_name] = cvm.gravity_w(el_out, nodes_by_id, lambdas) if el_out.get("type") == "viga" else 0.0
+                w = cvm.gravity_w(el_out, nodes_by_id, lambdas) if el_out.get("type") == "viga" else 0.0
+                for etiqueta, f_var in variantes_torsion(lambdas, f, el_out["id"]):
+                    fbc[f"{combo_name}|{etiqueta}"] = f_var
+                    wbc[f"{combo_name}|{etiqueta}"] = w
         apoyos = cha.zonas_apoyo(el_out, nodes_by_id, indice) if el_out.get("type") == "viga" else None
         cap = cha.evaluar(el_out, fbc, wbc, length, arm, nodes_by_id, apoyos)
         if not cap:
             continue
+        # una fila por combinacion (Unity las busca por nombre): la variante de torsion mas desfavorable
+        peores = {}
+        for row in cap.get("porCombo", []):
+            base, etiqueta = row["combo"].split("|", 1)
+            dcr = max(v for k, v in row.items() if k.startswith("DCR"))
+            if base not in peores or dcr > peores[base][0]:
+                peores[base] = (dcr, dict(row, combo=base, torsionAccidental=etiqueta))
+        cap["porCombo"] = [peores[c][1] for c in combos if c in peores]
+        if cap.get("comboGobernante"):
+            base, etiqueta = cap["comboGobernante"].split("|", 1)
+            cap["comboGobernante"] = f"{base} ({etiqueta})" if etiqueta else base
         if "curvaPM" in cap:
             cid = "{}_{}".format(el_out.get("sectionId"), cap["armadura"].get("barras", "")).replace("φ", "f")
             col_curves[cid] = {"puntos": cap.pop("curvaPM"), "P0": cap.get("P0_kN", 0.0), "arm": dict(cap["armadura"]),
@@ -720,34 +777,46 @@ def main():
     # la demanda sale de las fuerzas del elemento del muro en cada combinacion.
     wall_elements = {int(e["wallIndex"]): e for e in data.get("elements", []) if e.get("type") == "muro" and e.get("wallIndex")}
 
-    def analysis_demands(wall):
+    def analysis_demands(wall, puntos=None):
         e = wall_elements.get(int(wall.get("id", 0)))
         if e is None:
             return None
         out = []
-        for combo_name in combos:
+        for combo_name, lambdas in combos.items():
             res = all_results.get(combo_name) or {}
-            f = (res.get("element_forces") or {}).get(e["id"])
-            if not f or len(f) < 12:
+            f0 = (res.get("element_forces") or {}).get(e["id"])
+            if not f0 or len(f0) < 12:
                 continue
             # columna vertical: local y = -Y, z = +X. Muro a lo largo de X: plano (Vz, My); a lo largo de Y: (Vy, Mz)
             in_x = e.get("wallInPlaneAxis", "X") == "X"
             k_v, k_m = (2, 4) if in_x else (1, 5)
-            p_comp = 0.5 * (f[0] - f[6])                     # compresion +, N al centro del pano
-            m_base = max(abs(f[k_m]), abs(f[6 + k_m]))     # momento en el plano, el mayor de base y tope
-            v_plano = -f[k_v]                               # corte en el plano en la base (signo del caso)
+            mejor = None
+            for etiqueta, f in variantes_torsion(lambdas, f0, e["id"]):
+                p_comp = 0.5 * (f[0] - f[6])                     # compresion +, N al centro del pano
+                m_base = max(abs(f[k_m]), abs(f[6 + k_m]))     # momento en el plano, el mayor de base y tope
+                v_plano = -f[k_v]                               # corte en el plano en la base (signo del caso)
+                if puntos:
+                    cap_m = cha_m.m_capacidad(puntos, p_comp)
+                    uso = m_base / cap_m if cap_m > 0 else 99.0
+                else:
+                    uso = m_base
+                if mejor is None or uso > mejor[0]:
+                    mejor = (uso, etiqueta, p_comp, m_base, v_plano)
+            _, etiqueta, p_comp, m_base, v_plano = mejor
             out.append({
                 "combo": combo_name,
                 "P_kN": round(p_comp, 2),
                 "M_kN_m": round(m_base, 2),
                 "V_kN": round(v_plano, 2),
+                "torsionAccidental": etiqueta,
                 "note": f"Muro {e['elementTag'][2:]} ({e.get('sourceBuilding')}): fuerzas del analisis OpenSees "
-                        f"(columna ancha {e.get('sectionId')}, elemento {e['id']}), M en el plano del muro ({'X' if in_x else 'Y'})."
+                        f"(columna ancha {e.get('sectionId')}, elemento {e['id']}), M en el plano del muro ({'X' if in_x else 'Y'})"
+                        + (f"; con torsion accidental {etiqueta} (la mas desfavorable)." if etiqueta else ".")
             })
         return out
 
-    def demands_for_wall(wall):
-        analysed = analysis_demands(wall)
+    def demands_for_wall(wall, puntos=None):
+        analysed = analysis_demands(wall, puntos)
         if analysed is not None:
             return analysed
         if not wall_pm_data:
@@ -807,7 +876,8 @@ def main():
         entry["elementTag"] = "MURO-{:03d}".format(i + 1)
         entry["sourceBuilding"] = wall.get("sourceBuilding", "edificio_1")
         entry["sourceId"] = wall.get("sourceId", str(i + 1))
-        entry["demands"] = demands_for_wall(entry)
+        curva_muro = next((c for c in pm_curves if c["sectionId"] == wall_curve_id.get(id(wall))), None)
+        entry["demands"] = demands_for_wall(entry, curva_muro["points"] if curva_muro else None)
         walls_enriched.append(entry)
         wall_registry.append({
             "index": i + 1,
@@ -961,7 +1031,7 @@ def main():
         "diaphragmList": data.get("diaphragmList", []),
         "slabs": data.get("slabs", []),
         "pointLoads": data.get("pointLoads", []),
-        "tributaryList": data.get("tributaryList", [])
+        "tributaryList": tributarias_por_piso(data)
     }
 
     # ── Guardar ──────────────────────────────────────────────────────

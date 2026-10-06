@@ -586,18 +586,43 @@ def build_seismic_cases(data, live_transfer, seismic):
         for k in keys:
             force[(k, "X")] = force[(k, "Y")] = seismic["C"] * weight[k]
 
-    ex_nodal = {}
-    ey_nodal = {}
+    # Centro de masa de cada diafragma con los pesos nodales D + fraccionQ*Q (NCh433 aplica la fuerza ahi;
+    # antes se usaba el centroide de los nodos, que en el edificio 1 quedaba ~5 m al oeste del CM real).
+    peso_nodo = dict(nodal_vertical_kN(data, dead_nodal_loads(data)))
+    for beam in live_transfer["vigas"]:
+        for nid in (beam["nodeI"], beam["nodeJ"]):
+            peso_nodo[nid] = peso_nodo.get(nid, 0.0) + fraction_q * abs(beam["nodal_Fz_each_kN"])
+    # torsion accidental del metodo estatico (NCh433 6.2.8): Mz = F_k * (+/-0.10 b_k Z_k / H), b_k = dimension
+    # de la planta perpendicular al sismo; se arma como casos de torsor puro TX (sismo X) y TY (sismo Y)
+    altura = {r["edificio"]: (r["z_base_m"], r["H_m"]) for r in by_building}
+    ex_nodal, ey_nodal, tx_nodal, ty_nodal = {}, {}, {}, {}
     floor_rows = []
     for key in keys:
         building, floor = key
         diaphragm = diaphragms[key]
-        cm_x, cm_y = diaphragm["cm"]
+        ids = [diaphragm["master"]] + list(diaphragm["slaves"])
+        w_ids = sum(peso_nodo.get(i, 0.0) for i in ids)
+        cx_nodos, cy_nodos = diaphragm["cm"]
+        if w_ids > 0.0:
+            cm_x = sum(nodes[i]["x"] * peso_nodo.get(i, 0.0) for i in ids) / w_ids
+            cm_y = sum(nodes[i]["y"] * peso_nodo.get(i, 0.0) for i in ids) / w_ids
+        else:
+            cm_x, cm_y = cx_nodos, cy_nodos
         application_node = nodes[diaphragm["master"]]
         f_x, f_y = force[(key, "X")], force[(key, "Y")]
         w = weight[key]
-        ex_nodal[str(application_node["id"])] = {"Fx": f_x, "Fy": 0.0, "Fz": 0.0}
-        ey_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": f_y, "Fz": 0.0}
+        # fuerza en el CM = misma fuerza en el nodo maestro + torsor Mz = r x F (r del maestro al CM)
+        mz_ex = -(cm_y - application_node["y"]) * f_x
+        mz_ey = (cm_x - application_node["x"]) * f_y
+        ex_nodal[str(application_node["id"])] = {"Fx": f_x, "Fy": 0.0, "Fz": 0.0, "Mz": mz_ex}
+        ey_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": f_y, "Fz": 0.0, "Mz": mz_ey}
+        b_x = max(nodes[i]["x"] for i in ids) - min(nodes[i]["x"] for i in ids)
+        b_y = max(nodes[i]["y"] for i in ids) - min(nodes[i]["y"] for i in ids)
+        z_base, h_tot = altura.get(building, (0.0, 0.0))
+        fz = (floor - z_base) / h_tot if nch and h_tot > 0 else 0.0
+        e_acc_y, e_acc_x = 0.10 * b_y * fz, 0.10 * b_x * fz
+        tx_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": 0.0, "Fz": 0.0, "Mz": f_x * e_acc_y}
+        ty_nodal[str(application_node["id"])] = {"Fx": 0.0, "Fy": 0.0, "Fz": 0.0, "Mz": f_y * e_acc_x}
         floor_group = [str(floor)]
         floor_rows.append({
             "piso": f"{floor_label(floor_group, floor, floor_names)} [{building}]",
@@ -614,9 +639,13 @@ def build_seismic_cases(data, live_transfer, seismic):
             "F_EX_kN": f_x,
             "F_EY_kN": f_y,
             "centro_masa_estimado": {"x": cm_x, "y": cm_y, "z": float(floor)},
+            "centroide_nodos": {"x": cx_nodos, "y": cy_nodos},
             "nodo_aplicacion": application_node["id"],
-            "torsion_EX_respecto_CM_kN_m": f_x * (application_node["y"] - cm_y),
-            "torsion_EY_respecto_CM_kN_m": -f_y * (application_node["x"] - cm_x),
+            "Mz_EX_traslado_al_CM_kN_m": mz_ex,
+            "Mz_EY_traslado_al_CM_kN_m": mz_ey,
+            "dimension_planta_m": {"x": b_x, "y": b_y},
+            "excentricidad_accidental_m": {"sismo_X": e_acc_y, "sismo_Y": e_acc_x},
+            "Mz_torsion_accidental_kN_m": {"TX": f_x * e_acc_y, "TY": f_y * e_acc_x},
         })
 
     total_ex = sum(row["F_EX_kN"] for row in floor_rows)
@@ -636,12 +665,15 @@ def build_seismic_cases(data, live_transfer, seismic):
         "corte_basal_EY_kN": total_ey,
         "cargas_nodales_EX": ex_nodal,
         "cargas_nodales_EY": ey_nodal,
+        "cargas_nodales_TX": tx_nodal,
+        "cargas_nodales_TY": ty_nodal,
         "verificaciones": {
             "carga_lateral_total_igual_corte_basal_EX": abs(total_ex - sum(v["Fx"] for v in ex_nodal.values())) < 1e-9,
             "carga_lateral_total_igual_corte_basal_EY": abs(total_ey - sum(v["Fy"] for v in ey_nodal.values())) < 1e-9,
             "sentido_deformada_esperado_EX": "+X para coeficiente positivo",
             "sentido_deformada_esperado_EY": "+Y para coeficiente positivo",
-            "torsion": "Se reporta como F por excentricidad del nodo de aplicacion respecto del CM estimado (sin torsion accidental).",
+            "torsion": "EX y EY actuan en el centro de masa (pesos D + fraccionQ*Q): en el nodo maestro se aplican la fuerza y el torsor Mz equivalente. "
+                       "Torsion accidental NCh433 6.2.8 en los casos TX y TY (Mz = F_k * 0.10 b_k Z_k / H); la capacidad toma el signo mas desfavorable.",
             "diafragma": "Diafragma rigido por edificio y piso (rigidDiaphragm); la fuerza de cada edificio se aplica en su nodo maestro.",
         },
     }
@@ -923,18 +955,28 @@ def dead_nodal_loads(data):
 
 
 def vector_loads_from_dict(loads):
-    return {int(node): [float(vec.get("Fx", 0.0)), float(vec.get("Fy", 0.0)), float(vec.get("Fz", 0.0))] for node, vec in loads.items()}
+    """{nodo: {"Fx", "Fy", "Fz"(, "Mz")}} -> {nodo: [Fx, Fy, Fz]} o [Fx, Fy, Fz, 0, 0, Mz] si hay momento torsor."""
+    out = {}
+    for node, vec in loads.items():
+        v = [float(vec.get("Fx", 0.0)), float(vec.get("Fy", 0.0)), float(vec.get("Fz", 0.0))]
+        if abs(float(vec.get("Mz", 0.0))) > 0.0:
+            v += [0.0, 0.0, float(vec["Mz"])]
+        out[int(node)] = v
+    return out
 
 
 def combine_nodal_loads(load_sets, lambdas):
     node_ids = sorted({node for loads in load_sets.values() for node in loads})
-    combined = {node: [0.0, 0.0, 0.0] for node in node_ids}
+    largo = {node: 3 for node in node_ids}
+    for loads in load_sets.values():
+        for node, vec in loads.items():
+            largo[node] = max(largo[node], len(vec))
+    combined = {node: [0.0] * largo[node] for node in node_ids}
     for case, loads in load_sets.items():
         factor = lambdas.get(case, 0.0)
         for node, vec in loads.items():
-            combined[node][0] += factor * vec[0]
-            combined[node][1] += factor * vec[1]
-            combined[node][2] += factor * vec[2]
+            for k, v in enumerate(vec):
+                combined[node][k] += factor * v
     return combined
 
 

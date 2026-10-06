@@ -57,15 +57,15 @@
   },
   "EX": {
     "aplicada_kN": 9174.482993049443,
-    "reaccion_kN": 9174.482991185732,
-    "error_kN": 1.863711077021435e-06,
+    "reaccion_kN": 9174.48299115788,
+    "error_kN": 1.891563442768529e-06,
     "ok": true,
     "esperado_kN": 9174.482993049443
   },
   "EY": {
     "aplicada_kN": 6639.760509506739,
-    "reaccion_kN": 6639.760509231415,
-    "error_kN": 2.753240551101044e-07,
+    "reaccion_kN": 6639.760509278631,
+    "error_kN": 2.2810854716226459e-07,
     "ok": true,
     "esperado_kN": 6639.760509506739
   },
@@ -75,7 +75,7 @@
       "C2",
       "C3"
     ],
-    "max_err_global": 1.065018295776099e-09,
+    "max_err_global": 2.3637767299078405e-09,
     "valida": true
   },
   "M_phi": {
@@ -104,10 +104,10 @@
     "peor": {
       "elementTag": "E1_291",
       "combo": "C1",
-      "P_kN": 397.5539020939898,
-      "M_kN_m": 476.1213312202781,
-      "Mcap_kN_m": 575.8119742621781,
-      "C": 0.8268694513176119
+      "P_kN": 399.779056455129,
+      "M_kN_m": 474.1688740515645,
+      "Mcap_kN_m": 576.4518001540459,
+      "C": 0.8225646514155247
     },
     "ok": true
   },
@@ -118,13 +118,13 @@
       "muro": "MURO-020",
       "curva": "W_PL_MURO-020",
       "combo": "C2",
-      "P_kN": 152.55,
-      "M_kN_m": 1567.15,
-      "Mcap_kN_m": 1914.8206141963958,
-      "C": 0.8184317572002405
+      "P_kN": 149.37,
+      "M_kN_m": 1566.47,
+      "Mcap_kN_m": 1910.0336557557928,
+      "C": 0.8201269099523558
     },
     "ok": true,
-    "nota": "demanda del analisis OpenSees (columna ancha); curva escalada por geometria de cada muro (misma cuantia)"
+    "nota": "demanda del analisis OpenSees (columna ancha); curva de diseno ACI 318-19 de cada muro con su malla y barras de borde de los planos (W_PL_) o doble malla f12a20 supuesta (W_DM_)"
   },
   "IDs_Unity": {
     "elementos": 1023,

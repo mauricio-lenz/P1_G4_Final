@@ -1,0 +1,16 @@
+{
+  "descripcion": "Combinaciones de diseno NCh3171 (LRFD) con el sismo NCh433, usadas SOLO en la verificacion de sensibilidad del informe final (seccion 12). El analisis principal y Unity usan data/combinaciones.json. Uso: python -X utf8 Proyecto1/scripts/exportar_resultados_unity.py --combos Proyecto1/data/combinaciones_nch3171.json --out <tmp>.json",
+  "origen": "NCh3171: 1.4D; 1.2D + 1.6L; 1.2D + 1.0L +- 1.4E; 0.9D +- 1.4E, con E = EX o EY por separado (sin 30 % ortogonal).",
+  "combinaciones": [
+    {"name": "U1", "G": 1.4, "Q": 0.0, "EX": 0.0, "EY": 0.0},
+    {"name": "U2", "G": 1.2, "Q": 1.6, "EX": 0.0, "EY": 0.0},
+    {"name": "U3", "G": 1.2, "Q": 1.0, "EX": 1.4, "EY": 0.0},
+    {"name": "U4", "G": 1.2, "Q": 1.0, "EX": -1.4, "EY": 0.0},
+    {"name": "U5", "G": 1.2, "Q": 1.0, "EX": 0.0, "EY": 1.4},
+    {"name": "U6", "G": 1.2, "Q": 1.0, "EX": 0.0, "EY": -1.4},
+    {"name": "U7", "G": 0.9, "Q": 0.0, "EX": 1.4, "EY": 0.0},
+    {"name": "U8", "G": 0.9, "Q": 0.0, "EX": -1.4, "EY": 0.0},
+    {"name": "U9", "G": 0.9, "Q": 0.0, "EX": 0.0, "EY": 1.4},
+    {"name": "U10", "G": 0.9, "Q": 0.0, "EX": 0.0, "EY": -1.4}
+  ]
+}

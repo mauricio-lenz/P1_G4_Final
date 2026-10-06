@@ -56,7 +56,7 @@ El segundo lee las elevaciones 300-310 (2017_67) y 300-305 (2024_22). Saca las b
 **3. Ejecutar los tests y el QA.**
 
 ```bat
-python -m pytest                  :: 50 tests, unos 40 s
+python -m pytest                  :: 53 tests, unos 75 s
 python -m pytest -m "not lento"   :: sin las corridas completas del exportador, unos 10 s
 python -X utf8 Proyecto1\scripts\qa_semana06.py          :: evidencia en Proyecto1/resultados/qa_semana06.json
 python -X utf8 Proyecto1\scripts\sensibilidad_rigidez.py :: sección bruta vs fisurada
@@ -67,7 +67,7 @@ Lo que cubren los tests:
 | Archivo | Verifica |
 |---|---|
 | `test_modelo.py` | Equilibrio, superposición, unidades, ejes locales, junta sin nodos compartidos, diafragmas |
-| `test_cargas.py` | Conservación del área tributaria, Q por nivel, peso sísmico, C de la NCh433 calculado a mano |
+| `test_cargas.py` | Conservación del área tributaria, Q por nivel, peso sísmico, C de la NCh433 calculado a mano, sismo en el centro de masa y torsión accidental |
 | `test_capacidad.py` | Convergencia del M-φ, puntos ACI de la P-M de columna, Whitney vs fibras, flexión de viga a mano, P-M de diseño de muro a mano (malla y barras de borde) |
 | `test_planos.py` | Barras de la viga E1_62 leídas de los planos y su φMn a mano, caras de apoyo, mapeo de las elevaciones, rótulos de malla y barras de borde en esquinas |
 | `test_unity_json.py` | Integridad del JSON de Unity, que coincida con OpenSees y la trazabilidad de la corrida |
@@ -96,8 +96,10 @@ Lo que cubren los tests:
 También se puede compilar por consola, con Unity cerrado:
 
 ```bat
-Unity.exe -batchmode -quit -force-d3d11 -projectPath Proyecto1\edificio_G4 -executeMethod BuildAndroid.BuildAR
+Unity.exe -batchmode -quit -buildTarget Android -projectPath Proyecto1\edificio_G4 -executeMethod BuildAndroid.BuildAR
 ```
+
+El `-buildTarget Android` es necesario: si la plataforma activa quedó en Windows (por ejemplo, después de compilar el viewer), el plugin de ARCore no se incluye bien y la app no inicia la sesión AR ("Failed to load session subsystem").
 
 Para instalar en el teléfono: `adb install -r P1G4_AR.apk`.
 

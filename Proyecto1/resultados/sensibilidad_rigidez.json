@@ -2,24 +2,19 @@
   "bruta": {
     "factores": "seccion bruta",
     "EX": {
-      "u_max_mm": 18.20957671904588,
-      "deriva_max": 0.0011006421404288805,
-      "corte_muros_pct": 94.86668643482706
+      "u_max_mm": 17.893655720846613,
+      "deriva_max": 0.0010893620515297576,
+      "corte_muros_pct": 94.87992191002141
     },
     "EY": {
-      "u_max_mm": 27.371927107991613,
-      "deriva_max": 0.0017535045506041564,
-      "corte_muros_pct": 100.0859007970653
+      "u_max_mm": 21.87801361750242,
+      "deriva_max": 0.001771783322738757,
+      "corte_muros_pct": 101.49015356793159
     },
     "G_uz_max_mm": 13.213565259058727,
-    "columnas_C_max": 0.7529315605163672,
-    "muros_C_mayor_1": [
-      "W_MURO-013",
-      "W_MURO-088",
-      "W_MURO-089",
-      "W_MURO-090"
-    ],
-    "muros_C_max": 99.0
+    "columnas_C_max": 0.7672348358295309,
+    "muros_C_mayor_1": [],
+    "muros_C_max": 0.887593530454715
   },
   "ACI_fisurada": {
     "factores": {
@@ -28,25 +23,19 @@
       "muro": 0.35
     },
     "EX": {
-      "u_max_mm": 21.595867667714163,
-      "deriva_max": 0.0012937866301523865,
-      "corte_muros_pct": 97.17406594158354
+      "u_max_mm": 20.86175832523377,
+      "deriva_max": 0.0012552374588695482,
+      "corte_muros_pct": 97.18316557197481
     },
     "EY": {
-      "u_max_mm": 32.63320751249862,
-      "deriva_max": 0.002065962304856331,
-      "corte_muros_pct": 101.78590660103151
+      "u_max_mm": 26.085007139217726,
+      "deriva_max": 0.002222843951244545,
+      "corte_muros_pct": 103.63389880005198
     },
     "G_uz_max_mm": 25.86563405811209,
-    "columnas_C_max": 0.7802944327259465,
-    "muros_C_mayor_1": [
-      "W_MURO-013",
-      "W_MURO-088",
-      "W_MURO-089",
-      "W_MURO-090",
-      "W_MURO-091"
-    ],
-    "muros_C_max": 99.0
+    "columnas_C_max": 0.7764571574994547,
+    "muros_C_mayor_1": [],
+    "muros_C_max": 0.8148301024493476
   },
   "muros_no_fisurados": {
     "factores": {
@@ -55,24 +44,18 @@
       "muro": 0.7
     },
     "EX": {
-      "u_max_mm": 20.953947731068403,
-      "deriva_max": 0.001300024824825544,
-      "corte_muros_pct": 97.96845319757637
+      "u_max_mm": 20.3741404419449,
+      "deriva_max": 0.0012684312984497298,
+      "corte_muros_pct": 97.96753962745211
     },
     "EY": {
-      "u_max_mm": 32.7035365743492,
-      "deriva_max": 0.0021423860707076824,
-      "corte_muros_pct": 101.92100746280438
+      "u_max_mm": 26.260280230056257,
+      "deriva_max": 0.0022228073017129834,
+      "corte_muros_pct": 103.47428150051643
     },
     "G_uz_max_mm": 25.828347138063318,
-    "columnas_C_max": 0.7483524190361138,
-    "muros_C_mayor_1": [
-      "W_MURO-013",
-      "W_MURO-088",
-      "W_MURO-089",
-      "W_MURO-090",
-      "W_MURO-091"
-    ],
-    "muros_C_max": 99.0
+    "columnas_C_max": 0.7456590406702123,
+    "muros_C_mayor_1": [],
+    "muros_C_max": 0.941878023348595
   }
 }
