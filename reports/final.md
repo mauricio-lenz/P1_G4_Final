@@ -27,6 +27,8 @@ Para reproducir todo lo que aparece aquí, ver `README.md`. Las cifras y figuras
 
 Modelamos en OpenSees los dos edificios de hormigón armado G35 de los planos del curso: el **edificio 1** (2017_67) y el **edificio 2** (2024_22). Están separados por una junta de dilatación. El modelo se construye y se corrige desde los planos DXF con scripts reproducibles, OpenSees resuelve los casos y combinaciones, y Python verifica la capacidad ACI 318-19 con la armadura leída de los planos. Unity muestra y modifica el modelo, puede pedir un reanálisis, y una app Android lo pone en realidad aumentada sobre la columna E1_243.
 
+*Tabla 1.1: Resultados principales*
+
 | Resultado | Valor |
 |---|---|
 | Modelo | 722 nodos · 1 023 elementos · 78 apoyos |
@@ -35,17 +37,19 @@ Modelamos en OpenSees los dos edificios de hormigón armado G35 de los planos de
 | Armadura | 319 vigas y 81 muros con las barras de los planos; el resto y las columnas, con armadura tipo supuesta |
 | Capacidad (C1 a C3, con torsión accidental) | vigas DCR ≤ 0,87 · columnas ≤ 0,83 · muros C ≤ 0,82: ningún elemento sobre 1 |
 | Capacidad (NCh3171) | 39 vigas, 16 columnas y 20 muros sobre 1 (sensibilidad, sección 12) |
-| QA | 55 tests automáticos y `qa_semana06.py`, todos en verde |
+| QA | 56 tests automáticos y `qa_semana06.py`, todos en verde |
 
 **Conclusión principal:** con las combinaciones del curso ningún elemento supera su capacidad; con las combinaciones de diseño de la NCh3171 sí. Parte de esa diferencia viene de la armadura supuesta y de la idealización de los muros, pero no la descartamos: el modelo es un laboratorio de análisis, no una verificación de diseño del edificio real.
 
 ![Modelo OpenSees de los dos edificios](img/final/modelo_3d.png)
 
-*Figura 1. Modelo analizado. Los muros se dibujan en su eje como columna ancha.*
+*Figura 1.1: Modelo analizado. Los muros se dibujan en su eje como columna ancha.*
 
 ---
 
 ## 2. Edificio e idealización
+
+*Tabla 2.1: Características de los dos edificios*
 
 | | Edificio 1 (2017_67) | Edificio 2 (2024_22) |
 |---|---|---|
@@ -74,6 +78,8 @@ Ambos edificios tienen radier en z = −3,96 y cinco niveles de diafragma cada 3
 
 Todo el modelo sale de los DXF (carpeta `Planos_1_dxf`, fuera del repositorio por su tamaño) mediante tres scripts. Los JSON que generan sí están en el repositorio:
 
+*Tabla 3.1: Scripts que generan el modelo desde los planos*
+
 | Script | Qué hace |
 |---|---|
 | `ajustar_modelo_planos.py` | Aplica **16 ajustes** contrastados con plantas y elevaciones sobre el modelo base. Los más importantes: el edificio 2 venía **reflejado en Y**; faltaban 16 muros y los 21 elementos metálicos; **45 vigas** secundarias no compartían nodo con la viga en que se apoyan; el reparto tributario dejaba sin cargar unos 1 600 m² de losa |
@@ -95,6 +101,8 @@ Resultado: **319 de 398 vigas** y **81 de 91 muros** tienen la armadura del plan
 - **Peso propio:** con γ = 25 kN/m³ (78,5 kN/m³ en los perfiles). En las vigas se cuenta solo el alma bajo la losa, para no contar la losa dos veces.
 
 **Áreas tributarias.** Cada panel de losa se reparte entre las vigas y muros que lo apoyan, con el polígono tributario de cada lado (trapecios y triángulos). La carga de cada viga es q · A / L, repartida; los muros reciben su parte por sus brazos rígidos. La suma de las áreas tributarias es igual al área de losa:
+
+*Tabla 4.1: Áreas tributarias y cargas de losa por piso y edificio*
 
 | Piso | E1: A [m²] | E1: D losa [kN] | E1: Q [kN] | E2: A [m²] | E2: D losa [kN] | E2: Q [kN] |
 |---|---|---|---|---|---|---|
@@ -142,11 +150,13 @@ T* es el período del modo con mayor masa traslacional en cada dirección, segú
 - **Centro de masa:** la fuerza de cada piso actúa en el centro de masa calculado con los pesos nodales D + 0,25Q. En el nodo maestro del diafragma se aplican la fuerza y el torsor equivalente M_z = r × F. Antes usábamos el centroide de los nodos, que en el edificio 1 quedaba 4,6 a 5,0 m al oeste del centro de masa real (10 % del largo de la planta).
 - **Torsión accidental (NCh433 §6.2.8):** torsor M_z = F_k · (±0,10 · b_k · Z_k / H) en cada piso, con b_k la dimensión de la planta perpendicular al sismo. Se resuelve como dos casos de torsor puro, TX y TY. La verificación de capacidad prueba cada combinación con ±TX y ±TY y conserva, para cada elemento, el signo más desfavorable.
 
-| Edificio | Modo | T [s] | UX | UY | P [kN] | Dir. | C sin límites | C usado | Q0 [kN] |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | 3 | 0,422 | **0,588** | 0,003 | 45 898 | X | 0,181 | **0,147 = Cmax** | 6 747,0 |
-| 1 | 1 | 0,684 | 0,005 | **0,455** | 45 898 | Y | 0,092 | 0,092 | 4 212,3 |
-| 2 | 1 | 0,856 | **0,381** | **0,260** | 34 678 | X e Y | 0,067 | **0,070 = Cmin** | 2 427,5 c/u |
+*Tabla 6.1: Análisis modal y coeficiente sísmico NCh433 por edificio*
+
+| Edificio | Modo | T [s] | UX | UY | Dir. | C sin límites | C usado | Q0 [kN] |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 3 | 0,422 | **0,588** | 0,003 | X | 0,181 | **0,147 = Cmax** | 6 747,0 |
+| 1 | 1 | 0,684 | 0,005 | **0,455** | Y | 0,092 | 0,092 | 4 212,3 |
+| 2 | 1 | 0,856 | **0,381** | **0,260** | X e Y | 0,067 | **0,070 = Cmin** | 2 427,5 c/u |
 
 **Modos acoplados del edificio 2.** Los modos 1 y 2 del edificio 2 son diagonales. Revisamos que no fuera un error del modelo:
 
@@ -158,7 +168,7 @@ No cambia el diseño: C queda en Cmin en ambas direcciones.
 
 ![Fuerzas sísmicas por piso](img/final/fuerzas_sismicas_piso.png)
 
-*Figura 2. Fuerza de cada piso (EX / EY) en el nodo maestro del diafragma.*
+*Figura 6.1: Fuerza de cada piso (EX / EY) en el nodo maestro del diafragma.*
 
 **Derivas (NCh433 §5.9):**
 
@@ -169,7 +179,7 @@ Ambas cumplen.
 
 ![Derivas en el centro de masa](img/final/derivas_cm.png)
 
-*Figura 3. Deriva de entrepiso en el nodo maestro de cada diafragma.*
+*Figura 6.2: Deriva de entrepiso en el nodo maestro de cada diafragma.*
 
 ---
 
@@ -189,6 +199,8 @@ Como el análisis es lineal, cada combinación resuelta directamente en OpenSees
 
 ## 8. Análisis global y verificaciones
 
+*Tabla 8.1: Equilibrio global por caso de carga*
+
 | Caso | Carga aplicada [kN] | Σ reacciones [kN] | Error [kN] |
 |---|---|---|---|
 | G | 75 700,94 | 75 700,94 | 2,3·10⁻⁹ |
@@ -206,6 +218,8 @@ También se verifican automáticamente (sección 18):
 
 **Sensibilidad a la rigidez** (`sensibilidad_rigidez.py`, recalculando T* y C en cada escenario):
 
+*Tabla 8.2: Sensibilidad a la rigidez*
+
 | Escenario | u máx EX / EY [mm] | Deriva máxima en cualquier columna o muro, EX / EY | Corte que toman los muros |
 |---|---|---|---|
 | Sección bruta | 17,9 / 21,9 | 1,09 ‰ / 1,77 ‰ | 95 % / 101 % |
@@ -213,11 +227,31 @@ También se verifican automáticamente (sección 18):
 
 La fisuración aumenta los desplazamientos cerca de 20 %. Los muros toman prácticamente todo el corte basal. La deriva de 2,22 ‰ es la de un punto, no la del centro de masa: el control de la norma es el de la sección 6.
 
+**Comparación con ETABS (solo referencia).** El profesor entregó resultados de ETABS de los dos edificios (LT1 y LT2, que suponemos iguales a nuestros edificios 1 y 2). No ajustamos el modelo para calzar con ellos: el modelo sigue los planos y la norma, y la diferencia se informa tal cual.
+
+*Tabla 8.3: Comparación con los modelos ETABS del profesor*
+
+| Resultado | E1: ETABS | E1: nuestro | Dif. | E2: ETABS | E2: nuestro | Dif. |
+|---|---|---|---|---|---|---|
+| T del modo Y [s] | 0,640 | 0,684 | +7 % | 0,628 | 0,759 | +21 % |
+| T del modo X [s] | 0,475 | 0,422 | −11 % | 0,735 | 0,856 | +16 % |
+| Carga muerta [kN] | 47 140 | 42 230 | −10 % | 34 723 | 31 875 | −8 % |
+| Carga viva [kN] | 11 620 | 14 672 | +26 % | 11 097 | 11 214 | +1 % |
+| Sismo EX [kN] | 6 594 | 6 747 | +2 % | 2 953 | 2 427 | −18 % |
+| Sismo EY [kN] | 4 331 | 4 212 | −3 % | 3 681 | 2 427 | −34 % |
+
+- **Edificio 1:** el corte basal coincide a ±3 % y los períodos a cerca de 10 %, con el mismo orden de modos (Y, torsión, X).
+- **Edificio 2:** nuestro modelo es 16 a 21 % más flexible. Con T* más largo, C queda en Cmin = 0,07 en ambas direcciones, mientras que el C equivalente de ETABS es 0,08 en X y 0,10 en Y; por eso EY es 34 % menor. La causa probable es la idealización de los muros como columna ancha y el acople torsional de sus modos (sección 6).
+- **Masas:** nuestra carga muerta es menos de 10 % menor. La carga viva del edificio 1 es 26 % mayor; puede deberse a otra sobrecarga o a que la división entre LT1 y LT2 no coincide con nuestra junta. El resumen de ETABS solo trae resultados, así que no pudimos confirmar la causa.
+- **Modos:** ETABS llega al 90 % de masa participante con 6 a 8 de sus 64 modos; nosotros, con 12 modos, llegamos a entre 60 y 86 %. No afecta al análisis estático, que solo usa T*.
+
 ---
 
 ## 9. Fiber Sections
 
 La sección de fibras representa la columna tipo **COL70/70 con 8φ25** (ρ = 0,80 %):
+
+*Tabla 9.1: Sección de fibras de la COL70/70*
 
 | Componente | Modelo |
 |---|---|
@@ -235,6 +269,8 @@ Los 8φ25 son **armadura supuesta**. Los planos no traen cuadro de pilares, y la
 
 La curva se calcula con P = 0 y se corta cuando la fibra más comprimida llega a ε_cu = 0,0035.
 
+*Tabla 10.1: Convergencia de la malla de fibras*
+
 | Malla | M_max [kN·m] | φ en M_max [1/m] |
 |---|---|---|
 | 10 × 10 | 596,3 | 0,072 |
@@ -245,7 +281,7 @@ La malla vigente difiere 0,6 % de la de 40 × 40.
 
 ![M-phi de la COL70/70](img/final/mphi_col70.png)
 
-*Figura 4. M-φ de la COL70/70 con P = 0.*
+*Figura 10.1: M-φ de la COL70/70 con P = 0.*
 
 La curva tiene dos quiebres:
 
@@ -274,7 +310,7 @@ Después sigue casi plana hasta el aplastamiento. La ductilidad de curvatura es 
 
 ![P-M de la columna](img/final/pm_columna.png)
 
-*Figura 5. P-M de la COL70/70 con las demandas de las 118 columnas en C1 a C3 (momento resultante √(M_y² + M_z²)).*
+*Figura 11.1: P-M de la COL70/70 con las demandas de las 118 columnas en C1 a C3 (momento resultante √(M_y² + M_z²)).*
 
 Los pilares metálicos usan la interacción AISC 360 H1-1, sin pandeo.
 
@@ -288,7 +324,7 @@ Los 10 muros sin elevación usan doble malla φ12 @ 20 supuesta. Antes las curva
 
 ![P-M de muros](img/final/pm_muros.png)
 
-*Figura 6. Curvas de diseño de MURO-020 (el de mayor uso) y MURO-056 (eje A', 4 mallas y bordes 5φ32).*
+*Figura 11.2: Curvas de diseño de MURO-020 (el de mayor uso) y MURO-056 (eje A', 4 mallas y bordes 5φ32).*
 
 ---
 
@@ -304,6 +340,8 @@ Los 10 muros sin elevación usan doble malla φ12 @ 20 supuesta. Antes las curva
 
 **Resultados con C1 a C3:**
 
+*Tabla 12.1: Demanda/capacidad con las combinaciones C1 a C3*
+
 | Elemento | N | DCR > 1 | DCR máximo |
 |---|---|---|---|
 | Vigas | 398 | 0 | 0,873 (B3063, V30/80 del edificio 2, armadura tipo) |
@@ -312,7 +350,7 @@ Los 10 muros sin elevación usan doble malla φ12 @ 20 supuesta. Antes las curva
 
 ![Histogramas de DCR](img/final/dcr_histogramas.png)
 
-*Figura 7. Distribución de demanda/capacidad con C1 a C3 (azul) y con NCh3171 (naranjo).*
+*Figura 12.1: Distribución de demanda/capacidad con C1 a C3 (azul) y con NCh3171 (naranjo).*
 
 **Ejemplo a mano: viga E1_62** (V60/80, eje 2, x = 25 a 30 m, CIELO_2, elevación 2017_67-302). En la cara del apoyo pasan 12φ25 inferiores en tres capas de 2, 6 y 4 barras:
 
@@ -326,7 +364,7 @@ El programa da el mismo valor. Con M_u⁺ = 547,7 kN·m (C1 con +TX +TY), la vig
 
 ![Perfil de capacidad de E1_62](img/final/viga_E1_62.png)
 
-*Figura 8. φM_n⁺ y −φM_n⁻ a lo largo de E1_62 con M_u(x) de C1 a C3 (sin la torsión accidental, que agrega 0,1 %).*
+*Figura 12.2: φM_n⁺ y −φM_n⁻ a lo largo de E1_62 con M_u(x) de C1 a C3 (sin la torsión accidental, que agrega 0,1 %).*
 
 ### Sensibilidad: combinaciones de diseño NCh3171
 
@@ -336,6 +374,8 @@ Repetimos la verificación con las 10 combinaciones de diseño de la NCh3171 (`d
 - 1,2D + 1,6L;
 - 1,2D + L ± 1,4E;
 - 0,9D ± 1,4E, con E = EX o EY.
+
+*Tabla 12.2: Demanda/capacidad con las combinaciones de diseño NCh3171*
 
 | Elemento | DCR > 1 | Máximo | Causa principal |
 |---|---|---|---|
@@ -353,6 +393,8 @@ Los dos artefactos son las vigas del voladizo, E1_218 y E1_220. El plano les dib
 
 Unity (6000.6, proyecto `Proyecto1/edificio_G4`) es la interfaz del laboratorio. No calcula: todo lo estructural lo resuelve Python y OpenSees, y Unity lee el JSON de resultados (`Assets/Resources/estructura_p1l4_unity.json`).
 
+*Tabla 13.1: Unity como preprocesador y postprocesador*
+
 | Rol | Qué hace |
 |---|---|
 | **Preprocesador** | Edita los parámetros del análisis (Q, Q de cubierta, q_G, sismo NCh433, rigidez fisurada), las combinaciones, la sección de un elemento y su armadura, y quita elementos. *Reanalizar* envía esos cambios a Python (sección 15) |
@@ -364,11 +406,13 @@ Los esfuerzos internos a lo largo de cada barra se interpolan entre los extremos
 
 ![Parámetros y utilización en el viewer](img/final/viewer_analisis.jpg)
 
-*Figura 9. Pestaña ANÁLISIS con los parámetros del modelo (izquierda) y mapa de utilización P-M de los muros (derecha), con el panel de MURO-013 y su armadura del plano.*
+*Figura 13.1: Pestaña ANÁLISIS con los parámetros del modelo (izquierda) y mapa de utilización P-M de los muros (derecha), con el panel de MURO-013 y su armadura del plano.*
 
 ---
 
 ## 14. Visualización de apoyos, cargas, ejes y diagramas
+
+*Tabla 14.1: Capas y vistas del viewer*
 
 | Capa o vista | Qué muestra |
 |---|---|
@@ -383,13 +427,15 @@ Los esfuerzos internos a lo largo de cada barra se interpolan entre los extremos
 
 ![Capas del viewer](img/final/viewer_capas.jpg)
 
-*Figura 10. Ejes de grilla de los planos, diafragmas con su fuerza sísmica, cargas EX por piso y diagrama de momento en C1 con el panel de la viga E1_72.*
+*Figura 14.1: Ejes de grilla de los planos, diafragmas con su fuerza sísmica, cargas EX por piso y diagrama de momento en C1 con el panel de la viga E1_72.*
 
 ---
 
 ## 15. Modificación del modelo
 
 Todas las modificaciones siguen la misma cadena: interfaz → archivo de cambios → Python valida → OpenSees reanaliza → JSON nuevo → Unity lo recarga.
+
+*Tabla 15.1: Modificaciones del modelo desde Unity*
 
 | Modificación | Dónde | Efecto |
 |---|---|---|
@@ -417,15 +463,17 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 - **Modos:** 1:1 sobre la columna, con el sector de la sala del voladizo; maqueta 1:100 sobre una mesa; y sobre el plano impreso, que sirve para verificar la geometría.
 - **Resultados:** tocando una barra se ven N, V y M, el desplazamiento, la demanda P-M y la carga tributaria del caso o combinación activa. El teléfono no corre OpenSees: lee el mismo JSON del viewer.
 
-**Precisión.** La app mide en vivo el registro entre la imagen detectada y el anchor. En el Galaxy S24, con el marcador impreso de 20 cm a 0,39 m (figura 11), el desfase fue de 10,6 mm y 2,6°, con un ruido de 2,4 mm. Con esos valores, el error estimado es de unos 5 cm a 1 m del marcador y de 19 cm a 4 m. El error angular domina: cada grado son 1,75 cm por metro, por eso el modo 1:1 es confiable cerca del marcador y conviene volver a anclar lejos de él. El arrastre que vimos al principio venía de los sensores de movimiento del teléfono, que la app recibía a 6 Hz; se corrigió pidiéndolos a 200 Hz.
+**Precisión.** La app mide en vivo el registro entre la imagen detectada y el anchor. En el Galaxy S24, con el marcador impreso de 20 cm a 0,39 m (figura 16.1), el desfase fue de 10,6 mm y 2,6°, con un ruido de 2,4 mm. Con esos valores, el error estimado es de unos 5 cm a 1 m del marcador y de 19 cm a 4 m. El error angular domina: cada grado son 1,75 cm por metro, por eso el modo 1:1 es confiable cerca del marcador y conviene volver a anclar lejos de él. El arrastre que vimos al principio venía de los sensores de movimiento del teléfono, que la app recibía a 6 Hz; se corrigió pidiéndolos a 200 Hz.
 
 ![AR en el teléfono](img/final/ar_telefono.jpg)
 
-*Figura 11. App de AR en el Galaxy S24 con el marcador impreso de E1_243, en modo maqueta 1:100 y combinación C1. El panel derecho muestra los esfuerzos, el desplazamiento y la demanda P-M de la columna E1_243 (C = 0,17); el izquierdo, el registro marcador-anchor medido en vivo.*
+*Figura 16.1: App de AR en el Galaxy S24 con el marcador impreso de E1_243, en modo maqueta 1:100 y combinación C1. El panel derecho muestra los esfuerzos, el desplazamiento y la demanda P-M; el izquierdo, el registro marcador-anchor medido en vivo.*
 
 ---
 
 ## 17. Sidequests implementados
+
+*Tabla 17.1: Sidequests implementados*
 
 | Sidequest | Qué hace | Verificación |
 |---|---|---|
@@ -435,12 +483,15 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 | **Armadura desde los planos** | Lectura automática de las barras de vigas y muros desde las elevaciones DXF | 5 tests en `test_planos.py` y cálculo a mano de E1_62 |
 | **Ejes de grilla desde los planos** | 40 ejes principales y secundarios en el viewer | `test_capas_de_la_demo` |
 | **Buscador y mapa de utilización** | Buscar un elemento por id o tag y colorear por demanda/capacidad | — |
+| **Modo fachada** | Botón *Fachada* que recrea el edificio real (muro cortina, fachada naranja, escaleras de los planos 2017_67-500 a 503 y entorno). Es solo visual | No modifica datos ni resultados; *Quitar fachada* deja el modelo como estaba |
 
 ---
 
 ## 18. QA y tests
 
-**Tests automáticos** (`python -m pytest`; 55 tests, unos 75 s; los marcados `lento` corren el exportador completo):
+**Tests automáticos** (`python -m pytest`; 56 tests, unos 75 s; los marcados `lento` corren el exportador completo):
+
+*Tabla 18.1: Tests automáticos*
 
 | Archivo | N | Qué verifica |
 |---|---|---|
@@ -450,7 +501,7 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 | `test_planos.py` | 5 | Barras de E1_62 y su φM_n, caras de apoyo, mapeo de las elevaciones, mallas y barras de borde |
 | `test_unity_json.py` | 9 | Integridad y trazabilidad del JSON, igualdad con OpenSees, panel de áreas tributarias, flecha de vigas como la calcula Unity |
 | `test_h4_reanalisis.py` | 12 | Validación de entradas, código de salida 2, reanálisis de Unity = corrida directa |
-| `test_h5_armadura.py` | 2 | Curva P-M regenerada y DCR menor con más armadura |
+| `test_h5_armadura.py` | 3 | Curva P-M regenerada, DCR menor con más armadura y capacidad conservada al cambiar la sección |
 
 **QA del modelo** (`qa_semana06.py`, evidencia en `Proyecto1/resultados/qa_semana06.json`): equilibrio de G, Q, EX y EY; superposición; T*, C y Σ F = Q0 de la NCh433; convergencia M-φ; P-M de columnas y muros; IDs de Unity únicos y completos.
 
@@ -459,6 +510,8 @@ La app Android (`P1G4_AR.apk`, ARCore) muestra el modelo y sus resultados sobre 
 ---
 
 ## 19. Limitaciones
+
+*Tabla 19.1: Limitaciones del modelo y del análisis*
 
 | Limitación | Efecto | Cómo se trata |
 |---|---|---|
@@ -486,12 +539,13 @@ Usamos Claude Code (Anthropic) como agente de programación durante todo el proy
 - los scripts Python de modelo, cargas, sismo, capacidad y lectura de los DXF;
 - el exportador y la validación de entradas;
 - los scripts C# de Unity y de la AR;
-- los tests;
-- los borradores de los informes.
+- los tests.
 
 El grupo definió qué hacer y con qué criterio, contrastó los resultados con los planos y la norma, probó en el viewer y en el teléfono, y aceptó o rechazó cada cambio.
 
 **Errores detectados en el trabajo del agente:**
+
+*Tabla 20.1: Errores detectados en el trabajo del agente*
 
 | Error | Cómo se detectó | Corrección |
 |---|---|---|
@@ -508,7 +562,7 @@ El grupo definió qué hacer y con qué criterio, contrastó los resultados con 
 - equilibrio y superposición;
 - cálculos a mano: C de la NCh433, φM_n de E1_62, A_st y P0 de muros y columnas;
 - comparación con los planos: armadura, muros y ejes;
-- 55 tests automáticos (sección 18).
+- 56 tests automáticos (sección 18).
 
 **Contribución real del agente.** Aceleró mucho la implementación y la lectura de los planos DXF; manualmente, leer 1 546 grupos de barras no habría sido viable. También cometió errores de criterio estructural, que encontramos revisando los resultados y no el código. La responsabilidad de las decisiones y de los números es del grupo.
 
@@ -559,6 +613,8 @@ Postulamos a **H4** y **H5**. El núcleo no tiene errores graves en equilibrio, 
 
 Unity envía los cambios a Python y OpenSees y recibe los resultados nuevos sin cerrar el viewer.
 
+*Tabla 22.1: Requisitos del Honors H4*
+
 | Requisito | Cómo lo cumplimos | Evidencia |
 |---|---|---|
 | Unity → backend → resultados | *Reanalizar* (`AnalysisSession.cs`, `PythonJob.cs`) corre `exportar_resultados_unity.py` con los parámetros, combinaciones, secciones y armaduras editados, y recarga el JSON (unos 11 s) | Demo en vivo |
@@ -571,6 +627,8 @@ Unity envía los cambios a Python y OpenSees y recibe los resultados nuevos sin 
 
 En MODIFICAR → ARMADURA se cambian las barras de una sección o de un elemento. El reanálisis regenera la curva P-M de diseño con la armadura nueva y recalcula el DCR de todos los elementos afectados. Si el elemento tenía armadura de los planos, el panel avisa que el cambio la reemplaza.
 
+*Tabla 22.2: Requisitos del Honors H5*
+
 | Requisito | Evidencia |
 |---|---|
 | La curva se regenera con la armadura nueva | `test_curva_regenerada`: COL70/70 con 12φ25 da A_st, P0 y φP_max calculados a mano, y la misma curva que `capacidad_ha` directo |
@@ -579,3 +637,35 @@ En MODIFICAR → ARMADURA se cambian las barras de una sección o de un elemento
 
 Más allá del ejemplo del enunciado, la capacidad usa la armadura real leída de los planos, sección por sección (sección 12), y las curvas de diseño de cada muro con su malla y sus barras de borde (sección 11).
 
+
+---
+
+## Referencias bibliográficas
+
+American Concrete Institute. (2019). *Building code requirements for structural concrete (ACI 318-19) and commentary on building code requirements for structural concrete (ACI 318R-19)*. American Concrete Institute.
+
+American Institute of Steel Construction. (2016). *Specification for structural steel buildings (ANSI/AISC 360-16)*. American Institute of Steel Construction.
+
+Anthropic. (2026). *Claude Code* [Software]. https://claude.com/claude-code
+
+Google. (2026). *ARCore: Augmented images* [Documentación de software]. https://developers.google.com/ar
+
+Hognestad, E. (1951). *A study of combined bending and axial load in reinforced concrete members* (Bulletin N° 399). University of Illinois Engineering Experiment Station.
+
+Instituto Nacional de Normalización. (2009). *NCh433.Of1996 Mod. 2009: Diseño sísmico de edificios*. INN.
+
+Instituto Nacional de Normalización. (2017). *NCh3171: Diseño estructural. Disposiciones generales y combinaciones de carga*. INN.
+
+McKenna, F., Scott, M. H. y Fenves, G. L. (2010). Nonlinear finite-element analysis software architecture using object composition. *Journal of Computing in Civil Engineering, 24*(1), 95–107.
+
+Ministerio de Vivienda y Urbanismo. (2011). *Decreto Supremo N° 61: Reglamento que fija el diseño sísmico de edificios*. Diario Oficial de la República de Chile.
+
+Unity Technologies. (2026). *Unity 6 manual y AR Foundation* [Documentación de software]. https://docs.unity3d.com
+
+Universidad de los Andes. (2017). *Planos estructurales 2017_67* [Planos DXF].
+
+Universidad de los Andes. (2024). *Planos estructurales 2024_22* [Planos DXF].
+
+Valenzuela, P. (2026). *Modelos ETABS: LT1 y LT2. Resultados para comparar con sus modelos* [resumen_modelos]. Universidad de los Andes.
+
+Zhu, M., McKenna, F. y Scott, M. H. (2018). OpenSeesPy: Python library for the OpenSees finite element framework. *SoftwareX, 7*, 6–11.

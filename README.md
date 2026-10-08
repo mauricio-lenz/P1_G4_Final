@@ -56,7 +56,7 @@ El segundo lee las elevaciones 300-310 (2017_67) y 300-305 (2024_22). Saca las b
 **3. Ejecutar los tests y el QA.**
 
 ```bat
-python -m pytest                  :: 55 tests, unos 75 s
+python -m pytest                  :: 56 tests, unos 75 s
 python -m pytest -m "not lento"   :: sin las corridas completas del exportador, unos 10 s
 python -X utf8 Proyecto1\scripts\qa_semana06.py          :: evidencia en Proyecto1/resultados/qa_semana06.json
 python -X utf8 Proyecto1\scripts\sensibilidad_rigidez.py :: sección bruta vs fisurada
@@ -72,12 +72,20 @@ Lo que cubren los tests:
 | `test_planos.py` | Barras de la viga E1_62 leídas de los planos y su φMn a mano, caras de apoyo, mapeo de las elevaciones, rótulos de malla y barras de borde en esquinas |
 | `test_unity_json.py` | Integridad del JSON de Unity, que coincida con OpenSees, la trazabilidad de la corrida, el panel de áreas tributarias y la flecha de vigas |
 | `test_h4_reanalisis.py` | Validación de entradas y comparación del reanálisis de Unity con la corrida directa |
-| `test_h5_armadura.py` | Que un cambio de armadura regenere la curva P-M y baje el DCR |
+| `test_h5_armadura.py` | Que un cambio de armadura regenere la curva P-M y baje el DCR, y que un cambio de sección conserve la capacidad |
+
+**Informe final.** Las figuras y cifras del informe salen de la corrida vigente; el PDF y el Word se generan desde `reports/final.md` con Microsoft Word (Windows):
+
+```bat
+python -X utf8 Proyecto1\scripts\figuras_informe_final.py   :: figuras en reports/img/final y cifras_informe_final.json
+python -X utf8 Proyecto1\scripts\informe_a_word.py          :: reports/final.docx y reports/final.pdf
+```
 
 **4. Abrir el viewer.**
 
 - **Editor:** abrir `Proyecto1/edificio_G4` con Unity 6000.6.0f1 (o `Abrir_Unity.bat`, que usa `-force-d3d11`), cargar la escena `Assets/Scenes/StructureViewerScene` y presionar Play.
-- **Ejecutable de Windows:** `Proyecto1/edificio_G4/Builds/Windows/P1G4_Viewer.exe`, que viene en la release. Para regenerar las capturas de la demo: `P1G4_Viewer.exe -autoshot <carpeta> -demo`.
+- **Ejecutable de Windows:** `Proyecto1/edificio_G4/Builds/Windows/P1G4_Viewer.exe`. En la release `v1.0-final` viene como `P1G4_Viewer_Windows.zip`: descomprimirlo en `Proyecto1/edificio_G4/Builds/Windows/` del repositorio. Así el viewer encuentra `Proyecto1/scripts` y funcionan *Reanalizar*, *Quitar elemento* y *Carga en elemento*; fuera del repositorio solo muestra los resultados. Para regenerar las capturas de la demo: `P1G4_Viewer.exe -autoshot <carpeta> -demo`.
+- **Android:** la release trae `P1G4_AR.apk` (realidad aumentada) y `P1G4_Viewer.apk` (viewer en el teléfono, sin las funciones que llaman a Python). Se instalan con `adb install -r <apk>`.
 - **Pestañas:**
   - VISTA: capas de ejes, diafragmas, cargas, apoyos y tributarias.
   - RESULTADOS: diagramas, deformada, superposición y utilización.

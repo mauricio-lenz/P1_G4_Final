@@ -6,3 +6,4 @@ openpyxl==3.1.5         # exportar_excel_esfuerzos.py
 pillow==12.3.0          # generar_marcador_ar.py (marcador AR)
 ezdxf==1.4.4            # lectura de los planos DXF (generar_ejes_grilla.py); los DXF no estan en el repo
 pytest==9.1.1           # tests (python -m pytest)
+python-docx==1.2.0     # informe_a_word.py (informe final .docx/.pdf; el PDF lo exporta Word)
